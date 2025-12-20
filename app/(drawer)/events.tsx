@@ -2,8 +2,9 @@ import { View, Text, FlatList, TouchableOpacity, Alert, Platform } from 'react-n
 import { useState, useMemo } from 'react';
 import { useContentStore } from '@/store/contentStore';
 import { useRouter, Link } from 'expo-router';
-import { AppEvent, AppEventType, Routine } from '@/store/types';
+import { AppEvent, AppEventType, Routine, Person } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 
 type ScheduleFilter = AppEventType | 'practice';
 
@@ -17,7 +18,7 @@ interface UnifiedItem {
 }
 
 export default function ScheduleScreen() {
-    const { events = [], routines = [], deleteEvent } = useContentStore();
+    const { events = [], routines = [], people = [], settings, deleteEvent } = useContentStore();
     const router = useRouter();
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [activeFilters, setActiveFilters] = useState<ScheduleFilter[]>(['performance', 'lesson', 'rehearsal', 'practice']);
@@ -143,6 +144,50 @@ export default function ScheduleScreen() {
         return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     };
 
+    const handleMessage = (event: AppEvent) => {
+        const personnel = (event.personnelIds || [])
+            .map(id => people.find(p => p.id === id))
+            .filter((p): p is Person => !!p);
+
+        if (personnel.length === 0) {
+            Alert.alert('No Personnel', 'This event has no people linked to it.');
+            return;
+        }
+
+        const phoneNumbers = personnel
+            .map(p => p.phone)
+            .filter((phone): phone is string => !!phone);
+
+        if (phoneNumbers.length === 0) {
+            Alert.alert('No Phone Numbers', 'None of the linked personnel have phone numbers saved.');
+            return;
+        }
+
+        const templates = settings?.messageTemplates || [];
+        if (templates.length === 0) {
+            // Default iMessage behavior
+            const recipients = phoneNumbers.join(',');
+            Linking.openURL(`sms:${recipients}`);
+            return;
+        }
+
+        Alert.alert(
+            'Message Group',
+            'Choose a template to send to the group:',
+            [
+                ...templates.map(tmp => ({
+                    text: tmp,
+                    onPress: () => {
+                        const recipients = phoneNumbers.join(',');
+                        const message = tmp.replace('{event}', event.title).replace('{time}', formatDisplayTime(event.time));
+                        Linking.openURL(`sms:${recipients}${Platform.OS === 'ios' ? '&' : '?'}body=${encodeURIComponent(message)}`);
+                    }
+                })),
+                { text: 'Cancel', style: 'cancel' } as const
+            ]
+        );
+    };
+
     const getBadge = (type: ScheduleFilter) => {
         switch (type) {
             case 'performance': return { label: 'Gig', color: 'bg-blue-100 text-blue-700', icon: '🎸' };
@@ -199,6 +244,30 @@ export default function ScheduleScreen() {
                             <Text className="text-xs font-bold text-gray-600">{formatDisplayTime(item.time)}</Text>
                         </View>
                     </View>
+
+                    {!isRoutine && (item.originalItem as AppEvent).personnelIds && (item.originalItem as AppEvent).personnelIds!.length > 0 && (
+                        <View className="mt-4 flex-row items-center justify-between border-t border-gray-50 pt-3">
+                            <View className="flex-row -space-x-2">
+                                {(item.originalItem as AppEvent).personnelIds!.slice(0, 5).map((pid, idx) => (
+                                    <View key={pid} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white items-center justify-center">
+                                        <Text className="text-[10px]">👤</Text>
+                                    </View>
+                                ))}
+                                {(item.originalItem as AppEvent).personnelIds!.length > 5 && (
+                                    <View className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white items-center justify-center">
+                                        <Text className="text-[10px] font-bold">+{(item.originalItem as AppEvent).personnelIds!.length - 5}</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => handleMessage(item.originalItem as AppEvent)}
+                                className="flex-row items-center bg-blue-50 px-4 py-2 rounded-full border border-blue-100"
+                            >
+                                <Ionicons name="chatbubble-outline" size={14} color="#2563eb" />
+                                <Text className="text-blue-600 font-bold text-xs ml-1.5">Message All</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </TouchableOpacity>
 
                 {!isRoutine && (

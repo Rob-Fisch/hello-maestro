@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Image, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useContentStore } from '@/store/contentStore';
-import { AppEvent, AppEventType, Routine } from '@/store/types';
+import { AppEvent, AppEventType, Routine, Person } from '@/store/types';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -11,7 +11,7 @@ export default function EventEditor() {
     const params = useLocalSearchParams();
     const id = params.id as string | undefined;
 
-    const { routines = [], events = [], addEvent, updateEvent } = useContentStore();
+    const { routines = [], events = [], people = [], addEvent, updateEvent } = useContentStore();
     const existingEvent = id ? events.find((e) => e.id === id) : undefined;
     const isEditing = !!existingEvent;
 
@@ -29,7 +29,13 @@ export default function EventEditor() {
         existingEvent?.routines || []
     );
 
+    // selectedPersonnelIds stores the IDs of people linked to this event
+    const [selectedPersonnelIds, setSelectedPersonnelIds] = useState<string[]>(
+        existingEvent?.personnelIds || []
+    );
+
     const [searchQuery, setSearchQuery] = useState('');
+    const [personSearchQuery, setPersonSearchQuery] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -66,6 +72,27 @@ export default function EventEditor() {
             );
     }, [routines, selectedRoutineIds, searchQuery]);
 
+    // PERSONNEL LOGIC
+    const selectedPersonnel = useMemo(() => {
+        return selectedPersonnelIds
+            .map(pid => people.find(p => p.id === pid))
+            .filter((p): p is Person => !!p);
+    }, [selectedPersonnelIds, people]);
+
+    const availablePersonnel = useMemo(() => {
+        return people
+            .filter(p => !selectedPersonnelIds.includes(p.id))
+            .filter(p => p.name.toLowerCase().includes(personSearchQuery.toLowerCase()));
+    }, [people, selectedPersonnelIds, personSearchQuery]);
+
+    const addPersonToEvent = (personId: string) => {
+        setSelectedPersonnelIds([...selectedPersonnelIds, personId]);
+    };
+
+    const removePersonFromEvent = (personId: string) => {
+        setSelectedPersonnelIds(selectedPersonnelIds.filter(id => id !== personId));
+    };
+
     const addRoutineToEvent = (routineId: string) => {
         setSelectedRoutineIds([...selectedRoutineIds, routineId]);
     };
@@ -90,6 +117,7 @@ export default function EventEditor() {
             date: isRecurring ? startDate : date,
             time,
             routines: selectedRoutineIds,
+            personnelIds: selectedPersonnelIds,
             notes: notes.trim() || undefined,
             fee: fee.trim() || undefined,
             studentName: type === 'lesson' ? studentName.trim() || undefined : undefined,
@@ -195,6 +223,47 @@ export default function EventEditor() {
                 <View className="flex-1">
                     <Text className="font-bold text-foreground text-base" numberOfLines={1}>{item.title}</Text>
                     <Text className="text-xs text-muted-foreground" numberOfLines={1}>{item.blocks.length} Items</Text>
+                </View>
+            </View>
+            <View className="bg-green-50 w-8 h-8 rounded-full items-center justify-center">
+                <Text className="text-green-600 font-bold text-xl">+</Text>
+            </View>
+        </TouchableOpacity>
+    );
+
+    const renderPersonnelItem = (person: Person) => (
+        <View
+            key={person.id}
+            className="mb-2 p-3 rounded-2xl border bg-blue-50 border-blue-200 flex-row items-center justify-between shadow-sm"
+        >
+            <View className="flex-row items-center flex-1">
+                <View className="w-8 h-8 rounded-full bg-blue-100 items-center justify-center mr-3">
+                    <Text className="text-xs">👤</Text>
+                </View>
+                <View className="flex-1">
+                    <Text className="font-bold text-foreground text-sm" numberOfLines={1}>{person.name}</Text>
+                    <Text className="text-[10px] text-blue-600 font-medium uppercase tracking-tighter">{person.instrument || person.type}</Text>
+                </View>
+            </View>
+            <TouchableOpacity onPress={() => removePersonFromEvent(person.id)} className="p-2 ml-2">
+                <Text className="text-red-500 font-bold">✕</Text>
+            </TouchableOpacity>
+        </View>
+    );
+
+    const renderAvailablePersonItem = (person: Person) => (
+        <TouchableOpacity
+            key={person.id}
+            onPress={() => addPersonToEvent(person.id)}
+            className="p-4 mb-3 rounded-2xl border bg-card border-border flex-row justify-between items-center shadow-sm"
+        >
+            <View className="flex-row items-center flex-1">
+                <View className="w-10 h-10 rounded-xl bg-blue-50 items-center justify-center mr-3">
+                    <Text className="text-lg">👤</Text>
+                </View>
+                <View className="flex-1">
+                    <Text className="font-bold text-foreground text-base" numberOfLines={1}>{person.name}</Text>
+                    <Text className="text-xs text-muted-foreground" numberOfLines={1}>{person.instrument || person.type}</Text>
                 </View>
             </View>
             <View className="bg-green-50 w-8 h-8 rounded-full items-center justify-center">
@@ -456,6 +525,21 @@ export default function EventEditor() {
                         />
                     </View>
 
+                    {/* Personnel Section */}
+                    <View className="flex-row justify-between items-center mb-4 px-1">
+                        <Text className="text-xl font-bold tracking-tight">Personnel / Lineup</Text>
+                    </View>
+
+                    <View className="min-h-[60px] mb-8">
+                        {selectedPersonnel.length > 0 ? (
+                            selectedPersonnel.map(person => renderPersonnelItem(person))
+                        ) : (
+                            <View className="border-2 border-dashed border-blue-200 bg-blue-50/30 rounded-3xl p-6 items-center">
+                                <Text className="text-blue-400 font-bold text-center">No personnel added. Link band members or students below.</Text>
+                            </View>
+                        )}
+                    </View>
+
                     {/* Event Notes Section - Full Width & Bottom-ish */}
                     <View className="bg-card p-5 rounded-3xl border border-border shadow-sm mb-8">
                         <Text className="text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Detailed Event Notes</Text>
@@ -467,6 +551,30 @@ export default function EventEditor() {
                             multiline
                             textAlignVertical="top"
                         />
+                    </View>
+
+                    {/* Add Personnel from Library */}
+                    <Text className="text-xl font-bold tracking-tight mb-4 px-1">Add Personnel</Text>
+                    <View className="flex-row items-center bg-card border border-border rounded-2xl px-4 py-3 mb-5 shadow-sm">
+                        <Text className="mr-3 text-lg">🔍</Text>
+                        <TextInput
+                            className="flex-1 text-foreground font-medium py-1"
+                            placeholder="Search people..."
+                            value={personSearchQuery}
+                            onChangeText={setPersonSearchQuery}
+                        />
+                    </View>
+
+                    <View className="mb-8">
+                        {availablePersonnel.length > 0 ? (
+                            availablePersonnel.map(person => renderAvailablePersonItem(person))
+                        ) : (
+                            <View className="p-4 items-center border border-dashed border-border rounded-2xl">
+                                <Text className="text-center text-muted-foreground font-medium">
+                                    {people.length === 0 ? "No people in library. Add contacts in 'People' tab." : "No matching contacts found."}
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Library (Routines) */}
