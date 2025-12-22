@@ -35,6 +35,21 @@ export interface Routine {
     createdAt: string;
 }
 
+export type BookingStatus = 'open' | 'invited' | 'confirmed' | 'declined' | 'cancelled';
+
+
+export interface BookingSlot {
+    id: string;
+    role: string; // e.g. "Lead Sax", "Rhythm Section"
+    instruments: string[]; // required instruments for this slot
+    status: BookingStatus;
+    musicianId?: string; // Links to Person ID
+    invitedAt?: string; // Timestamp
+    confirmedAt?: string;
+    notes?: string;
+    fee?: string;
+}
+
 export type AppEventType = 'performance' | 'lesson' | 'rehearsal' | 'other';
 
 export interface AppEvent {
@@ -42,14 +57,18 @@ export interface AppEvent {
     type: AppEventType;
     title: string;
     venue: string;
-    date: string; // Keep for backward compatibility/single date
+    date: string; // YYYY-MM-DD
     time: string;
+    slots: BookingSlot[]; // Replaces personnelIds/routines for roster view
     routines: string[]; // Array of Routine IDs
+    duration?: number; // Duration in minutes
+    personnelIds?: string[]; // Deprecated: Use slots instead
     notes?: string;
-    fee?: string;
-    studentName?: string; // Specific for lessons
-    schedule?: Schedule; // New for recurring events
-    personnelIds?: string[]; // IDs of people (band members, etc.)
+    fee?: string; // Total fee (legacy/compatibility)
+    totalFee?: string;
+    musicianFee?: string;
+    studentName?: string;
+    schedule?: Schedule;
     createdAt: string;
 }
 
@@ -62,14 +81,22 @@ export type PersonType = 'student' | 'musician' | 'venue_manager' | 'fan' | 'oth
 
 export interface Person {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
+
     type: PersonType;
     email?: string;
     phone?: string;
+    verifiedPhone?: string; // Explicitly marked as mobile/SMS ready
+    instruments: string[]; // List of instruments they play
     notes?: string;
-    instrument?: string; // Added based on typical musician needs
+    instrument?: string; // deprecated, use instruments
+    source: 'maestro' | 'native';
+    nativeId?: string;
     createdAt: string;
 }
+
+
 
 export interface CalendarEvent {
     id: string;
@@ -80,8 +107,76 @@ export interface CalendarEvent {
     completed: boolean;
 }
 
+export type AppTheme = 'vibrant' | 'midnight' | 'zen';
+
 export interface UserSettings {
     includeTOC: boolean;
     messageTemplates: string[];
+    theme: AppTheme;
 }
+
+export interface UserProfile {
+    id: string;
+    email: string;
+    displayName?: string;
+    avatarUrl?: string;
+    lastSyncedAt?: string;
+}
+
+export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';
+
+export interface PathNode {
+    id: string;
+    label: string;
+    description?: string;
+    x: number;
+    y: number;
+    routineId?: string; // Integration with Routines
+    referenceUrl?: string; // Link to YouTube, LinkedIn Learning, etc.
+}
+
+export interface PathEdge {
+    id: string;
+    source: string; // node id
+    target: string; // node id
+}
+
+export interface LearningPath {
+    id: string;
+    ownerId: string;
+    title: string;
+    description?: string;
+    treeData: {
+        nodes: PathNode[];
+        edges: PathEdge[];
+    };
+    routineId?: string; // Global routine for the path
+    forkedFromId?: string;
+    rootOriginId?: string;
+    originatorName?: string;
+    originatorPathTitle?: string;
+    isPublic: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UserProgress {
+    id: string;
+    userId: string;
+    pathId: string;
+    nodeId: string;
+    completedAt: string;
+}
+
+export interface ProofOfWork {
+    id: string;
+    userId: string;
+    pathId: string;
+    nodeId: string;
+    proofUrl: string;
+    proofType?: 'github' | 'youtube' | 'dropbox' | 'website' | 'other';
+    notes?: string;
+    createdAt: string;
+}
+
 

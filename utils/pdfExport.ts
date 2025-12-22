@@ -15,7 +15,25 @@ const base64ToUint8Array = (base64: string) => {
 };
 
 export const resolveFileUri = async (uri: string): Promise<string | null> => {
-    if (!uri || (Platform.OS as any) === 'web' || uri.startsWith('http') || uri.startsWith('data:')) return uri;
+    if (!uri || uri.startsWith('data:')) return uri;
+    if ((Platform.OS as any) === 'web') return uri;
+
+    // Handle Remote Cloud URIs
+    if (uri.startsWith('http')) {
+        try {
+            const filename = uri.split('/').pop()?.split('?')[0] || 'remote_file';
+            const cachePath = `${FileSystem.cacheDirectory}${filename}`;
+            const info = await FileSystem.getInfoAsync(cachePath);
+            if (info.exists) return cachePath;
+
+            await FileSystem.downloadAsync(uri, cachePath);
+            return cachePath;
+        } catch (e) {
+            console.warn('Failed to download remote file:', uri, e);
+            return uri; // Fallback to raw URL
+        }
+    }
+
 
     let cleanUri = uri;
     try {
@@ -59,7 +77,15 @@ export const resolveFileUri = async (uri: string): Promise<string | null> => {
 const getBase64 = async (uri: string) => {
     const resolvedUri = await resolveFileUri(uri);
     if (!resolvedUri) return null;
-    if (resolvedUri.startsWith('http') || resolvedUri.startsWith('data:')) return resolvedUri;
+    if (resolvedUri.startsWith('data:')) return resolvedUri;
+
+    // If it's still a remote URL after resolve (failed download), we can't get base64 easily via FS
+    if (resolvedUri.startsWith('http')) {
+        // We could try to fetch and convert here, but resolveFileUri should have handled it.
+        // If it didn't, we return the URL and hope the consumer can handle it.
+        return resolvedUri;
+    }
+
 
     try {
         const base64 = await FileSystem.readAsStringAsync(resolvedUri, { encoding: 'base64' });

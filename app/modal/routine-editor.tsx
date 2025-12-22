@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, FlatList, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useContentStore } from '@/store/contentStore';
 import { Routine, ContentBlock, Schedule, Category } from '@/store/types';

@@ -1,44 +1,93 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, KeyboardAvoidingView } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { router, useGlobalSearchParams } from 'expo-router';
 import { useContentStore } from '@/store/contentStore';
 import { Person, PersonType } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
+import * as Contacts from 'expo-contacts';
 
 export default function PersonEditor() {
-    const router = useRouter();
-    const params = useLocalSearchParams();
-    const id = params.id as string | undefined;
+    // Standard params hook
+    const params = useGlobalSearchParams();
+    const id = typeof params.id === 'string' ? params.id : undefined;
 
     const { people = [], addPerson, updatePerson } = useContentStore();
     const existingPerson = id ? people.find((p) => p.id === id) : undefined;
     const isEditing = !!existingPerson;
 
-    const [name, setName] = useState(existingPerson?.name || '');
-    const [type, setType] = useState<PersonType>(existingPerson?.type || 'student');
-    const [email, setEmail] = useState(existingPerson?.email || '');
-    const [phone, setPhone] = useState(existingPerson?.phone || '');
-    const [instrument, setInstrument] = useState(existingPerson?.instrument || '');
-    const [notes, setNotes] = useState(existingPerson?.notes || '');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [type, setType] = useState<PersonType>('student');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [instrument, setInstrument] = useState('');
+    const [instruments, setInstruments] = useState<string[]>([]);
+    const [verifiedPhone, setVerifiedPhone] = useState('');
+    const [notes, setNotes] = useState('');
+    const [source, setSource] = useState<'maestro' | 'native'>('maestro');
+    const [nativeId, setNativeId] = useState<string | undefined>(undefined);
+
+
+    // Initial state setup after hydration/mounting
+    useEffect(() => {
+        if (existingPerson) {
+            setFirstName(existingPerson.firstName || '');
+            setLastName(existingPerson.lastName || '');
+            setType(existingPerson.type || 'student');
+            setEmail(existingPerson.email || '');
+            setPhone(existingPerson.phone || '');
+            setInstrument(existingPerson.instrument || '');
+            setInstruments(existingPerson.instruments || []);
+            setVerifiedPhone(existingPerson.verifiedPhone || '');
+            setNotes(existingPerson.notes || '');
+            setSource(existingPerson.source || 'maestro');
+            setNativeId(existingPerson.nativeId);
+
+        }
+    }, [id, existingPerson]);
+
+    const pickContact = async () => {
+        try {
+            const { status } = await Contacts.requestPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'OpusMode needs contact permission.');
+                return;
+            }
+            const contact = await Contacts.presentContactPickerAsync();
+            if (contact) {
+                setFirstName(contact.firstName || '');
+                setLastName(contact.lastName || '');
+                if (contact.emails && contact.emails.length > 0) setEmail(contact.emails[0].email || '');
+                if (contact.phoneNumbers && contact.phoneNumbers.length > 0) setPhone(contact.phoneNumbers[0].number || '');
+                setSource('native');
+                setNativeId(contact.id);
+            }
+        } catch (e) {
+            Alert.alert('Error', 'Could not open contact picker.');
+        }
+    };
 
     const handleSave = () => {
-        if (!name.trim()) {
-            const msg = 'Please enter a name';
-            if (Platform.OS === 'web') alert(msg);
-            else Alert.alert('Error', msg);
+        if (!firstName.trim()) {
+            Alert.alert('Error', 'Please enter a first name');
             return;
         }
 
         const personData: Person = {
             id: id || Date.now().toString(),
-            name: name.trim(),
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
             type,
             email: email.trim() || undefined,
             phone: phone.trim() || undefined,
-            instrument: instrument.trim() || undefined,
+            verifiedPhone: verifiedPhone.trim() || undefined,
+            instruments: instruments.length > 0 ? instruments : (instrument ? [instrument] : []),
             notes: notes.trim() || undefined,
+            source,
+            nativeId,
             createdAt: existingPerson?.createdAt || new Date().toISOString(),
         };
+
 
         if (isEditing && id) {
             updatePerson(id, personData);
@@ -51,120 +100,100 @@ export default function PersonEditor() {
     const personTypes: { key: PersonType; label: string; icon: string }[] = [
         { key: 'student', label: 'Student', icon: 'graduation-cap' },
         { key: 'musician', label: 'Musician', icon: 'musical-notes' },
-        { key: 'venue_manager', label: 'Venue Manager', icon: 'business' },
+        { key: 'venue_manager', label: 'Manager', icon: 'business' },
         { key: 'fan', label: 'Fan', icon: 'heart' },
         { key: 'other', label: 'Other', icon: 'person' },
     ];
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1 bg-background"
-        >
-            {/* Header */}
-            <View className="px-6 pt-12 pb-4 border-b border-border flex-row justify-between items-center bg-background">
-                <View>
-                    <Text className="text-2xl font-bold tracking-tight">{isEditing ? 'Edit Contact' : 'New Contact'}</Text>
-                </View>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-white">
+            <View className="px-6 pt-12 pb-4 border-b border-gray-100 flex-row justify-between items-center">
+                <Text className="text-2xl font-bold">{isEditing ? 'Edit Contact' : 'New Contact'}</Text>
                 <TouchableOpacity onPress={() => router.back()} className="bg-gray-100 px-4 py-2 rounded-full">
                     <Text className="text-gray-600 font-bold">Cancel</Text>
                 </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-                <View className="p-6">
-                    {/* Role Selection */}
-                    <Text className="text-[10px] uppercase font-black text-muted-foreground mb-3 tracking-widest px-1">Contact Role</Text>
-                    <View className="flex-row flex-wrap gap-2 mb-8">
-                        {personTypes.map((t) => (
-                            <TouchableOpacity
-                                key={t.key}
-                                onPress={() => setType(t.key)}
-                                className={`flex-row items-center px-4 py-3 rounded-2xl border ${type === t.key ? 'bg-blue-600 border-blue-600 shadow-md shadow-blue-200' : 'bg-card border-border'}`}
-                            >
-                                <Ionicons name={t.icon as any} size={16} color={type === t.key ? 'white' : '#6b7280'} />
-                                <Text className={`ml-2 text-xs font-bold ${type === t.key ? 'text-white' : 'text-gray-500'}`}>
-                                    {t.label}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+            <ScrollView className="flex-1 p-6" keyboardShouldPersistTaps="handled">
+                {!isEditing && (
+                    <TouchableOpacity onPress={pickContact} className="bg-blue-50 p-4 rounded-2xl flex-row items-center justify-center mb-8 border border-blue-100">
+                        <Ionicons name="person-add" size={20} color="#2563eb" />
+                        <Text className="text-blue-600 font-bold ml-2">Import from Contacts</Text>
+                    </TouchableOpacity>
+                )}
 
-                    {/* Form Card */}
-                    <View className="bg-card p-6 rounded-[40px] border border-border shadow-sm mb-10">
-                        <View className="mb-6">
-                            <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Full Name</Text>
-                            <TextInput
-                                className="text-xl font-bold text-foreground py-2"
-                                placeholder="Jimi Hendrix"
-                                value={name}
-                                onChangeText={setName}
-                            />
+                <View className="flex-row flex-wrap gap-2 mb-8">
+                    {personTypes.map((t) => (
+                        <TouchableOpacity
+                            key={t.key}
+                            onPress={() => setType(t.key)}
+                            className={`flex-row items-center px-4 py-3 rounded-2xl border ${type === t.key ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-200'}`}
+                        >
+                            <Ionicons name={t.icon as any} size={16} color={type === t.key ? 'white' : '#6b7280'} />
+                            <Text className={`ml-2 text-xs font-bold ${type === t.key ? 'text-white' : 'text-gray-500'}`}>{t.label}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                <View className="bg-gray-50 p-6 rounded-[32px] border border-gray-100 mb-6">
+                    <View className="flex-row gap-4 mb-6">
+                        <View className="flex-1">
+                            <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">First Name</Text>
+                            <TextInput className="text-xl font-bold py-1 border-b border-gray-200" value={firstName} onChangeText={setFirstName} />
                         </View>
-
-                        {(type === 'student' || type === 'musician') && (
-                            <View className="mb-6">
-                                <Text className="text-[10px] uppercase font-black text-blue-600 mb-1 tracking-widest">Instrument</Text>
-                                <TextInput
-                                    className="text-lg font-semibold text-foreground py-2"
-                                    placeholder="Guitar, Piano, etc."
-                                    value={instrument}
-                                    onChangeText={setInstrument}
-                                />
-                            </View>
-                        )}
-
-                        <View className="mb-6">
-                            <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Email Address</Text>
-                            <TextInput
-                                className="text-lg font-semibold text-foreground py-2"
-                                placeholder="name@example.com"
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
-                        </View>
-
-                        <View className="mb-6">
-                            <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Phone Number</Text>
-                            <TextInput
-                                className="text-lg font-semibold text-foreground py-2"
-                                placeholder="+1 (555) 000-0000"
-                                value={phone}
-                                onChangeText={setPhone}
-                                keyboardType="phone-pad"
-                            />
+                        <View className="flex-1">
+                            <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Last Name</Text>
+                            <TextInput className="text-xl font-bold py-1 border-b border-gray-200" value={lastName} onChangeText={setLastName} />
                         </View>
                     </View>
 
-                    {/* Notes */}
-                    <View className="bg-card p-6 rounded-[40px] border border-border shadow-sm mb-32">
-                        <Text className="text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Notes & Details</Text>
+                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Email</Text>
+                    <TextInput className="text-lg font-semibold py-1 mb-4 border-b border-gray-100" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+
+                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">General Phone</Text>
+                    <TextInput className="text-lg font-semibold py-1 mb-4 border-b border-gray-100" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+
+                    <View className="mb-4">
+                        <View className="flex-row items-center mb-1">
+                            <Text className="text-[10px] uppercase font-black text-blue-600 tracking-widest">OpusMode-Verified Mobile (SMS)</Text>
+                            <Ionicons name="checkmark-circle" size={12} color="#2563eb" style={{ marginLeft: 4 }} />
+                        </View>
                         <TextInput
-                            className="text-base text-foreground min-h-[120px]"
-                            placeholder="Add specifics about this contact, like student goals or venue booking preferences..."
-                            value={notes}
-                            onChangeText={setNotes}
-                            multiline
-                            textAlignVertical="top"
+                            className="text-lg font-bold text-blue-700 py-1 border-b border-blue-100"
+                            placeholder="Primary for Gig Requests"
+                            value={verifiedPhone}
+                            onChangeText={setVerifiedPhone}
+                            keyboardType="phone-pad"
                         />
                     </View>
-                </View>
-            </ScrollView>
 
-            {/* Save Button */}
-            <View className="absolute bottom-10 left-8 right-8 shadow-2xl shadow-blue-500/50">
-                <TouchableOpacity
-                    onPress={handleSave}
-                    className="bg-blue-600 p-6 rounded-[32px] flex-row justify-center items-center"
-                >
-                    <Ionicons name="checkmark-circle-outline" size={24} color="white" />
-                    <Text className="text-white font-black text-xl ml-2 tracking-tight">
-                        {isEditing ? 'Update' : 'Save'} Contact
-                    </Text>
+                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Instruments (Comma Separated)</Text>
+                    <TextInput
+                        className="text-lg font-semibold py-1 mb-4 border-b border-gray-100"
+                        placeholder="Piano, Guitar, Vocals..."
+                        value={instruments.join(', ')}
+                        onChangeText={(text) => setInstruments(text.split(',').map(s => s.trim()).filter(s => s !== ''))}
+                    />
+                </View>
+
+                {/* Notes Section */}
+                <View className="bg-gray-50 p-6 rounded-[32px] border border-gray-100 mb-8">
+                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-2">Private Notes</Text>
+                    <TextInput
+                        className="text-base text-gray-800 min-h-[100px]"
+                        placeholder="Booking preferences, travel info, etc..."
+                        value={notes}
+                        onChangeText={setNotes}
+                        multiline
+                        textAlignVertical="top"
+                    />
+                </View>
+
+
+                <TouchableOpacity onPress={handleSave} className="bg-blue-600 p-6 rounded-[32px] items-center mb-20 shadow-lg shadow-blue-300">
+                    <Text className="text-white font-black text-xl">{isEditing ? 'Update' : 'Save'} Contact</Text>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
         </KeyboardAvoidingView>
     );
 }

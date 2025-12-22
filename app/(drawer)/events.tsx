@@ -5,6 +5,7 @@ import { useRouter, Link } from 'expo-router';
 import { AppEvent, AppEventType, Routine, Person } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
+import { addToNativeCalendar } from '@/utils/calendar';
 
 type ScheduleFilter = AppEventType | 'practice';
 
@@ -17,11 +18,21 @@ interface UnifiedItem {
     originalItem: AppEvent | Routine;
 }
 
+import { useEffect } from 'react';
+import { useTheme } from '@/lib/theme';
+
 export default function ScheduleScreen() {
-    const { events = [], routines = [], people = [], settings, deleteEvent } = useContentStore();
+    const { events = [], routines = [], people = [], settings, deleteEvent, trackModuleUsage } = useContentStore();
+
+    useEffect(() => {
+        trackModuleUsage('events');
+    }, []);
+
     const router = useRouter();
-    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const theme = useTheme();
+
     const [activeFilters, setActiveFilters] = useState<ScheduleFilter[]>(['performance', 'lesson', 'rehearsal', 'practice']);
+
 
     const toggleFilter = (filter: ScheduleFilter) => {
         if (activeFilters.includes(filter)) {
@@ -122,7 +133,8 @@ export default function ScheduleScreen() {
 
     const handleDeleteEvent = (id: string, type: string) => {
         if (Platform.OS === 'web') {
-            setDeletingId(id);
+            const msg = `Are you sure you want to remove this ${type}?`;
+            if (confirm(msg)) deleteEvent(id);
         } else {
             Alert.alert(`Cancel ${type}`, `Are you sure you want to remove this ${type}?`, [
                 { text: 'Back', style: 'cancel' },
@@ -144,10 +156,21 @@ export default function ScheduleScreen() {
         return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     };
 
+    const getEndTime = (startTime: string, duration?: number) => {
+        if (!duration) return null;
+        const [hours, minutes] = startTime.split(':').map(Number);
+        const start = new Date();
+        start.setHours(hours, minutes, 0, 0);
+        const end = new Date(start.getTime() + duration * 60000);
+        const endHours = end.getHours().toString().padStart(2, '0');
+        const endMinutes = end.getMinutes().toString().padStart(2, '0');
+        return formatDisplayTime(`${endHours}:${endMinutes}`);
+    };
+
     const handleMessage = (event: AppEvent) => {
         const personnel = (event.personnelIds || [])
-            .map(id => people.find(p => p.id === id))
-            .filter((p): p is Person => !!p);
+            .map((id: string) => people.find((p: Person) => p.id === id))
+            .filter((p: Person | undefined): p is Person => !!p);
 
         if (personnel.length === 0) {
             Alert.alert('No Personnel', 'This event has no people linked to it.');
@@ -155,8 +178,8 @@ export default function ScheduleScreen() {
         }
 
         const phoneNumbers = personnel
-            .map(p => p.phone)
-            .filter((phone): phone is string => !!phone);
+            .map((p: Person) => p.phone)
+            .filter((phone: string | undefined): phone is string => !!phone);
 
         if (phoneNumbers.length === 0) {
             Alert.alert('No Phone Numbers', 'None of the linked personnel have phone numbers saved.');
@@ -205,7 +228,7 @@ export default function ScheduleScreen() {
         const isToday = item.date === today;
 
         return (
-            <View className={`mb-4 bg-card border ${isToday ? 'border-blue-200 shadow-blue-50' : 'border-border'} rounded-[32px] overflow-hidden shadow-sm`}>
+            <View className={`mb-4 border ${isToday ? 'shadow-blue-50' : ''} rounded-[32px] overflow-hidden shadow-sm`} style={{ backgroundColor: theme.card, borderColor: isToday ? '#bfdbfe' : theme.border }}>
                 <TouchableOpacity
                     className="p-5"
                     onPress={() => {
@@ -219,17 +242,17 @@ export default function ScheduleScreen() {
                             <View className={`self-start px-2 py-0.5 rounded-lg mb-2 ${badge.color}`}>
                                 <Text className="text-[9px] uppercase font-black tracking-widest">{badge.label}</Text>
                             </View>
-                            <Text className="text-xl font-bold text-foreground leading-tight">{item.title}</Text>
+                            <Text className="text-xl font-bold leading-tight" style={{ color: theme.text }}>{item.title}</Text>
                             {!isRoutine && (item.originalItem as AppEvent).venue && (
-                                <Text className="text-sm font-semibold text-muted-foreground mt-1">@ {(item.originalItem as AppEvent).venue}</Text>
+                                <Text className="text-sm font-semibold mt-1" style={{ color: theme.mutedText }}>@ {(item.originalItem as AppEvent).venue}</Text>
                             )}
                             {item.type === 'lesson' && (item.originalItem as AppEvent).studentName && (
                                 <Text className="text-sm font-bold text-purple-600 mt-1">Student: {(item.originalItem as AppEvent).studentName}</Text>
                             )}
                         </View>
-                        {!isRoutine && (item.originalItem as AppEvent).fee && (
+                        {!isRoutine && ((item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee) && (
                             <View className="bg-green-100 px-2 py-1 rounded-xl">
-                                <Text className="text-[10px] font-black text-green-700">{(item.originalItem as AppEvent).fee}</Text>
+                                <Text className="text-[10px] font-black text-green-700">{(item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee}</Text>
                             </View>
                         )}
                     </View>
@@ -241,14 +264,29 @@ export default function ScheduleScreen() {
                         </View>
                         <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                             <Text className="text-xs mr-2">🕒</Text>
-                            <Text className="text-xs font-bold text-gray-600">{formatDisplayTime(item.time)}</Text>
+                            <Text className="text-xs font-bold text-gray-600">
+                                {formatDisplayTime(item.time)}
+                                {item.type !== 'practice' && (item.originalItem as AppEvent).duration && (
+                                    <> - {getEndTime(item.time, (item.originalItem as AppEvent).duration!)}</>
+                                )}
+                            </Text>
                         </View>
+                        {item.type !== 'practice' && (item.originalItem as AppEvent).duration && (
+                            <View className="hidden md:flex flex-row items-center bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
+                                <Text className="text-[10px] font-bold text-blue-600">
+                                    {(item.originalItem as AppEvent).duration! < 60
+                                        ? `${(item.originalItem as AppEvent).duration}m`
+                                        : `${Math.floor((item.originalItem as AppEvent).duration! / 60)}h${(item.originalItem as AppEvent).duration! % 60 > 0 ? ` ${(item.originalItem as AppEvent).duration! % 60}m` : ''}`
+                                    }
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
                     {!isRoutine && (item.originalItem as AppEvent).personnelIds && (item.originalItem as AppEvent).personnelIds!.length > 0 && (
                         <View className="mt-4 flex-row items-center justify-between border-t border-gray-50 pt-3">
                             <View className="flex-row -space-x-2">
-                                {(item.originalItem as AppEvent).personnelIds!.slice(0, 5).map((pid, idx) => (
+                                {(item.originalItem as AppEvent).personnelIds!.slice(0, 5).map((pid: string, idx: number) => (
                                     <View key={pid} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white items-center justify-center">
                                         <Text className="text-[10px]">👤</Text>
                                     </View>
@@ -265,6 +303,13 @@ export default function ScheduleScreen() {
                             >
                                 <Ionicons name="chatbubble-outline" size={14} color="#2563eb" />
                                 <Text className="text-blue-600 font-bold text-xs ml-1.5">Message All</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => addToNativeCalendar(item.originalItem as AppEvent)}
+                                className="flex-row items-center bg-gray-50 px-4 py-2 rounded-full border border-gray-100 ml-2"
+                            >
+                                <Ionicons name="calendar-outline" size={14} color="#64748b" />
+                                <Text className="text-gray-600 font-bold text-xs ml-1.5">Add to Calendar</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -290,15 +335,15 @@ export default function ScheduleScreen() {
     ];
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1" style={{ backgroundColor: theme.background }}>
             <View className="p-8 pb-4">
                 <View className="flex-row justify-between items-center mb-8">
                     <View>
-                        <Text className="text-4xl font-black text-gray-900 tracking-tight">Schedule</Text>
-                        <Text className="text-gray-500 font-medium text-base mt-1">Your entire musical life</Text>
+                        <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Schedule</Text>
+                        <Text className="font-medium text-base mt-1" style={{ color: theme.mutedText }}>Your entire musical life</Text>
                     </View>
                     <Link href="/modal/event-editor" asChild>
-                        <TouchableOpacity className="bg-blue-600 px-6 py-4 rounded-2xl flex-row items-center shadow-lg shadow-blue-400">
+                        <TouchableOpacity className="px-6 py-4 rounded-2xl flex-row items-center shadow-lg shadow-blue-400" style={{ backgroundColor: theme.primary }}>
                             <Ionicons name="add" size={24} color="white" />
                             <Text className="text-white text-lg font-bold ml-1">New Event</Text>
                         </TouchableOpacity>
@@ -312,10 +357,14 @@ export default function ScheduleScreen() {
                             <TouchableOpacity
                                 key={opt.key}
                                 onPress={() => toggleFilter(opt.key)}
-                                className={`flex-row items-center px-5 py-2.5 rounded-full border ${isActive ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-200'}`}
+                                className={`flex-row items-center px-5 py-2.5 rounded-full border`}
+                                style={{
+                                    backgroundColor: isActive ? theme.primary : theme.card,
+                                    borderColor: isActive ? theme.primary : theme.border
+                                }}
                             >
                                 <Text className="mr-2 text-sm">{opt.icon}</Text>
-                                <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                                <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-white' : ''}`} style={{ color: isActive ? '#fff' : theme.mutedText }}>
                                     {opt.label}
                                 </Text>
                             </TouchableOpacity>

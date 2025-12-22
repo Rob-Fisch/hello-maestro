@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, Platform, Pressable, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
-const FS: any = FileSystem;
-const documentDirectory = FS.documentDirectory;
-const copyAsync = FS.copyAsync;
-
+import * as FileSystem from 'expo-file-system/legacy';
 import { useContentStore } from '@/store/contentStore';
 import { ContentBlock } from '@/store/types';
+import { uploadMediaToCloud } from '@/lib/sync';
+import { Ionicons } from '@expo/vector-icons';
+
+const FS: any = FileSystem;
+
+const documentDirectory = FS.documentDirectory;
+const copyAsync = FS.copyAsync;
 
 export default function BlockEditor() {
     const router = useRouter();
@@ -28,18 +31,40 @@ export default function BlockEditor() {
     const [linkUrl, setLinkUrl] = useState(existingBlock?.linkUrl || '');
     const [mediaUri, setMediaUri] = useState<string | undefined>(existingBlock?.mediaUri);
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+    const [uploadingMedia, setUploadingMedia] = useState(false);
+
 
     const saveToPersistentStorage = async (uri: string, originalName?: string | null) => {
         try {
             if (Platform.OS === 'web') return uri;
-            const nameToUse = originalName || uri.split('/').pop() || `file-${Date.now()}`;
-            // Ensure unique filename
-            const filename = `${Date.now()}-${nameToUse}`;
+
+            // Path Healing for iOS (Application UUID changes)
+            let sourceUri = uri;
+            if (Platform.OS === 'ios' && uri.includes('/Application/')) {
+                const docDir = documentDirectory;
+                const uuidMatch = docDir?.match(/Application\/([A-Z0-9-]+)\//);
+                if (uuidMatch && uuidMatch[1]) {
+                    const currentUuid = uuidMatch[1];
+                    const oldUuidMatch = uri.match(/Application\/([A-Z0-9-]+)\//);
+                    if (oldUuidMatch && oldUuidMatch[1] && oldUuidMatch[1] !== currentUuid) {
+                        sourceUri = uri.replace(oldUuidMatch[1], currentUuid);
+                    }
+                }
+            }
+
+            // Ensure destination filename is clean and unique
+            const baseName = originalName || sourceUri.split('/').pop() || 'file';
+            const cleanName = baseName.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+            const filename = `${Date.now()}-${cleanName}`;
             const dest = `${documentDirectory}${filename}`;
-            await copyAsync({ from: uri, to: dest });
+
+            await copyAsync({ from: sourceUri, to: dest });
             return dest;
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to save media to persistent storage:', e);
+            if (Platform.OS !== 'web') {
+                Alert.alert('Save Error', `Could not save file to local storage. ${e.message}`);
+            }
             return uri;
         }
     };
@@ -53,10 +78,25 @@ export default function BlockEditor() {
 
         if (!result.canceled) {
             const asset = result.assets[0];
+
+            // Size Check (15MB for images)
+            const MAX_SIZE = 15 * 1024 * 1024;
+            if (asset.fileSize && asset.fileSize > MAX_SIZE) {
+                Alert.alert('Image Too Large', 'To keep your cloud sync fast and free, images are limited to 15MB. Please choose a smaller photo.');
+                return;
+            }
+
             const persistentUri = await saveToPersistentStorage(asset.uri, asset.fileName);
             setMediaUri(persistentUri);
             setType('sheet_music'); // Auto-switch type
+
+            // Cloud Sync
+            setUploadingMedia(true);
+            const cloudUrl = await uploadMediaToCloud(persistentUri, asset.fileName || 'image.jpg');
+            if (cloudUrl) setMediaUri(cloudUrl);
+            setUploadingMedia(false);
         }
+
     };
 
     const takePhoto = async () => {
@@ -67,11 +107,24 @@ export default function BlockEditor() {
 
         if (!result.canceled) {
             const asset = result.assets[0];
-            // Camera doesn't always offer fileName, so we rely on URI or default
+
+            // Size Check (15MB for photos)
+            const MAX_SIZE = 15 * 1024 * 1024;
+            if (asset.fileSize && asset.fileSize > MAX_SIZE) {
+                Alert.alert('Photo Too Large', 'This photo exceeds the 15MB limit. Try lowering your camera resolution settings.');
+                return;
+            }
+
             const persistentUri = await saveToPersistentStorage(asset.uri, asset.fileName);
             setMediaUri(persistentUri);
             setType('sheet_music');
+
+            setUploadingMedia(true);
+            const cloudUrl = await uploadMediaToCloud(persistentUri, asset.fileName || 'photo.jpg');
+            if (cloudUrl) setMediaUri(cloudUrl);
+            setUploadingMedia(false);
         }
+
     };
 
     const pickDocument = async () => {
@@ -81,11 +134,27 @@ export default function BlockEditor() {
 
         if (!result.canceled) {
             const asset = result.assets[0];
+
+            // Size Check (10MB for PDFs)
+            const MAX_SIZE = 10 * 1024 * 1024;
+            const fileSize = asset.size;
+            if (fileSize && fileSize > MAX_SIZE) {
+                Alert.alert('PDF Too Large', 'PDF files are limited to 10MB to ensure your repertoire packet exports smoothly.');
+                return;
+            }
+
             const persistentUri = await saveToPersistentStorage(asset.uri, asset.name);
             setMediaUri(persistentUri);
             setType('sheet_music');
+
+            setUploadingMedia(true);
+            const cloudUrl = await uploadMediaToCloud(persistentUri, asset.name);
+            if (cloudUrl) setMediaUri(cloudUrl);
+            setUploadingMedia(false);
         }
+
     };
+
 
     const handleSave = () => {
         if (!title.trim()) {
@@ -124,7 +193,7 @@ export default function BlockEditor() {
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 20 }}
             >
-                <Text className="text-2xl font-bold mb-6">{isEditing ? 'Edit Content Block' : 'New Content Block'}</Text>
+                <Text className="text-2xl font-bold mb-6">{isEditing ? 'Edit Activity' : 'New Activity'}</Text>
 
                 {/* Title Input */}
                 <View className="mb-4">
@@ -225,51 +294,67 @@ export default function BlockEditor() {
                 </View>
 
                 {/* Media Attachments */}
-                <View className="mb-6">
-                    <Text className="text-sm font-medium mb-2 text-muted-foreground">Attachments</Text>
+                {type !== 'text' && (
+                    <View className="mb-6">
+                        <Text className="text-sm font-medium mb-2 text-muted-foreground">Attachments</Text>
 
-                    <View className="flex-row gap-3 mb-3">
-                        <Pressable
-                            onPress={takePhoto}
-                            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                            className="bg-gray-100 p-3 rounded-lg items-center flex-1"
-                        >
-                            <Text>📷 Camera</Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={pickImage}
-                            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                            className="bg-gray-100 p-3 rounded-lg items-center flex-1"
-                        >
-                            <Text>🖼️ Gallery</Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={pickDocument}
-                            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                            className="bg-gray-100 p-3 rounded-lg items-center flex-1"
-                        >
-                            <Text>📄 PDF</Text>
-                        </Pressable>
-                    </View>
-
-                    {mediaUri && (
-                        <View className="bg-gray-100 p-2 rounded-lg relative">
-                            <Text className="text-xs text-gray-500 mb-1">Attached Media:</Text>
-                            {mediaUri.endsWith('.pdf') ? (
-                                <Text className="font-semibold">{mediaUri.split('/').pop()}</Text>
-                            ) : (
-                                <Image source={{ uri: mediaUri }} className="w-full h-40 rounded bg-gray-300" resizeMode="cover" />
-                            )}
+                        <View className="flex-row gap-3 mb-3">
                             <Pressable
-                                onPress={() => setMediaUri(undefined)}
+                                onPress={takePhoto}
                                 style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                className="absolute top-2 right-2 bg-red-500 w-6 h-6 rounded-full items-center justify-center"
+                                className="bg-gray-100 p-3 rounded-lg items-center flex-1"
                             >
-                                <Text className="text-white font-bold text-xs">X</Text>
+                                <Text>📷 Camera</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={pickImage}
+                                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                className="bg-gray-100 p-3 rounded-lg items-center flex-1"
+                            >
+                                <Text>🖼️ Gallery</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={pickDocument}
+                                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                className="bg-gray-100 p-3 rounded-lg items-center flex-1"
+                            >
+                                <Text>📄 PDF</Text>
                             </Pressable>
                         </View>
-                    )}
-                </View>
+
+                        {mediaUri && (
+                            <View className="bg-gray-100 p-2 rounded-lg relative">
+                                {uploadingMedia ? (
+                                    <View className="w-full h-40 items-center justify-center bg-gray-200 rounded">
+                                        <View className="bg-white/80 p-4 rounded-2xl items-center">
+                                            <Text className="text-blue-600 font-bold mb-2">Syncing with Cloud...</Text>
+                                            <Text className="text-xs text-gray-400">Puddle-Proofing Media</Text>
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <>
+                                        <Text className="text-xs text-gray-500 mb-1">Attached Media:</Text>
+                                        {mediaUri.endsWith('.pdf') ? (
+                                            <View className="flex-row items-center p-2 bg-white rounded-lg border border-gray-200">
+                                                <Ionicons name="document-text" size={24} color="#ef4444" />
+                                                <Text className="ml-2 font-semibold flex-1" numberOfLines={1}>{mediaUri.split('/').pop()}</Text>
+                                            </View>
+                                        ) : (
+                                            <Image source={{ uri: mediaUri }} className="w-full h-40 rounded bg-gray-300" resizeMode="cover" />
+                                        )}
+                                        <Pressable
+                                            onPress={() => setMediaUri(undefined)}
+                                            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                            className="absolute top-2 right-2 bg-red-500 w-6 h-6 rounded-full items-center justify-center"
+                                        >
+                                            <Text className="text-white font-bold text-xs">X</Text>
+                                        </Pressable>
+                                    </>
+                                )}
+                            </View>
+                        )}
+                    </View>
+                )}
 
                 {/* Notes Input */}
                 <View className="mb-4">
@@ -314,7 +399,7 @@ export default function BlockEditor() {
                     })}
                     className="flex-1 p-4 rounded-xl bg-blue-600 shadow-sm"
                 >
-                    <Text className="text-center font-bold text-white">Save Block</Text>
+                    <Text className="text-center font-bold text-white">Save Activity</Text>
                 </Pressable>
             </View>
         </View>
