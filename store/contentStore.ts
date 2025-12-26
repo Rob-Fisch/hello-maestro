@@ -1,61 +1,13 @@
+import { createPlatformStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { deleteFromCloud, pullFromCloud, pullProfileFromCloud, pushAllToCloud, syncToCloud } from '@/lib/sync';
 import { Alert, Platform } from 'react-native';
 import { create } from 'zustand';
-import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { useGearStore } from './gearStore';
 import { AppEvent, AppTheme, Category, ContentBlock, InteractionLog, LearningPath, Person, ProofOfWork, Routine, SessionLog, SyncStatus, UserProfile, UserProgress, UserSettings } from './types';
 
 // Platform-specific storage for Zustand persistence
-const createPlatformStorageAdapter = (): StateStorage => {
-    if (Platform.OS === 'web') {
-        // Use localStorage for web/PWA
-        return {
-            getItem: (name: string) => {
-                try {
-                    if (typeof window === 'undefined') return null;
-                    return window.localStorage.getItem(name);
-                } catch {
-                    return null;
-                }
-            },
-            setItem: (name: string, value: string) => {
-                try {
-                    if (typeof window === 'undefined') return;
-                    window.localStorage.setItem(name, value);
-                } catch { }
-            },
-            removeItem: (name: string) => {
-                try {
-                    if (typeof window === 'undefined') return;
-                    window.localStorage.removeItem(name);
-                } catch { }
-            },
-        };
-    }
-
-    // Use AsyncStorage for native platforms
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    return {
-        getItem: async (name: string) => {
-            try {
-                return await AsyncStorage.getItem(name);
-            } catch {
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string) => {
-            try {
-                await AsyncStorage.setItem(name, value);
-            } catch { }
-        },
-        removeItem: async (name: string) => {
-            try {
-                await AsyncStorage.removeItem(name);
-            } catch { }
-        },
-    };
-};
 
 
 interface ContentState {
@@ -494,7 +446,7 @@ export const useContentStore = create<ContentState>()(
         }),
         {
             name: 'maestro-content-storage',
-            storage: createJSONStorage(() => createPlatformStorageAdapter()),
+            storage: createJSONStorage(() => createPlatformStorage()),
             version: 3,
             onRehydrateStorage: () => (state) => {
                 console.log('🚀 [ContentStore] Hydration complete');

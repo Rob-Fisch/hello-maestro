@@ -1,58 +1,10 @@
+import { createPlatformStorage } from '@/lib/storage';
+import { deleteFromCloud, syncToCloud } from '@/lib/sync';
 import { create } from 'zustand';
-import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
-import { Platform } from 'react-native';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { GearAsset, PackList } from './types';
-import { syncToCloud, deleteFromCloud } from '@/lib/sync';
 
 
-// Platform-specific storage for Zustand persistence
-const createPlatformStorageAdapter = (): StateStorage => {
-    if (Platform.OS === 'web') {
-        return {
-            getItem: (name: string) => {
-                try {
-                    if (typeof window === 'undefined') return null;
-                    return window.localStorage.getItem(name);
-                } catch {
-                    return null;
-                }
-            },
-            setItem: (name: string, value: string) => {
-                try {
-                    if (typeof window === 'undefined') return;
-                    window.localStorage.setItem(name, value);
-                } catch { }
-            },
-            removeItem: (name: string) => {
-                try {
-                    if (typeof window === 'undefined') return;
-                    window.localStorage.removeItem(name);
-                } catch { }
-            },
-        };
-    }
-
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    return {
-        getItem: async (name: string) => {
-            try {
-                return await AsyncStorage.getItem(name);
-            } catch {
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string) => {
-            try {
-                await AsyncStorage.setItem(name, value);
-            } catch { }
-        },
-        removeItem: async (name: string) => {
-            try {
-                await AsyncStorage.removeItem(name);
-            } catch { }
-        },
-    };
-};
 
 interface GearState {
     assets: GearAsset[];
@@ -157,7 +109,7 @@ export const useGearStore = create<GearState>()(
         }),
         {
             name: 'maestro-gear-storage',
-            storage: createJSONStorage(() => createPlatformStorageAdapter()),
+            storage: createJSONStorage(() => createPlatformStorage()),
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
             },
