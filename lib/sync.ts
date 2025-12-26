@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work';
+export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work' | 'gear_assets' | 'pack_lists';
 
 /**
  * Helper to map camelCase local types to snake_case DB columns
@@ -41,6 +41,13 @@ function mapToDb(data: any): any {
         proofUrl: 'proof_url',
         proofType: 'proof_type',
         updatedAt: 'updated_at',
+        serialNumber: 'serial_number',
+        manufactureYear: 'manufacture_year',
+        isWishlist: 'is_wishlist',
+        loanDetails: 'loan_details',
+        eventId: 'event_id',
+        itemIds: 'item_ids',
+        checkedItemIds: 'checked_item_ids',
     };
 
 
@@ -181,6 +188,13 @@ function mapFromDb(data: any): any {
         proof_url: 'proofUrl',
         proof_type: 'proofType',
         updated_at: 'updatedAt',
+        serial_number: 'serialNumber',
+        manufacture_year: 'manufactureYear',
+        is_wishlist: 'isWishlist',
+        loan_details: 'loanDetails',
+        event_id: 'eventId',
+        item_ids: 'itemIds',
+        checked_item_ids: 'checkedItemIds',
     };
 
 
@@ -245,7 +259,7 @@ export async function pullFromCloud() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;
 
-    const tables: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'user_progress', 'proof_of_work'];
+    const tables: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'user_progress', 'proof_of_work', 'gear_assets', 'pack_lists'];
     const results: any = {};
 
     try {

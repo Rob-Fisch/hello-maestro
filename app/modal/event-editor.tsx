@@ -1,18 +1,20 @@
-import { useState, useMemo, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Modal } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useContentStore } from '@/store/contentStore';
-import { AppEvent, AppEventType, Routine, Person } from '@/store/types';
-import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { GearPackManager } from '@/components/GearPackManager';
 import { RosterManager } from '@/components/RosterManager';
-import { BookingSlot } from '@/store/types';
+import { useContentStore } from '@/store/contentStore';
+import { useGearStore } from '@/store/gearStore';
+import { AppEvent, AppEventType, BookingSlot, Person, Routine } from '@/store/types';
 import { addToNativeCalendar } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 
 export default function EventEditor() {
     const router = useRouter();
+    const navigation = useNavigation();
     const params = useLocalSearchParams();
     const id = params.id as string | undefined;
 
@@ -42,6 +44,16 @@ export default function EventEditor() {
     // slots manages the structured roster
     const [slots, setSlots] = useState<BookingSlot[]>(
         existingEvent?.slots || []
+    );
+
+    const { packLists, addPackList, updatePackList, getPackListForEvent } = useGearStore();
+    const existingPackList = id ? getPackListForEvent(id) : undefined;
+
+    const [selectedGearIds, setSelectedGearIds] = useState<string[]>(
+        existingPackList?.itemIds || []
+    );
+    const [checkedGearIds, setCheckedGearIds] = useState<string[]>(
+        existingPackList?.checkedItemIds || []
     );
 
 
@@ -139,8 +151,32 @@ export default function EventEditor() {
 
         if (isEditing && id) {
             updateEvent(id, eventData);
+            if (existingPackList) {
+                updatePackList(existingPackList.id, {
+                    itemIds: selectedGearIds,
+                    checkedItemIds: checkedGearIds
+                });
+            } else if (selectedGearIds.length > 0) {
+                addPackList({
+                    id: Date.now().toString() + 'pl',
+                    eventId: id,
+                    itemIds: selectedGearIds,
+                    checkedItemIds: checkedGearIds,
+                    additionalItems: []
+                });
+            }
         } else {
-            addEvent(eventData);
+            const newEventId = Date.now().toString();
+            addEvent({ ...eventData, id: newEventId });
+            if (selectedGearIds.length > 0) {
+                addPackList({
+                    id: Date.now().toString() + 'pl',
+                    eventId: newEventId,
+                    itemIds: selectedGearIds,
+                    checkedItemIds: checkedGearIds,
+                    additionalItems: []
+                });
+            }
         }
 
         router.back();
@@ -179,14 +215,24 @@ export default function EventEditor() {
 
 
     return (
-        <View className="flex-1 bg-background">
+        <View className="flex-1 bg-background" style={Platform.OS === 'web' ? { height: '100vh' } as any : undefined}>
             {/* Header */}
             <View className="px-6 pt-4 pb-4 border-b border-border flex-row justify-between items-center bg-background">
                 <View>
                     <Text className="text-2xl font-bold tracking-tight">{isEditing ? 'Edit Event' : 'New Event'}</Text>
                     <Text className="text-xs text-muted-foreground">{selectedRoutineIds.length} Sets Scheduled</Text>
                 </View>
-                <TouchableOpacity onPress={() => router.back()} className="bg-gray-100 px-4 py-2 rounded-full">
+                <TouchableOpacity
+                    onPress={() => {
+                        if (navigation.canGoBack()) {
+                            router.back();
+                        } else {
+                            // Fallback for web PWA if opened directly or refreshed
+                            router.replace('/(drawer)/(tabs)/schedule' as any);
+                        }
+                    }}
+                    className="bg-gray-100 px-4 py-2 rounded-full"
+                >
                     <Text className="text-gray-600 font-bold">Cancel</Text>
                 </TouchableOpacity>
             </View>
@@ -195,6 +241,9 @@ export default function EventEditor() {
                 data={selectedRoutines}
                 onDragEnd={({ data }) => setSelectedRoutineIds(data.map(r => r.id))}
                 keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                containerStyle={{ flex: 1 }}
                 ListHeaderComponent={
                     <EditorHeader
                         type={type} setType={setType} title={title} setTitle={setTitle}
@@ -207,6 +256,7 @@ export default function EventEditor() {
                         totalFee={totalFee} setTotalFee={setTotalFee} musicianFee={musicianFee}
                         setMusicianFee={setMusicianFee} formatDisplayTime={formatDisplayTime}
                         getTimeDate={getTimeDate} notes={notes}
+                        people={people}
                     />
                 }
                 ListFooterComponent={
@@ -219,6 +269,10 @@ export default function EventEditor() {
                         availablePersonnel={availablePersonnel} searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery} availableRoutines={availableRoutines}
                         addRoutineToEvent={addRoutineToEvent}
+                        selectedGearIds={selectedGearIds}
+                        setSelectedGearIds={setSelectedGearIds}
+                        checkedGearIds={checkedGearIds}
+                        setCheckedGearIds={setCheckedGearIds}
                     />
                 }
                 renderItem={({ item, drag, isActive }) => (
@@ -259,7 +313,7 @@ export default function EventEditor() {
                     className="bg-blue-600 p-5 rounded-3xl flex-row justify-center items-center"
                 >
                     <Text className="text-white font-black text-xl tracking-tight">
-                        {isEditing ? 'Update' : 'Confirm'} {type.charAt(0).toUpperCase() + type.slice(1)}
+                        {isEditing ? 'Update' : 'Save'} {type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -268,6 +322,121 @@ export default function EventEditor() {
 }
 
 // --- Specialized Components for Stability ---
+
+// --- WEB PICKER COMPONENTS ---
+const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '' }: any) => {
+    const [visible, setVisible] = useState(false);
+    const selected = options.find((o: any) => o.value == value);
+    return (
+        <>
+            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 ${labelClassName}`}>
+                <Text className="font-bold text-foreground flex-1" numberOfLines={1}>{selected ? selected.label : placeholder}</Text>
+                <Ionicons name="chevron-down" size={12} color="#94a3b8" />
+            </TouchableOpacity>
+            <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
+                <TouchableOpacity activeOpacity={1} onPress={() => setVisible(false)} className="flex-1 bg-black/50 justify-center items-center p-4">
+                    <View className="bg-white w-[80%] max-w-[300px] max-h-[70%] rounded-2xl overflow-hidden shadow-xl">
+                        <ScrollView contentContainerStyle={{ padding: 8 }}>
+                            {options.map((opt: any) => (
+                                <TouchableOpacity
+                                    key={opt.value}
+                                    onPress={() => { onChange(opt.value); setVisible(false); }}
+                                    className={`p-3 rounded-xl mb-1 ${opt.value == value ? 'bg-blue-50' : 'bg-transparent'}`}
+                                >
+                                    <Text className={`text-center font-bold ${opt.value == value ? 'text-blue-600' : 'text-gray-700'}`}>{opt.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        </>
+    );
+};
+
+const WebDatePicker = ({ date, onChange }: { date: string, onChange: (d: string) => void }) => {
+    const [yStr, mStr, dStr] = (date || '2025-01-01').split('-');
+    const y = parseInt(yStr) || new Date().getFullYear();
+    const m = parseInt(mStr) || 1;
+    const d = parseInt(dStr) || 1;
+
+    const months = [
+        { label: 'Jan', value: 1 }, { label: 'Feb', value: 2 }, { label: 'Mar', value: 3 },
+        { label: 'Apr', value: 4 }, { label: 'May', value: 5 }, { label: 'Jun', value: 6 },
+        { label: 'Jul', value: 7 }, { label: 'Aug', value: 8 }, { label: 'Sep', value: 9 },
+        { label: 'Oct', value: 10 }, { label: 'Nov', value: 11 }, { label: 'Dec', value: 12 },
+    ];
+    const days = Array.from({ length: 31 }, (_, i) => ({ label: (i + 1).toString(), value: i + 1 }));
+
+    const update = (key: 'y' | 'm' | 'd', val: any) => {
+        let ny = y, nm = m, nd = d;
+        if (key === 'y') ny = parseInt(val) || 0;
+        if (key === 'm') nm = val;
+        if (key === 'd') nd = val;
+        onChange(`${ny.toString().padStart(4, '0')}-${nm.toString().padStart(2, '0')}-${nd.toString().padStart(2, '0')}`);
+    };
+
+    return (
+        <View className="flex-row gap-1 w-full max-w-[380px]">
+            <View className="flex-[1.3]">
+                <WebSelect options={months} value={m} onChange={(v: any) => update('m', v)} />
+            </View>
+            <View className="flex-[0.9]">
+                <WebSelect options={days} value={d} onChange={(v: any) => update('d', v)} />
+            </View>
+            <View className="flex-[1.2]">
+                <TextInput
+                    className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 font-bold text-center text-foreground"
+                    value={y.toString()}
+                    keyboardType="number-pad"
+                    onChangeText={(t) => update('y', t)}
+                    maxLength={4}
+                    placeholder="YYYY"
+                />
+            </View>
+        </View>
+    );
+};
+
+const WebTimePicker = ({ time, onChange }: { time: string, onChange: (t: string) => void }) => {
+    let [h, min] = (time || '12:00').split(':').map(Number);
+    if (isNaN(h)) h = 12;
+    if (isNaN(min)) min = 0;
+
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const displayH = h % 12 || 12;
+
+    const hours = Array.from({ length: 12 }, (_, i) => ({ label: (i + 1).toString(), value: i + 1 }));
+    const minutes = [0, 15, 30, 45].map(m => ({ label: m.toString().padStart(2, '0'), value: m }));
+    const ampms = [{ label: 'AM', value: 'AM' }, { label: 'PM', value: 'PM' }];
+
+    const update = (key: 'h' | 'm' | 'ap', val: any) => {
+        let nh = displayH, nm = min, nap = ampm;
+        if (key === 'h') nh = val;
+        if (key === 'm') nm = val;
+        if (key === 'ap') nap = val;
+
+        let finalH = nh;
+        if (nap === 'PM' && finalH < 12) finalH += 12;
+        if (nap === 'AM' && finalH === 12) finalH = 0;
+
+        onChange(`${finalH.toString().padStart(2, '0')}:${nm.toString().padStart(2, '0')}`);
+    };
+
+    return (
+        <View className="flex-row gap-1 w-full max-w-[380px]">
+            <View className="flex-1">
+                <WebSelect options={hours} value={displayH} onChange={(v: any) => update('h', v)} />
+            </View>
+            <View className="flex-1">
+                <WebSelect options={minutes} value={min} onChange={(v: any) => update('m', v)} />
+            </View>
+            <View className="flex-1">
+                <WebSelect options={ampms} value={ampm} onChange={(v: any) => update('ap', v)} />
+            </View>
+        </View>
+    );
+};
 
 interface HeaderProps {
     type: AppEventType;
@@ -299,6 +468,7 @@ interface HeaderProps {
     formatDisplayTime: (t: string) => string;
     getTimeDate: () => Date;
     notes: string;
+    people: Person[];
 }
 
 const EditorHeader = ({
@@ -306,12 +476,18 @@ const EditorHeader = ({
     venue, setVenue, isRecurring, setIsRecurring, daysOfWeek, toggleDay,
     startDate, setStartDate, endDate, setEndDate, date, setDate,
     time, setTime, duration, setDuration, totalFee, setTotalFee,
-    musicianFee, setMusicianFee, formatDisplayTime, getTimeDate, notes
+    musicianFee, setMusicianFee, formatDisplayTime, getTimeDate, notes,
+    people
 }: HeaderProps) => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+    // Venue Picker State
+    const [showVenuePicker, setShowVenuePicker] = useState(false);
+    const venueManagers = useMemo(() => people.filter(p => p.type === 'venue_manager'), [people]);
+
+
 
     const onDateChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(false);
@@ -384,13 +560,58 @@ const EditorHeader = ({
                 )}
 
                 <View className="mb-5">
-                    <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Venue / Location</Text>
+                    <View className="flex-row justify-between items-center mb-1">
+                        <Text className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Venue / Location</Text>
+                        <TouchableOpacity onPress={() => setShowVenuePicker(true)} className="flex-row items-center">
+                            <Ionicons name="people-circle-outline" size={16} color="#2563eb" />
+                            <Text className="text-[10px] font-bold text-blue-600 ml-1">Select from Contacts</Text>
+                        </TouchableOpacity>
+                    </View>
                     <TextInput
                         className="text-lg font-semibold text-foreground"
                         placeholder={type === 'lesson' ? 'Studio / Zoom' : 'The Jazz Corner'}
                         value={venue}
                         onChangeText={setVenue}
                     />
+
+                    {/* Venue Picker Modal */}
+                    <Modal visible={showVenuePicker} animationType="slide" transparent>
+                        <View className="flex-1 justify-end bg-black/50">
+                            <View className="bg-white rounded-t-3xl p-6 h-[70%]">
+                                <View className="flex-row justify-between items-center mb-4">
+                                    <Text className="text-xl font-black">Select Venue Contact</Text>
+                                    <TouchableOpacity onPress={() => setShowVenuePicker(false)} className="bg-gray-100 p-2 rounded-full">
+                                        <Ionicons name="close" size={24} />
+                                    </TouchableOpacity>
+                                </View>
+                                {venueManagers.length > 0 ? (
+                                    <ScrollView>
+                                        {venueManagers.map(vm => (
+                                            <TouchableOpacity
+                                                key={vm.id}
+                                                onPress={() => {
+                                                    if (vm.venueName) setVenue(vm.venueName);
+                                                    setShowVenuePicker(false);
+                                                }}
+                                                className="p-4 border-b border-gray-100 flex-row items-center"
+                                            >
+                                                <Ionicons name="business" size={20} color="#b45309" style={{ marginRight: 12 }} />
+                                                <View>
+                                                    <Text className="font-bold text-base">{vm.venueName || 'Unknown Venue'}</Text>
+                                                    <Text className="text-sm text-gray-500">{vm.firstName} {vm.lastName} • {vm.venueLocation || 'No Loc'}</Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                ) : (
+                                    <View className="flex-1 items-center justify-center">
+                                        <Text className="text-gray-400 font-medium">No contacts marked as 'Venue Manager' found.</Text>
+                                        <TouchableOpacity onPress={() => setShowVenuePicker(false)} className="mt-4"><Text className="text-blue-500 font-bold">Close</Text></TouchableOpacity>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    </Modal>
                 </View>
 
                 <View className="mb-5 flex-row items-center justify-between border-t border-gray-50 pt-5">
@@ -426,19 +647,31 @@ const EditorHeader = ({
                         <View className="flex-row gap-4">
                             <View className="flex-1">
                                 <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Start Date</Text>
-                                <TouchableOpacity onPress={() => setShowStartDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                                    <Text className="font-bold text-foreground text-xs">{new Date(startDate).toLocaleDateString()}</Text>
-                                    <Text className="text-xs">📅</Text>
-                                </TouchableOpacity>
-                                {showStartDatePicker && <DateTimePicker value={new Date(startDate)} mode="date" display="default" onChange={onStartDateChange} />}
+                                {Platform.OS === 'web' ? (
+                                    <WebDatePicker date={startDate} onChange={setStartDate} />
+                                ) : (
+                                    <>
+                                        <TouchableOpacity onPress={() => setShowStartDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
+                                            <Text className="font-bold text-foreground text-xs">{new Date(startDate).toLocaleDateString()}</Text>
+                                            <Text className="text-xs">📅</Text>
+                                        </TouchableOpacity>
+                                        {showStartDatePicker && <DateTimePicker value={new Date(startDate)} mode="date" display="default" onChange={onStartDateChange} />}
+                                    </>
+                                )}
                             </View>
                             <View className="flex-1">
                                 <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">End Date</Text>
-                                <TouchableOpacity onPress={() => setShowEndDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                                    <Text className="font-bold text-foreground text-xs">{new Date(endDate).toLocaleDateString()}</Text>
-                                    <Text className="text-xs">📅</Text>
-                                </TouchableOpacity>
-                                {showEndDatePicker && <DateTimePicker value={new Date(endDate)} mode="date" display="default" onChange={onEndDateChange} />}
+                                {Platform.OS === 'web' ? (
+                                    <WebDatePicker date={endDate} onChange={setEndDate} />
+                                ) : (
+                                    <>
+                                        <TouchableOpacity onPress={() => setShowEndDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
+                                            <Text className="font-bold text-foreground text-xs">{new Date(endDate).toLocaleDateString()}</Text>
+                                            <Text className="text-xs">📅</Text>
+                                        </TouchableOpacity>
+                                        {showEndDatePicker && <DateTimePicker value={new Date(endDate)} mode="date" display="default" onChange={onEndDateChange} />}
+                                    </>
+                                )}
                             </View>
                         </View>
                     </View>
@@ -446,21 +679,31 @@ const EditorHeader = ({
                     <View className="flex-row gap-4 mb-5">
                         <View className="flex-1">
                             <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Date</Text>
-                            <TouchableOpacity onPress={() => setShowDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                                <Text className="font-bold text-foreground">{new Date(date).toLocaleDateString()}</Text>
-                                <Text>📅</Text>
-                            </TouchableOpacity>
-                            {showDatePicker && <DateTimePicker value={new Date(date)} mode="date" display="default" onChange={onDateChange} />}
+                            {Platform.OS === 'web' ? (
+                                <WebDatePicker date={date} onChange={setDate} />
+                            ) : (
+                                <>
+                                    <TouchableOpacity onPress={() => setShowDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
+                                        <Text className="font-bold text-foreground">{new Date(date).toLocaleDateString()}</Text>
+                                        <Text>📅</Text>
+                                    </TouchableOpacity>
+                                    {showDatePicker && <DateTimePicker value={new Date(date)} mode="date" display="default" onChange={onDateChange} />}
+                                </>
+                            )}
                         </View>
                     </View>
                 )}
 
                 <View className="mb-2">
                     <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Time</Text>
-                    <TouchableOpacity onPress={() => setShowTimePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                        <Text className="font-bold text-foreground text-center flex-1">{formatDisplayTime(time)}</Text>
-                        <Text>🕒</Text>
-                    </TouchableOpacity>
+                    {Platform.OS === 'web' ? (
+                        <WebTimePicker time={time} onChange={setTime} />
+                    ) : (
+                        <TouchableOpacity onPress={() => setShowTimePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
+                            <Text className="font-bold text-foreground text-center flex-1">{formatDisplayTime(time)}</Text>
+                            <Text>🕒</Text>
+                        </TouchableOpacity>
+                    )}
 
                     <View className="flex-row gap-4 mt-6 border-t border-gray-50 pt-5">
                         <View className="flex-[2]">
@@ -566,11 +809,16 @@ interface FooterProps {
     setSearchQuery: (q: string) => void;
     availableRoutines: Routine[];
     addRoutineToEvent: (id: string) => void;
+    selectedGearIds: string[];
+    setSelectedGearIds: (ids: string[]) => void;
+    checkedGearIds: string[];
+    setCheckedGearIds: (ids: string[]) => void;
 }
 
 const EditorFooter = ({
     slots, setSlots, people, type, title, venue, isRecurring, startDate, date, time, notes, setNotes, totalFee, musicianFee,
-    personSearchQuery, setPersonSearchQuery, availablePersonnel, searchQuery, setSearchQuery, availableRoutines, addRoutineToEvent
+    personSearchQuery, setPersonSearchQuery, availablePersonnel, searchQuery, setSearchQuery, availableRoutines, addRoutineToEvent,
+    selectedGearIds, setSelectedGearIds, checkedGearIds, setCheckedGearIds
 }: FooterProps) => (
     <View className="p-6">
         <RosterManager
@@ -579,6 +827,14 @@ const EditorFooter = ({
             availablePeople={people}
             event={{ type, title, venue, date: isRecurring ? startDate : date, time, notes, totalFee, fee: totalFee, musicianFee }}
         />
+
+        <GearPackManager
+            selectedItemIds={selectedGearIds}
+            onUpdateItems={setSelectedGearIds}
+            checkedItemIds={checkedGearIds}
+            onUpdateCheckedItems={setCheckedGearIds}
+        />
+
         <View className="bg-card p-5 rounded-3xl border border-border shadow-sm mb-8">
             <Text className="text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Detailed Event Notes</Text>
             <TextInput className="text-base text-foreground min-h-[120px]" placeholder="Add setup notes, directions, or student goals here..." value={notes} onChangeText={setNotes} multiline textAlignVertical="top" />

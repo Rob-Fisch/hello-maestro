@@ -6,12 +6,13 @@ import { AppEvent, Person, BookingSlot } from '@/store/types';
 interface SmsInviteModalProps {
     visible: boolean;
     onClose: () => void;
+    onConfirm: (musicianId: string) => void;
     event: Partial<AppEvent>;
     musician: Person;
     slot: BookingSlot;
 }
 
-export function SmsInviteModal({ visible, onClose, event, musician, slot }: SmsInviteModalProps) {
+export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, slot }: SmsInviteModalProps) {
     const [message, setMessage] = useState('');
     const [selectedPhone, setSelectedPhone] = useState(musician.verifiedPhone || musician.phone || '');
 
@@ -44,11 +45,36 @@ export function SmsInviteModal({ visible, onClose, event, musician, slot }: SmsI
             return;
         }
 
+        if (Platform.OS === 'web') {
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: `Gig Invite: ${event.title}`,
+                        text: message
+                    });
+                    onConfirm(musician.id);
+                    onClose();
+                } else {
+                    // Fallback to clipboard for Desktop Web where Share API might be missing
+                    await navigator.clipboard.writeText(`${message}\n\nTo: ${selectedPhone}`);
+                    alert('Message copied to clipboard! You can now paste it into your messaging app.');
+                    onConfirm(musician.id);
+                    onClose();
+                }
+            } catch (err) {
+                console.log('Error sharing:', err);
+                // If user cancelled share, we might not want to close/confirm, or we might.
+                // For now, let's assume if they cancelled, they might try again.
+            }
+            return;
+        }
+
         const url = `sms:${selectedPhone}${Platform.OS === 'ios' ? '&' : '?'}body=${encodeURIComponent(message)}`;
 
         try {
             const supported = await Linking.canOpenURL(url);
             if (supported) {
+                onConfirm(musician.id);
                 await Linking.openURL(url);
                 onClose();
             } else {
@@ -58,6 +84,11 @@ export function SmsInviteModal({ visible, onClose, event, musician, slot }: SmsI
             console.error('Failed to open SMS:', error);
             Alert.alert('Error', 'Could not open the messaging app.');
         }
+    };
+
+    const confirmWithoutSms = () => {
+        onConfirm(musician.id);
+        onClose();
     };
 
     return (
@@ -109,13 +140,27 @@ export function SmsInviteModal({ visible, onClose, event, musician, slot }: SmsI
                         />
                     </View>
 
-                    <TouchableOpacity
-                        onPress={sendSms}
-                        className="bg-blue-600 p-5 rounded-3xl flex-row justify-center items-center shadow-lg shadow-blue-400"
-                    >
-                        <Ionicons name="send" size={20} color="white" />
-                        <Text className="text-white font-black text-xl ml-3">Send via SMS</Text>
-                    </TouchableOpacity>
+                    <View className="flex-row gap-4">
+                        <TouchableOpacity
+                            onPress={confirmWithoutSms}
+                            className="flex-1 bg-gray-100 p-5 rounded-3xl items-center"
+                        >
+                            <Text className="text-gray-600 font-black text-lg text-center">Assign only</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={sendSms}
+                            className="flex-[2] bg-blue-600 p-5 rounded-3xl flex-row justify-center items-center shadow-lg shadow-blue-400"
+                        >
+                            <Ionicons name="send" size={20} color="white" />
+                            <Text className="text-white font-black text-lg ml-3">Invite via SMS</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {Platform.OS === 'web' && (
+                        <Text className="text-center text-gray-400 text-xs mt-4 px-4 leading-relaxed">
+                            <Text className="font-bold">Note:</Text> This will open your device's share menu (e.g., Messages, WhatsApp). You may need to select the contact again in that app.
+                        </Text>
+                    )}
                 </View>
             </View>
         </Modal>

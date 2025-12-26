@@ -1,6 +1,44 @@
-import { View, Text, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { LayoutAnimation, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+
+const AccordionItem = ({ title, icon, children, defaultExpanded = false }: { title: string, icon: string, children: React.ReactNode, defaultExpanded?: boolean }) => {
+    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+    const toggle = () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsExpanded(!isExpanded);
+    };
+
+    return (
+        <View className="mb-4 bg-card rounded-[32px] border border-border overflow-hidden shadow-sm">
+            <TouchableOpacity
+                onPress={toggle}
+                className="flex-row items-center justify-between p-6"
+                activeOpacity={0.7}
+            >
+                <View className="flex-row items-center flex-1">
+                    <View className="w-10 h-10 bg-blue-50 rounded-2xl items-center justify-center mr-4">
+                        <Ionicons name={icon as any} size={20} color="#2563eb" />
+                    </View>
+                    <Text className="text-lg font-black text-foreground flex-1" numberOfLines={1}>{title}</Text>
+                </View>
+                <Ionicons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#94a3b8"
+                />
+            </TouchableOpacity>
+
+            {isExpanded && (
+                <View className="px-6 pb-8 pt-2">
+                    {children}
+                </View>
+            )}
+        </View>
+    );
+};
 
 export default function HelpScreen() {
     const router = useRouter();
@@ -11,8 +49,20 @@ export default function HelpScreen() {
                 <Text className="text-white font-black">{number}</Text>
             </View>
             <View className="flex-1">
-                <Text className="text-lg font-bold text-foreground mb-1">{title}</Text>
-                <Text className="text-muted-foreground leading-relaxed">{description}</Text>
+                <Text className="text-base font-bold text-foreground mb-1">{title}</Text>
+                <Text className="text-muted-foreground leading-relaxed text-sm">{description}</Text>
+            </View>
+        </View>
+    );
+
+    const IconHelp = ({ icon, label, description, color = "#2563eb", bgColor = "#eff6ff" }: { icon: string, label: string, description: string, color?: string, bgColor?: string }) => (
+        <View className="flex-row mb-4 items-start">
+            <View style={{ backgroundColor: bgColor }} className="w-8 h-8 rounded-full items-center justify-center mr-3 mt-0.5">
+                <Ionicons name={icon as any} size={16} color={color} />
+            </View>
+            <View className="flex-1">
+                <Text className="text-sm font-black text-foreground uppercase tracking-tight mb-0.5">{label}</Text>
+                <Text className="text-xs text-muted-foreground leading-relaxed">{description}</Text>
             </View>
         </View>
     );
@@ -21,73 +71,171 @@ export default function HelpScreen() {
         <View className="flex-1 bg-background">
             {/* Header */}
             <View className="px-6 pt-6 pb-4 border-b border-border flex-row items-center justify-between">
-                <Text className="text-2xl font-black text-foreground">Support & FAQ</Text>
-                <TouchableOpacity onPress={() => router.back()} className="p-2">
-                    <Ionicons name="close" size={28} color="#6b7280" />
+                <View>
+                    <Text className="text-2xl font-black text-foreground">Support & FAQ</Text>
+                    <Text className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">How can we help?</Text>
+                </View>
+                <TouchableOpacity onPress={() => router.back()} className="bg-gray-100 p-2 rounded-full">
+                    <Ionicons name="close" size={24} color="#6b7280" />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-8" contentContainerStyle={{ paddingBottom: 40 }}>
-                {/* Calendar Sync Section */}
-                <View className="mb-10">
-                    <View className="flex-row items-center mb-6">
-                        <View className="w-12 h-12 bg-blue-100 rounded-2xl items-center justify-center mr-4">
-                            <Ionicons name="calendar-outline" size={24} color="#2563eb" />
-                        </View>
-                        <View>
-                            <Text className="text-xl font-black text-foreground">Syncing to Google Calendar</Text>
-                            <Text className="text-muted-foreground font-medium">{"Apple Calendar → Google Calendar"}</Text>
-                        </View>
-                    </View>
+            <ScrollView className="flex-1 px-6 pt-8" contentContainerStyle={{ paddingBottom: 60 }}>
 
-                    <Text className="text-muted-foreground mb-8 leading-relaxed">
-                        Since OpusMode integrates with your device's native calendar, you can sync your gigs to Google Calendar by following these steps:
+                <AccordionItem title="Roster Management Icons" icon="people-outline">
+                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                        Managing your session personnel is easy with these tools in the Event Editor:
+                    </Text>
+
+                    <IconHelp
+                        icon="add-circle-outline"
+                        label="Add Slot"
+                        description="Create a new empty role (e.g. 'Drums', 'Bass') for your session."
+                    />
+                    <IconHelp
+                        icon="text-outline"
+                        label="Edit Role"
+                        description="Tap any role name to rename it inline without deleting the slot."
+                    />
+                    <IconHelp
+                        icon="swap-horizontal-outline"
+                        label="Change Musician"
+                        description="Swap an assigned musician for someone else in your library."
+                    />
+                    <IconHelp
+                        icon="mail-outline"
+                        label="Invite via SMS"
+                        description="Open the SMS template to send an invitation to the musician."
+                        color="#d97706"
+                        bgColor="#fffbeb"
+                    />
+                    <IconHelp
+                        icon="checkmark"
+                        label="Confirm Assignment"
+                        description="Manually confirm a musician once they've accepted the gig."
+                        color="#16a34a"
+                        bgColor="#f0fdf4"
+                    />
+                    <IconHelp
+                        icon="trash-outline"
+                        label="Delete Slot"
+                        description="Permanently remove the role and any assigned musician from the event."
+                        color="#ef4444"
+                        bgColor="#fef2f2"
+                    />
+                    <IconHelp
+                        icon="person-remove-outline"
+                        label="Remove Person"
+                        description="Clear the musician from the slot while keeping the role open."
+                        color="#4b5563"
+                        bgColor="#f3f4f6"
+                    />
+                </AccordionItem>
+
+                <AccordionItem title="Calendar Sync (Google/Gmail)" icon="calendar-outline">
+                    {Platform.OS === 'web' ? (
+                        <>
+                            <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                                On the web dashboard, adding an event downloads an <Text className="font-bold">.ics file</Text>.
+                            </Text>
+
+                            <Step
+                                number={1}
+                                title="Download the Event"
+                                description="Click 'Sync to Calendar' on any event. A file ending in .ics will download."
+                            />
+                            <Step
+                                number={2}
+                                title="Open the File"
+                                description="Double-click the downloaded file. It will open in your computer's default calendar app (Outlook, Apple Calendar)."
+                            />
+                            <Step
+                                number={3}
+                                title="Import to Google Calendar"
+                                description="For Google Calendar, drag the .ics file onto your calendar window, or go to Settings > Import & Export."
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                                Since OpusMode integrates with your device's native calendar, follow these steps to see gigs in Google Calendar:
+                            </Text>
+
+                            <Step
+                                number={1}
+                                title="Add Google Account"
+                                description="Go to iOS Settings → Calendar → Accounts. Tap 'Add Account' and sign in to Gmail."
+                            />
+                            <Step
+                                number={2}
+                                title="Enable Calendars"
+                                description="Ensure the 'Calendars' toggle is turned ON for your Google account."
+                            />
+                            <Step
+                                number={3}
+                                title="Set Default Calendar"
+                                description="In Settings → Calendar, set your Google calendar as the 'Default Calendar'."
+                            />
+                            <Step
+                                number={4}
+                                title="Show in Calendar App"
+                                description="In the Apple Calendar app, tap 'Calendars' and check your Google account."
+                            />
+                        </>
+                    )}
+                </AccordionItem>
+
+                <AccordionItem title="Using AI Tools (Scout)" icon="telescope-outline" defaultExpanded={true}>
+                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                        The Scout tool generates "Prompts"—specific instructions—that you can feed into powerful AI assistants to find leads. You need a separate account for these services.
                     </Text>
 
                     <Step
                         number={1}
-                        title="Add your Google Account"
-                        description="Go to your device's System Settings → Calendar → Accounts. Tap 'Add Account' and sign in to your Google/Gmail account."
+                        title="Get an AI Account"
+                        description="Sign up for a free AI service. We recommend ChatGPT or Gemini, but feel free to use any other. Tap below to open popular options:"
                     />
+                    <View className="flex-row gap-3 mb-6 ml-12">
+                        <TouchableOpacity onPress={() => Linking.openURL('https://chatgpt.com')} className="bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200">
+                            <Text className="text-emerald-700 font-bold text-xs">ChatGPT</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => Linking.openURL('https://gemini.google.com')} className="bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                            <Text className="text-blue-700 font-bold text-xs">Google Gemini</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     <Step
                         number={2}
-                        title="Enable Calendars"
-                        description="Once your Gmail account is added, ensure the 'Calendars' toggle is turned ON. This allows Apple to talk to Google."
+                        title="Generate & Copy"
+                        description="Use the Scout tool to select your mission (e.g., 'Gig Hunt'). Fill in the details (City, Genre) and tap 'COPY' to grab the specialized prompt."
                     />
 
                     <Step
                         number={3}
-                        title="Set as Default (Optional)"
-                        description="For the most seamless experience, go to Settings → Calendar → Default Calendar and select your Google calendar. This ensures new gigs are automatically added there."
+                        title="Paste & Send"
+                        description="Switch to your AI app, paste the text into the message box, and hit Enter. The AI will research real-time data for you."
                     />
 
                     <Step
                         number={4}
-                        title="Check the Calendar App"
-                        description="Open the Apple Calendar app, tap 'Calendars' at the bottom, and make sure your Google calendars are checked and visible."
+                        title="Capture Results"
+                        description="Review the list. When you find a promising venue or contact, switch back to OpusMode Contacts and add them to your roster manually."
                     />
-                </View>
+                </AccordionItem>
 
-                {/* Support Link */}
-                <View className="bg-card p-6 rounded-[32px] border border-border items-center">
-                    <Text className="text-lg font-bold text-foreground mb-2 text-center">Still need help?</Text>
-                    <Text className="text-muted-foreground text-center mb-6">
-                        Feel free to reach out if you have any questions or feedback.
+                <AccordionItem title="Privacy & Security" icon="lock-closed-outline">
+                    <Text className="text-muted-foreground leading-relaxed text-sm">
+                        OpusMode stores your data locally on your device. We never sell your personal information or the details of your gigs. Your financial notes and roster details are private to you.
                     </Text>
-                    <TouchableOpacity
-                        className="bg-blue-600 px-8 py-4 rounded-2xl shadow-lg shadow-blue-200"
-                        onPress={() => Linking.openURL('mailto:support@opusmode.app')}
-                    >
-                        <Text className="text-white font-black">Contact Support</Text>
-                    </TouchableOpacity>
-                </View>
+                </AccordionItem>
 
-                <View className="mt-8 items-center">
-                    <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest">OpusMode Help Center</Text>
-                    <Text className="text-[10px] text-gray-300 mt-1">© 2025 All Rights Reserved</Text>
+
+                <View className="mt-12 items-center">
+                    <Text className="text-gray-400 text-[10px] font-black uppercase tracking-[2px]">OpusMode Help Center</Text>
+                    <Text className="text-[10px] text-gray-300 mt-2 font-medium">Built with Zen Architecture • © 2025</Text>
                 </View>
             </ScrollView>
         </View>
     );
 }
+

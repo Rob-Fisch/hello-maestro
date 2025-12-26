@@ -1,14 +1,12 @@
-import { View, Text, FlatList, TouchableOpacity, Alert, Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState } from 'react';
-import { useContentStore } from '@/store/contentStore';
-import { Link, useRouter, useLocalSearchParams } from 'expo-router';
-import { Routine } from '@/store/types';
-import { Ionicons } from '@expo/vector-icons';
-import { exportToPdf } from '@/utils/pdfExport';
-
-import { useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
+import { useContentStore } from '@/store/contentStore';
+import { Routine } from '@/store/types';
+import { exportToPdf } from '@/utils/pdfExport';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RoutinesScreen() {
     const { routines, deleteRoutine, settings, trackModuleUsage } = useContentStore();
@@ -53,20 +51,21 @@ export default function RoutinesScreen() {
             <TouchableOpacity
                 className="p-8"
                 onPress={() => {
-                    trackModuleUsage('modal/routine-editor');
-                    router.push({ pathname: '/modal/routine-editor', params: { id: item.id } });
+                    trackModuleUsage('routines/' + item.id);
+                    // V3 Change: Navigate to Detail View instead of Editor
+                    router.push(`/routines/${item.id}`);
                 }}
             >
                 <View className="flex-row justify-between items-start mb-6">
                     <View className="flex-1 mr-4">
                         <Text className="text-2xl font-black mb-2 tracking-tight" style={{ color: theme.text }}>{item.title}</Text>
                         <Text className="text-sm font-medium leading-relaxed" numberOfLines={2} style={{ color: theme.mutedText }}>
-                            {item.description || 'Structured practice routine with multiple blocks.'}
+                            {item.description || 'Level 2 Collection'}
                         </Text>
                     </View>
                     <View className="px-4 py-1.5 rounded-full shadow-md" style={{ backgroundColor: theme.primary }}>
                         <Text className="text-[10px] font-black text-white uppercase tracking-widest leading-3">
-                            {item.blocks.length} Blocks
+                            {item.blocks.length} Items
                         </Text>
                     </View>
                 </View>
@@ -109,7 +108,7 @@ export default function RoutinesScreen() {
                     style={{ backgroundColor: theme.card, borderColor: theme.border }}
                 >
                     <Ionicons name="share-outline" size={18} color={theme.primary} />
-                    <Text className="font-black text-xs ml-2 uppercase tracking-widest" style={{ color: theme.primary }}>Global PDF</Text>
+                    <Text className="font-black text-xs ml-2 uppercase tracking-widest" style={{ color: theme.primary }}>PDF</Text>
                 </TouchableOpacity>
 
                 {deletingId === item.id ? (
@@ -133,42 +132,46 @@ export default function RoutinesScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: theme.background }}>
-            <View className="px-8 pb-6 flex-row justify-between items-center" style={{ paddingTop: Math.max(insets.top, 20) }}>
-                <View className="flex-1 mr-4">
-                    <View className="flex-row items-center mb-2">
-                        <Text className="text-[10px] font-black uppercase tracking-[3px]" style={{ color: theme.primary }}>Practice Plan</Text>
-                        {returnPathId && (
-                            <TouchableOpacity
-                                onPress={() => router.push(`/pathfinder/${returnPathId}`)}
-                                className="ml-4 bg-purple-100 px-3 py-1 rounded-full flex-row items-center border border-purple-200"
-                            >
-                                <Ionicons name="arrow-back" size={12} color="#7c3aed" />
-                                <Text className="text-purple-700 text-[10px] font-black ml-1 uppercase">Back to Roadmap</Text>
-                            </TouchableOpacity>
-                        )}
+            <View className="px-8 pb-6" style={{ paddingTop: Math.max(insets.top, 20) }}>
+                {/* ROW 1: Navigation & Actions */}
+                <View className="flex-row justify-between items-center mb-6">
+                    <View className="flex-row items-center">
+                        <TouchableOpacity
+                            onPress={() => router.push('/')}
+                            className="p-2 -ml-2 mr-2"
+                        >
+                            <Ionicons name="home-outline" size={24} color={theme.text} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => router.push('/studio')}
+                            className="flex-row items-center px-4 py-2 rounded-full border"
+                            style={{ backgroundColor: theme.card, borderColor: theme.border }}
+                        >
+                            <Ionicons name="arrow-back" size={16} color={theme.text} />
+                            <Text className="text-sm font-bold ml-1" style={{ color: theme.text }}>Studio</Text>
+                        </TouchableOpacity>
                     </View>
-                    {(() => {
-                        const path = returnPathId ? useContentStore.getState().paths.find(p => p.id === returnPathId) : null;
-                        const milestone = path?.treeData.nodes.find(n => n.routineId === id);
-                        return (
-                            <Text className="text-2xl font-black tracking-tight leading-tight" style={{ color: theme.text }}>
-                                {id && path && milestone
-                                    ? `Selected ${path.title} - ${milestone.label}`
-                                    : (id ? 'Selected Routine' : 'Routines')
-                                }
-                            </Text>
-                        );
-                    })()}
+
+                    <Link href="/modal/routine-editor" asChild>
+                        <TouchableOpacity
+                            onPress={() => trackModuleUsage('routines')}
+                            className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-blue-400"
+                            style={{ backgroundColor: theme.primary }}
+                        >
+                            <Ionicons name="add" size={28} color="white" />
+                        </TouchableOpacity>
+                    </Link>
                 </View>
-                <Link href="/modal/routine-editor" asChild>
-                    <TouchableOpacity
-                        onPress={() => trackModuleUsage('routines')}
-                        className="w-14 h-14 rounded-2xl items-center justify-center shadow-lg shadow-blue-400"
-                        style={{ backgroundColor: theme.primary }}
-                    >
-                        <Ionicons name="add" size={32} color="white" />
-                    </TouchableOpacity>
-                </Link>
+
+                {/* ROW 2: Title */}
+                <View className="mb-2">
+                    <View className="flex-row items-center mb-2">
+                        <Text className="text-[10px] font-black uppercase tracking-[3px]" style={{ color: theme.primary }}>Level 2</Text>
+                    </View>
+                    <Text className="text-4xl font-black tracking-tight leading-tight" style={{ color: theme.text }}>
+                        Collections
+                    </Text>
+                </View>
             </View>
 
 
@@ -179,9 +182,9 @@ export default function RoutinesScreen() {
                 contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
                 ListEmptyComponent={
                     <View className="p-20 items-center justify-center">
-                        <Ionicons name="repeat-outline" size={80} color="#d1d5db" />
+                        <Ionicons name="layers-outline" size={80} color="#d1d5db" />
                         <Text className="text-gray-400 font-bold text-center mt-4 text-lg">
-                            No routines yet.{"\n"}Tap &quot;New Routine&quot; to get started!
+                            No Collections yet.{"\n"}Tap + to create one!
                         </Text>
                     </View>
                 }

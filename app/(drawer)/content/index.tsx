@@ -1,12 +1,12 @@
-import { View, Text, TouchableOpacity, SectionList, Alert, Platform, Image } from 'react-native';
-import { useState, useMemo, useEffect } from 'react';
-import { useContentStore } from '@/store/contentStore';
-import { Link, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ContentBlock } from '@/store/types';
-import { Ionicons } from '@expo/vector-icons';
-import { resolveFileUri } from '@/utils/pdfExport';
 import { useTheme } from '@/lib/theme';
+import { useContentStore } from '@/store/contentStore';
+import { ContentBlock } from '@/store/types';
+import { resolveFileUri } from '@/utils/pdfExport';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Image, Platform, SectionList, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 const ContentListItem = ({
@@ -15,7 +15,8 @@ const ContentListItem = ({
   onDelete,
   isDeleting,
   onCancelDelete,
-  onConfirmDelete
+  onConfirmDelete,
+  onRename
 }: {
   item: ContentBlock;
   onPress: () => void;
@@ -23,6 +24,7 @@ const ContentListItem = ({
   isDeleting: boolean;
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
+  onRename: () => void;
 }) => {
   const [displayUri, setDisplayUri] = useState<string | null>(null);
 
@@ -91,20 +93,28 @@ const ContentListItem = ({
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity
-          onPress={onDelete}
-          className="bg-red-50 p-2.5 rounded-full border border-red-100"
-        >
-          <Ionicons name="trash-outline" size={18} color="#ef4444" />
-        </TouchableOpacity>
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={onRename}
+            className="bg-blue-50 p-2.5 rounded-full border border-blue-100 mr-2"
+          >
+            <Ionicons name="pencil-outline" size={18} color="#3b82f6" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onDelete}
+            className="bg-red-50 p-2.5 rounded-full border border-red-100"
+          >
+            <Ionicons name="trash-outline" size={18} color="#ef4444" />
+          </TouchableOpacity>
+        </View >
       )}
-    </View>
+    </View >
   );
 };
 
 
 export default function ContentScreen() {
-  const { blocks, categories, deleteBlock, trackModuleUsage, recentBlockIds, trackBlockUsage } = useContentStore();
+  const { blocks, categories, deleteBlock, updateBlock, trackModuleUsage, recentBlockIds, trackBlockUsage } = useContentStore();
 
   useEffect(() => {
     trackModuleUsage('content');
@@ -188,6 +198,35 @@ export default function ContentScreen() {
     return sections;
   }, [blocks, categories, recentBlockIds, collapsedCategories]);
 
+
+
+  const handleRename = (id: string, currentTitle: string) => {
+    if (Platform.OS === 'web') {
+      const newName = window.prompt("Rename Node", currentTitle);
+      if (newName && newName.trim() !== '') {
+        updateBlock(id, { title: newName });
+      }
+    } else {
+      // iOS and Android
+      Alert.prompt(
+        "Rename Node",
+        "Enter a new name for this item",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Save", onPress: (text) => {
+              if (text && text.trim() !== '') {
+                updateBlock(id, { title: text });
+              }
+            }
+          }
+        ],
+        "plain-text",
+        currentTitle
+      );
+    }
+  };
+
   const handleDeletePress = (id: string) => {
     if (Platform.OS === 'web') {
       setDeletingId(id);
@@ -215,6 +254,7 @@ export default function ContentScreen() {
       isDeleting={deletingId === item.id}
       onCancelDelete={() => setDeletingId(null)}
       onConfirmDelete={() => confirmWebDelete(item.id)}
+      onRename={() => handleRename(item.id, item.title)}
     />
   );
 
@@ -223,16 +263,33 @@ export default function ContentScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <View className="px-8 pb-6" style={{ paddingTop: Math.max(insets.top, 20) }}>
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-4">
-            <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2" style={{ color: theme.primary }}>Content Bank</Text>
-            <Text className="text-5xl font-black tracking-tight leading-[48px]" style={{ color: theme.text }}>Activities</Text>
+        {/* ROW 1: Navigation & Actions */}
+        <View className="flex-row justify-between items-center mb-6">
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={() => router.push('/')} className="p-2 -ml-2 mr-2">
+              <Ionicons name="home-outline" size={24} color={theme.text} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/studio')}
+              className="flex-row items-center px-4 py-2 rounded-full border"
+              style={{ backgroundColor: theme.card, borderColor: theme.border }}
+            >
+              <Ionicons name="arrow-back" size={16} color={theme.text} />
+              <Text className="text-sm font-bold ml-1" style={{ color: theme.text }}>Studio</Text>
+            </TouchableOpacity>
           </View>
+
           <Link href="/modal/block-editor" asChild>
-            <TouchableOpacity className="w-14 h-14 rounded-2xl items-center justify-center shadow-lg shadow-blue-400" style={{ backgroundColor: theme.primary }}>
-              <Ionicons name="add" size={32} color="white" />
+            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-blue-400" style={{ backgroundColor: theme.primary }}>
+              <Ionicons name="add" size={28} color="white" />
             </TouchableOpacity>
           </Link>
+        </View>
+
+        {/* ROW 2: Title */}
+        <View className="mb-2">
+          <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2" style={{ color: theme.primary }}>Level 1 Bank</Text>
+          <Text className="text-4xl font-black tracking-tight leading-tight" style={{ color: theme.text }}>Nodes</Text>
         </View>
 
         <View className="flex-row items-center mt-4">

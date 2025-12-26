@@ -1,12 +1,87 @@
-import { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, Image } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useContentStore } from '@/store/contentStore';
-import { Routine, ContentBlock, Schedule, Category } from '@/store/types';
-import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { exportToPdf } from '@/utils/pdfExport';
+import { Category, ContentBlock, Routine, Schedule } from '@/store/types';
+
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Alert, Image, Modal, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+
+// --- WEB PICKER COMPONENTS ---
+const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '' }: any) => {
+    const [visible, setVisible] = useState(false);
+    const selected = options.find((o: any) => o.value == value);
+    return (
+        <>
+            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 ${labelClassName}`}>
+                <Text className="font-bold text-foreground flex-1" numberOfLines={1}>{selected ? selected.label : placeholder}</Text>
+                <Ionicons name="chevron-down" size={12} color="#94a3b8" />
+            </TouchableOpacity>
+            <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
+                <TouchableOpacity activeOpacity={1} onPress={() => setVisible(false)} className="flex-1 bg-black/50 justify-center items-center p-4">
+                    <View className="bg-white w-[80%] max-w-[300px] max-h-[70%] rounded-2xl overflow-hidden shadow-xl">
+                        <ScrollView contentContainerStyle={{ padding: 8 }}>
+                            {options.map((opt: any) => (
+                                <TouchableOpacity
+                                    key={opt.value}
+                                    onPress={() => { onChange(opt.value); setVisible(false); }}
+                                    className={`p-3 rounded-xl mb-1 ${opt.value == value ? 'bg-blue-50' : 'bg-transparent'}`}
+                                >
+                                    <Text className={`text-center font-bold ${opt.value == value ? 'text-blue-600' : 'text-gray-700'}`}>{opt.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        </>
+    );
+};
+
+const WebDatePicker = ({ date, onChange }: { date?: string, onChange: (d: string) => void }) => {
+    const [yStr, mStr, dStr] = (date || '2025-01-01').split('-');
+    const y = parseInt(yStr) || new Date().getFullYear();
+    const m = parseInt(mStr) || 1;
+    const d = parseInt(dStr) || 1;
+
+    const months = [
+        { label: 'Jan', value: 1 }, { label: 'Feb', value: 2 }, { label: 'Mar', value: 3 },
+        { label: 'Apr', value: 4 }, { label: 'May', value: 5 }, { label: 'Jun', value: 6 },
+        { label: 'Jul', value: 7 }, { label: 'Aug', value: 8 }, { label: 'Sep', value: 9 },
+        { label: 'Oct', value: 10 }, { label: 'Nov', value: 11 }, { label: 'Dec', value: 12 },
+    ];
+    const days = Array.from({ length: 31 }, (_, i) => ({ label: (i + 1).toString(), value: i + 1 }));
+
+    const update = (key: 'y' | 'm' | 'd', val: any) => {
+        let ny = y, nm = m, nd = d;
+        if (key === 'y') ny = parseInt(val) || 0;
+        if (key === 'm') nm = val;
+        if (key === 'd') nd = val;
+        onChange(`${ny.toString().padStart(4, '0')}-${nm.toString().padStart(2, '0')}-${nd.toString().padStart(2, '0')}`);
+    };
+
+    return (
+        <View className="flex-row gap-1 w-full max-w-[380px]">
+            <View className="flex-[1.3]">
+                <WebSelect options={months} value={m} onChange={(v: any) => update('m', v)} />
+            </View>
+            <View className="flex-[0.9]">
+                <WebSelect options={days} value={d} onChange={(v: any) => update('d', v)} />
+            </View>
+            <View className="flex-[1.2]">
+                <TextInput
+                    className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 font-bold text-center text-foreground"
+                    value={y.toString()}
+                    keyboardType="number-pad"
+                    onChangeText={(t) => update('y', t)}
+                    maxLength={4}
+                    placeholder="YYYY"
+                />
+            </View>
+        </View>
+    );
+};
 
 export default function RoutineEditor() {
     const router = useRouter();
@@ -19,6 +94,7 @@ export default function RoutineEditor() {
 
     const [title, setTitle] = useState(existingRoutine?.title || '');
     const [description, setDescription] = useState(existingRoutine?.description || '');
+    const [isPublic, setIsPublic] = useState(existingRoutine?.isPublic || false);
     const [selectedBlocks, setSelectedBlocks] = useState<ContentBlock[]>(
         existingRoutine?.blocks || []
     );
@@ -78,6 +154,26 @@ export default function RoutineEditor() {
         setSelectedBlocks(selectedBlocks.filter((b) => b.id !== blockId));
     };
 
+    const togglePublic = (val: boolean) => {
+        if (!val) {
+            setIsPublic(false);
+            return;
+        }
+
+        // GATEKEEPER (Immediate Check in Editor)
+        const hasPrivateFiles = selectedBlocks.some(b => !!b.mediaUri);
+        if (hasPrivateFiles) {
+            if (Platform.OS === 'web') {
+                alert('Cannot make Public. You have private file-based items selected. Remove them first.');
+            } else {
+                Alert.alert('Cannot Make Public', 'Remove private files before making this collection public.');
+            }
+            setIsPublic(false);
+        } else {
+            setIsPublic(true);
+        }
+    };
+
     const handleSave = () => {
         if (!title.trim()) {
             if (Platform.OS === 'web') {
@@ -88,12 +184,25 @@ export default function RoutineEditor() {
             return;
         }
 
+        // GATEKEEPER CHECK (Final Save Guard)
+        const hasPrivateFiles = selectedBlocks.some(b => !!b.mediaUri);
+
+        if (isPublic && hasPrivateFiles) {
+            if (Platform.OS === 'web') {
+                alert('This collection is marked Public but contains private files. Please set to Private or remove files.');
+            } else {
+                Alert.alert('Cannot Save', 'Private files detected in Public collection.');
+            }
+            return;
+        }
+
         const routineData: Routine = {
             id: id || Date.now().toString(),
             title,
             description: description.trim() || undefined,
             blocks: selectedBlocks,
             schedule: schedule.type !== 'none' ? schedule : undefined,
+            isPublic,
             createdAt: existingRoutine?.createdAt || new Date().toISOString(),
         };
 
@@ -105,16 +214,7 @@ export default function RoutineEditor() {
         router.back();
     };
 
-    const handleExport = () => {
-        const routineData: Routine = {
-            id: id || 'temp',
-            title: title.trim() || 'Untitled Routine',
-            description: description.trim(),
-            blocks: selectedBlocks,
-            createdAt: new Date().toISOString(),
-        };
-        exportToPdf(routineData, settings);
-    };
+
 
     const onDateChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(false);
@@ -175,11 +275,8 @@ export default function RoutineEditor() {
                     <Text className="text-2xl font-bold">{isEditing ? 'Edit Routine' : 'New Routine'}</Text>
                     <Text className="text-xs text-muted-foreground">{selectedBlocks.length} items in sequence</Text>
                 </View>
-                <View className="flex-row gap-2">
-                    <TouchableOpacity onPress={handleExport} className="bg-blue-50 px-4 py-2 rounded-full flex-row items-center border border-blue-100">
-                        <Ionicons name="share-outline" size={16} color="#2563eb" />
-                        <Text className="text-blue-600 font-bold ml-1 text-xs">Export</Text>
-                    </TouchableOpacity>
+                <View className="flex-row gap-1 w-full max-w-[380px]">
+
                     <TouchableOpacity onPress={() => router.back()} className="bg-gray-100 px-4 py-2 rounded-full">
                         <Text className="text-gray-600 font-semibold text-xs">Cancel</Text>
                     </TouchableOpacity>
@@ -207,6 +304,26 @@ export default function RoutineEditor() {
                                 value={description}
                                 onChangeText={setDescription}
                                 multiline
+                            />
+                        </View>
+
+                        {/* Visibility Toggle */}
+                        <View className="flex-row items-center justify-between pt-2 border-t border-border mt-2">
+                            <View>
+                                <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Visibility</Text>
+                                <View className="flex-row items-center">
+                                    <Ionicons name={isPublic ? "earth" : "lock-closed"} size={12} color={isPublic ? "#2563eb" : "#64748b"} />
+                                    <Text className={`text-xs font-bold ml-1.5 ${isPublic ? 'text-blue-600' : 'text-gray-600'}`}>
+                                        {isPublic ? 'Public' : 'Private'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <Switch
+                                value={isPublic}
+                                onValueChange={togglePublic}
+                                trackColor={{ false: '#e2e8f0', true: '#bae6fd' }}
+                                thumbColor={isPublic ? '#0ea5e9' : '#94a3b8'}
+                                style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                             />
                         </View>
                     </View>
@@ -254,42 +371,54 @@ export default function RoutineEditor() {
                                 <View className="flex-row gap-3">
                                     <View className="flex-1">
                                         <Text className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Start Date</Text>
-                                        <TouchableOpacity
-                                            onPress={() => setShowStartDatePicker(true)}
-                                            className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex-row justify-between items-center"
-                                        >
-                                            <Text className="text-xs font-semibold text-foreground">
-                                                {schedule.startDate ? new Date(schedule.startDate).toLocaleDateString() : 'Set Start'}
-                                            </Text>
-                                            <Text className="text-xs">📅</Text>
-                                        </TouchableOpacity>
-                                        {showStartDatePicker && (
-                                            <DateTimePicker
-                                                value={schedule.startDate ? new Date(schedule.startDate) : new Date()}
-                                                mode="date"
-                                                display="default"
-                                                onChange={onStartDateChange}
-                                            />
+                                        {Platform.OS === 'web' ? (
+                                            <WebDatePicker date={schedule.startDate} onChange={(d) => setSchedule({ ...schedule, startDate: d })} />
+                                        ) : (
+                                            <>
+                                                <TouchableOpacity
+                                                    onPress={() => setShowStartDatePicker(true)}
+                                                    className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex-row justify-between items-center"
+                                                >
+                                                    <Text className="text-xs font-semibold text-foreground">
+                                                        {schedule.startDate ? new Date(schedule.startDate).toLocaleDateString() : 'Set Start'}
+                                                    </Text>
+                                                    <Text className="text-xs">📅</Text>
+                                                </TouchableOpacity>
+                                                {showStartDatePicker && (
+                                                    <DateTimePicker
+                                                        value={schedule.startDate ? new Date(schedule.startDate) : new Date()}
+                                                        mode="date"
+                                                        display="default"
+                                                        onChange={onStartDateChange}
+                                                    />
+                                                )}
+                                            </>
                                         )}
                                     </View>
                                     <View className="flex-1">
                                         <Text className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">End Date</Text>
-                                        <TouchableOpacity
-                                            onPress={() => setShowEndDatePicker(true)}
-                                            className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex-row justify-between items-center"
-                                        >
-                                            <Text className="text-xs font-semibold text-foreground">
-                                                {schedule.endDate ? new Date(schedule.endDate).toLocaleDateString() : 'Set End'}
-                                            </Text>
-                                            <Text className="text-xs">📅</Text>
-                                        </TouchableOpacity>
-                                        {showEndDatePicker && (
-                                            <DateTimePicker
-                                                value={schedule.endDate ? new Date(schedule.endDate) : new Date()}
-                                                mode="date"
-                                                display="default"
-                                                onChange={onEndDateChange}
-                                            />
+                                        {Platform.OS === 'web' ? (
+                                            <WebDatePicker date={schedule.endDate} onChange={(d) => setSchedule({ ...schedule, endDate: d })} />
+                                        ) : (
+                                            <>
+                                                <TouchableOpacity
+                                                    onPress={() => setShowEndDatePicker(true)}
+                                                    className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex-row justify-between items-center"
+                                                >
+                                                    <Text className="text-xs font-semibold text-foreground">
+                                                        {schedule.endDate ? new Date(schedule.endDate).toLocaleDateString() : 'Set End'}
+                                                    </Text>
+                                                    <Text className="text-xs">📅</Text>
+                                                </TouchableOpacity>
+                                                {showEndDatePicker && (
+                                                    <DateTimePicker
+                                                        value={schedule.endDate ? new Date(schedule.endDate) : new Date()}
+                                                        mode="date"
+                                                        display="default"
+                                                        onChange={onEndDateChange}
+                                                    />
+                                                )}
+                                            </>
                                         )}
                                     </View>
                                 </View>
@@ -297,23 +426,27 @@ export default function RoutineEditor() {
                         )}
 
                         {schedule.type === 'date' && (
-                            <TouchableOpacity
-                                onPress={() => setShowDatePicker(true)}
-                                className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex-row justify-between items-center"
-                            >
-                                <Text className="font-semibold text-foreground">
-                                    {schedule.date ? new Date(schedule.date).toLocaleDateString() : 'Select Date'}
-                                </Text>
-                                <Text>📅</Text>
-                                {showDatePicker && (
-                                    <DateTimePicker
-                                        value={schedule.date ? new Date(schedule.date) : new Date()}
-                                        mode="date"
-                                        display="default"
-                                        onChange={onDateChange}
-                                    />
-                                )}
-                            </TouchableOpacity>
+                            Platform.OS === 'web' ? (
+                                <WebDatePicker date={schedule.date} onChange={(d) => setSchedule({ ...schedule, date: d })} />
+                            ) : (
+                                <TouchableOpacity
+                                    onPress={() => setShowDatePicker(true)}
+                                    className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex-row justify-between items-center"
+                                >
+                                    <Text className="font-semibold text-foreground">
+                                        {schedule.date ? new Date(schedule.date).toLocaleDateString() : 'Select Date'}
+                                    </Text>
+                                    <Text>📅</Text>
+                                    {showDatePicker && (
+                                        <DateTimePicker
+                                            value={schedule.date ? new Date(schedule.date) : new Date()}
+                                            mode="date"
+                                            display="default"
+                                            onChange={onDateChange}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            )
                         )}
                     </View>
 

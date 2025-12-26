@@ -1,11 +1,12 @@
-import { View, Text, FlatList, TouchableOpacity, Alert, Platform } from 'react-native';
-import { useState, useMemo } from 'react';
 import { useContentStore } from '@/store/contentStore';
-import { useRouter, Link } from 'expo-router';
-import { AppEvent, AppEventType, Routine, Person } from '@/store/types';
+import { AppEvent, AppEventType, Person, Routine } from '@/store/types';
+import { addUnifiedToCalendar } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
-import { addToNativeCalendar } from '@/utils/calendar';
+import { Link, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ScheduleFilter = AppEventType | 'practice';
 
@@ -18,8 +19,8 @@ interface UnifiedItem {
     originalItem: AppEvent | Routine;
 }
 
-import { useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
+import { useEffect } from 'react';
 
 export default function ScheduleScreen() {
     const { events = [], routines = [], people = [], settings, deleteEvent, trackModuleUsage } = useContentStore();
@@ -30,6 +31,7 @@ export default function ScheduleScreen() {
 
     const router = useRouter();
     const theme = useTheme();
+    const insets = useSafeAreaInsets();
 
     const [activeFilters, setActiveFilters] = useState<ScheduleFilter[]>(['performance', 'lesson', 'rehearsal', 'practice']);
 
@@ -283,36 +285,64 @@ export default function ScheduleScreen() {
                         )}
                     </View>
 
-                    {!isRoutine && (item.originalItem as AppEvent).personnelIds && (item.originalItem as AppEvent).personnelIds!.length > 0 && (
-                        <View className="mt-4 flex-row items-center justify-between border-t border-gray-50 pt-3">
-                            <View className="flex-row -space-x-2">
-                                {(item.originalItem as AppEvent).personnelIds!.slice(0, 5).map((pid: string, idx: number) => (
-                                    <View key={pid} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white items-center justify-center">
-                                        <Text className="text-[10px]">👤</Text>
-                                    </View>
-                                ))}
-                                {(item.originalItem as AppEvent).personnelIds!.length > 5 && (
-                                    <View className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white items-center justify-center">
-                                        <Text className="text-[10px] font-bold">+{(item.originalItem as AppEvent).personnelIds!.length - 5}</Text>
-                                    </View>
-                                )}
+                    <View className="mt-4 border-t border-gray-50 pt-3">
+                        {/* Musicians / Slots Row */}
+                        {!isRoutine && (
+                            <View className="flex-row flex-wrap gap-2 mb-2">
+                                {/* Prefer Slots */}
+                                {(item.originalItem as AppEvent).slots?.map((slot: any) => {
+                                    const musician = people.find(p => p.id === slot.musicianId);
+                                    return (
+                                        <View key={slot.id} className={`flex-row items-center px-2 py-1 rounded-lg border ${slot.status === 'confirmed' ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100'}`}>
+                                            <Text className="text-[10px]">👤</Text>
+                                            <Text className="text-[10px] font-bold ml-1 text-gray-700">
+                                                {musician ? `${slot.role} (${musician.firstName} ${musician.lastName})` : `${slot.role} (-unassigned-)`}
+                                            </Text>
+                                        </View>
+                                    );
+                                })}
+
+                                {/* Fallback to Personnel IDs if no slots */}
+                                {(!((item.originalItem as AppEvent).slots) || (item.originalItem as AppEvent).slots?.length === 0) && (item.originalItem as AppEvent).personnelIds?.map((pid: string) => {
+                                    const person = people.find(p => p.id === pid);
+                                    if (!person) return null;
+                                    return (
+                                        <View key={pid} className="flex-row items-center px-2 py-1 rounded-lg bg-blue-50 border border-blue-100">
+                                            <Text className="text-[10px]">👤</Text>
+                                            <Text className="text-[10px] font-bold ml-1 text-blue-700">{person.firstName} {person.lastName}</Text>
+                                        </View>
+                                    );
+                                })}
                             </View>
+                        )}
+
+                        <View className="flex-row justify-between items-center">
+                            {!isRoutine && ((item.originalItem as AppEvent).slots?.length > 0 || ((item.originalItem as AppEvent).personnelIds && (item.originalItem as AppEvent).personnelIds!.length > 0)) && (
+                                <TouchableOpacity
+                                    onPress={() => handleMessage(item.originalItem as AppEvent)}
+                                    className="flex-row items-center bg-blue-50 px-4 py-2 rounded-full border border-blue-100"
+                                >
+                                    <Ionicons name="chatbubble-outline" size={14} color="#2563eb" />
+                                    <Text className="text-blue-600 font-bold text-xs ml-1.5">Message Group</Text>
+                                </TouchableOpacity>
+                            )}
+
                             <TouchableOpacity
-                                onPress={() => handleMessage(item.originalItem as AppEvent)}
-                                className="flex-row items-center bg-blue-50 px-4 py-2 rounded-full border border-blue-100"
-                            >
-                                <Ionicons name="chatbubble-outline" size={14} color="#2563eb" />
-                                <Text className="text-blue-600 font-bold text-xs ml-1.5">Message All</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => addToNativeCalendar(item.originalItem as AppEvent)}
-                                className="flex-row items-center bg-gray-50 px-4 py-2 rounded-full border border-gray-100 ml-2"
+                                onPress={() => addUnifiedToCalendar({
+                                    title: item.title,
+                                    date: item.date,
+                                    time: item.time,
+                                    venue: !isRoutine ? (item.originalItem as AppEvent).venue : undefined,
+                                    notes: !isRoutine ? (item.originalItem as AppEvent).notes : (item.originalItem as Routine).description,
+                                    duration: !isRoutine ? (item.originalItem as AppEvent).duration : undefined,
+                                })}
+                                className="flex-row items-center bg-gray-50 px-4 py-2 rounded-full border border-gray-100"
                             >
                                 <Ionicons name="calendar-outline" size={14} color="#64748b" />
-                                <Text className="text-gray-600 font-bold text-xs ml-1.5">Add to Calendar</Text>
+                                <Text className="text-gray-600 font-bold text-xs ml-1.5">Sync to Calendar</Text>
                             </TouchableOpacity>
                         </View>
-                    )}
+                    </View>
                 </TouchableOpacity>
 
                 {!isRoutine && (
@@ -336,11 +366,16 @@ export default function ScheduleScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: theme.background }}>
-            <View className="p-8 pb-4">
+            <View style={{ paddingTop: Math.max(insets.top, 20), paddingHorizontal: 32, paddingBottom: 16 }}>
                 <View className="flex-row justify-between items-center mb-8">
-                    <View>
-                        <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Schedule</Text>
-                        <Text className="font-medium text-base mt-1" style={{ color: theme.mutedText }}>Your entire musical life</Text>
+                    <View className="flex-row items-center">
+                        <TouchableOpacity onPress={() => router.push('/')} className="mr-5 p-2 -ml-2 rounded-full">
+                            <Ionicons name="home-outline" size={28} color={theme.text} />
+                        </TouchableOpacity>
+                        <View>
+                            <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Schedule</Text>
+                            <Text className="font-medium text-base mt-1" style={{ color: theme.mutedText }}>Your entire musical life</Text>
+                        </View>
                     </View>
                     <Link href="/modal/event-editor" asChild>
                         <TouchableOpacity className="px-6 py-4 rounded-2xl flex-row items-center shadow-lg shadow-blue-400" style={{ backgroundColor: theme.primary }}>

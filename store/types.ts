@@ -32,6 +32,30 @@ export interface Routine {
     description?: string;
     blocks: ContentBlock[];
     schedule?: Schedule;
+    isPublic?: boolean;
+    createdAt: string;
+}
+
+export interface SessionLog {
+    id: string;
+    routineId: string;
+    date: string;
+    durationMinutes?: number;
+    rating?: number; // 1-5
+    notes?: string;
+    itemsCompletedCount: number;
+    totalItemsCount: number;
+}
+
+export type InteractionType = 'call' | 'email' | 'meeting' | 'gig' | 'rehearsal' | 'jam' | 'lesson' | 'other';
+
+export interface InteractionLog {
+    id: string;
+    personId: string;
+    date: string;
+    type: InteractionType;
+    notes?: string;
+    rating?: number; // How did it go?
     createdAt: string;
 }
 
@@ -62,6 +86,7 @@ export interface AppEvent {
     slots: BookingSlot[]; // Replaces personnelIds/routines for roster view
     routines: string[]; // Array of Routine IDs
     duration?: number; // Duration in minutes
+    packListIds?: string[]; // Links to GearAsset IDs or PackList IDs
     personnelIds?: string[]; // Deprecated: Use slots instead
     notes?: string;
     fee?: string; // Total fee (legacy/compatibility)
@@ -93,6 +118,9 @@ export interface Person {
     instrument?: string; // deprecated, use instruments
     source: 'maestro' | 'native';
     nativeId?: string;
+    venueName?: string; // For Venue Managers
+    venueType?: string; // e.g. "Club", "Festival"
+    venueLocation?: string; // City, State
     createdAt: string;
 }
 
@@ -133,6 +161,28 @@ export interface PathNode {
     y: number;
     routineId?: string; // Integration with Routines
     referenceUrl?: string; // Link to YouTube, LinkedIn Learning, etc.
+}
+
+export type PathNodeType = 'routine' | 'task' | 'resource';
+
+export interface PathNode {
+    id: string;
+    label: string;
+    description?: string;
+    x: number;
+    y: number;
+
+    // The Type Discriminator
+    type: PathNodeType;
+
+    // Type: Routine
+    routineId?: string; // Links to an executable Routine
+
+    // Type: Resource
+    referenceUrl?: string; // Affiliate link, YouTube URL, etc.
+
+    // Type: Task (Internal Logic)
+    // Task status is tracked in UserProgress, no extra static fields needed here
 }
 
 export interface PathEdge {
@@ -180,3 +230,44 @@ export interface ProofOfWork {
 }
 
 
+export type GearCategory = 'Instrument' | 'Sound Tech' | 'Software' | 'Supplies' | 'Accessories' | 'Other';
+export type GearStatus = 'Ready' | 'In Repair' | 'On Loan (To)' | 'On Loan (From)' | 'Retired';
+
+export interface GearAsset {
+    id: string;
+    name: string;
+    category: GearCategory;
+    brand?: string;
+    model?: string;
+    serialNumber?: string;
+    manufactureYear?: string;
+    status: GearStatus;
+    financials?: {
+        purchasePrice?: string;
+        purchaseDate?: string;
+        currentValue?: string;
+        resaleValue?: string;
+        purchaseLocation?: string;
+    };
+    loanDetails?: {
+        personName: string;
+        dueDate?: string;
+        notes?: string;
+    };
+    media?: {
+        photoUris: string[];
+        receiptUri?: string;
+    };
+    isWishlist: boolean;
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PackList {
+    id: string;
+    eventId: string;
+    itemIds: string[]; // List of GearAsset IDs
+    additionalItems: string[]; // Manual entries like "Water", "Snacks"
+    checkedItemIds: string[]; // For the load-out checklist
+}

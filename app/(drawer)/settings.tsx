@@ -1,12 +1,11 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, Platform, ScrollView } from 'react-native';
-import { useState } from 'react';
-import { useContentStore } from '@/store/contentStore';
-import { Category } from '@/store/types';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { THEMES, useTheme } from '@/lib/theme';
-import { AppTheme } from '@/store/types';
+import { useContentStore } from '@/store/contentStore';
+import { AppTheme, Category } from '@/store/types';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Image, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 
 
@@ -200,9 +199,14 @@ export default function SettingsScreen() {
 
     return (
         <ScrollView className="flex-1" style={{ backgroundColor: theme.background }} contentContainerStyle={{ padding: 24 }}>
-            <View className="mb-8">
-                <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Settings</Text>
-                <Text className="font-medium text-base mt-2" style={{ color: theme.mutedText }}>Personalize your experience</Text>
+            <View className="mb-8 flex-row items-center">
+                <TouchableOpacity onPress={() => router.push('/')} className="mr-5 -ml-2 p-2 rounded-full">
+                    <Ionicons name="home-outline" size={32} color={theme.text} />
+                </TouchableOpacity>
+                <View>
+                    <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Settings</Text>
+                    <Text className="font-medium text-base mt-2" style={{ color: theme.mutedText }}>Personalize your experience</Text>
+                </View>
             </View>
 
             {/* Category Management Section */}
@@ -355,11 +359,19 @@ export default function SettingsScreen() {
                                     }}
                                 >
                                     <View
-                                        className="w-10 h-10 rounded-2xl shadow-sm mb-3"
+                                        className="w-10 h-10 rounded-2xl shadow-sm mb-3 overflow-hidden"
                                         style={{ backgroundColor: tokens.primary }}
                                     >
                                         <View className="flex-1 items-center justify-center">
-                                            <Ionicons name="color-palette" size={18} color="white" />
+                                            {tokens.brandLogo ? (
+                                                <Image
+                                                    source={tokens.brandLogo}
+                                                    style={{ width: '100%', height: '100%' }}
+                                                    resizeMode="cover"
+                                                />
+                                            ) : (
+                                                <Ionicons name="color-palette" size={18} color="white" />
+                                            )}
                                         </View>
                                     </View>
                                     <Text className="text-[10px] font-black uppercase tracking-widest" style={{ color: isActive ? tokens.text : tokens.mutedText }}>

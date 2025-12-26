@@ -13,6 +13,7 @@ export interface ThemeTokens {
     headerBg: string;
     nodeCompleted: string;
     nodeInactive: string;
+    brandLogo?: any;
     gradients?: {
         primary: string[];
         header: string[];
@@ -69,6 +70,7 @@ export const THEMES: Record<AppTheme, ThemeTokens> = {
         headerBg: '#fdfbf7',
         nodeCompleted: '#6b8e23',
         nodeInactive: '#ece4d9',
+        brandLogo: require('../assets/branding/zen_om_final.jpg'),
         glass: false,
     }
 };

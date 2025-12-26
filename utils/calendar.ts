@@ -41,6 +41,62 @@ export async function findBestCalendarId() {
 }
 
 export async function addToNativeCalendar(event: AppEvent) {
+    return addUnifiedToCalendar({
+        title: event.title,
+        date: event.date,
+        time: event.time,
+        venue: event.venue,
+        notes: event.notes,
+        duration: event.duration
+    });
+}
+
+export interface CalendarItem {
+    title: string;
+    date: string;
+    time: string;
+    venue?: string;
+    notes?: string;
+    duration?: number;
+}
+
+export async function addUnifiedToCalendar(item: CalendarItem) {
+    // Web Fallback: Generate .ics file download
+    if (Platform.OS === 'web') {
+        const [hours, minutes] = (item.time || '12:00').split(':').map(Number);
+        const startDate = new Date(item.date + 'T00:00:00');
+        startDate.setHours(hours, minutes, 0, 0);
+
+        const duration = item.duration || 60;
+        const endDate = new Date(startDate.getTime() + duration * 60000);
+
+        const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+        const icsContent = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'BEGIN:VEVENT',
+            `SUMMARY:${item.title}`,
+            `DTSTART:${formatDate(startDate)}`,
+            `DTEND:${formatDate(endDate)}`,
+            `LOCATION:${item.venue || ''}`,
+            `DESCRIPTION:${item.notes || ''}`,
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\r\n');
+
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${item.title.replace(/\s+/g, '_')}.ics`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        return true;
+    }
+
     try {
         const { authorized, isLimited } = await requestCalendarPermissions();
 
@@ -59,7 +115,6 @@ export async function addToNativeCalendar(event: AppEvent) {
         const calendarId = await findBestCalendarId();
 
         if (!calendarId) {
-            // If we are "Limited", we often can't see the calendar list at all.
             const message = isLimited
                 ? 'Apple restricts "Add Events Only" access, which prevents the app from finding your calendar. Please change permission to "Full Access" in Settings for a seamless experience.'
                 : 'Could not find a writeable calendar on this device. Please check your Calendar app settings.';
@@ -76,25 +131,25 @@ export async function addToNativeCalendar(event: AppEvent) {
         }
 
         // Parse start time
-        const [hours, minutes] = (event.time || '12:00').split(':').map(Number);
-        const startDate = new Date(event.date);
+        const [hours, minutes] = (item.time || '12:00').split(':').map(Number);
+        const startDate = new Date(item.date + 'T00:00:00');
         startDate.setHours(hours, minutes, 0, 0);
 
         // Calculate end time
-        const duration = event.duration || 60;
+        const duration = item.duration || 60;
         const endDate = new Date(startDate.getTime() + duration * 60000);
 
         const calendarEvent: Partial<Calendar.Event> = {
-            title: event.title,
+            title: item.title,
             startDate,
             endDate,
-            location: event.venue,
-            notes: event.notes,
-            timeZone: 'GMT', // Using GMT or device local
+            location: item.venue,
+            notes: item.notes,
+            timeZone: 'GMT',
         };
 
         await Calendar.createEventAsync(calendarId, calendarEvent);
-        Alert.alert('Success', `"${event.title}" has been added to your calendar!`);
+        Alert.alert('Success', `"${item.title}" has been added to your calendar!`);
         return true;
 
     } catch (error: any) {

@@ -14,24 +14,38 @@ interface RosterManagerProps {
 export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: RosterManagerProps) {
     const [isAdding, setIsAdding] = useState(false);
     const [newRole, setNewRole] = useState('');
+    const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
+    const [tempRole, setTempRole] = useState('');
+    const [changingSlotId, setChangingSlotId] = useState<string | null>(null);
 
     // SMS Invite Modal States
     const [isSmsVisible, setIsSmsVisible] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState<BookingSlot | null>(null);
     const [selectedMusician, setSelectedMusician] = useState<Person | null>(null);
 
-
     const addSlot = () => {
         if (!newRole.trim()) return;
         const newSlot: BookingSlot = {
             id: Date.now().toString(),
             role: newRole.trim(),
-            instruments: [], // Could be expanded later
+            instruments: [],
             status: 'open',
         };
         onUpdateSlots([...slots, newSlot]);
         setNewRole('');
         setIsAdding(false);
+    };
+
+    const startEditingRole = (slot: BookingSlot) => {
+        setEditingSlotId(slot.id);
+        setTempRole(slot.role);
+    };
+
+    const saveRole = () => {
+        if (!editingSlotId) return;
+        onUpdateSlots(slots.map(s => s.id === editingSlotId ? { ...s, role: tempRole.trim() || s.role } : s));
+        setEditingSlotId(null);
+        setTempRole('');
     };
 
     const removeSlot = (id: string) => {
@@ -47,21 +61,36 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
     };
 
     const assignMusician = (slotId: string, musicianId: string | undefined) => {
+        if (!musicianId) {
+            // Removal is immediate
+            onUpdateSlots(slots.map(s => s.id === slotId ? {
+                ...s,
+                musicianId: undefined,
+                status: 'open',
+                invitedAt: undefined
+            } : s));
+            return;
+        }
+
         const musician = availablePeople.find(p => p.id === musicianId);
         const slot = slots.find(s => s.id === slotId);
 
-        onUpdateSlots(slots.map(s => s.id === slotId ? {
-            ...s,
-            musicianId,
-            status: musicianId ? 'invited' : 'open',
-            invitedAt: musicianId ? new Date().toISOString() : undefined
-        } : s));
-
         if (musician && slot) {
             setSelectedMusician(musician);
-            setSelectedSlot({ ...slot, musicianId, status: 'invited' });
+            setSelectedSlot(slot);
             setIsSmsVisible(true);
         }
+    };
+
+    const handleConfirmAssignment = (musicianId: string) => {
+        if (!selectedSlot) return;
+
+        onUpdateSlots(slots.map(s => s.id === selectedSlot.id ? {
+            ...s,
+            musicianId,
+            status: 'invited',
+            invitedAt: new Date().toISOString()
+        } : s));
     };
 
 
@@ -118,16 +147,37 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
                     return (
                         <View key={slot.id} className="bg-card border border-border rounded-[32px] mb-4 p-5 shadow-sm">
                             <View className="flex-row justify-between items-start mb-4">
-                                <View>
-                                    <Text className="text-sm font-black text-foreground uppercase tracking-tight">{slot.role}</Text>
-                                    <View className="flex-row items-center mt-1">
-                                        <View className={`w-2 h-2 rounded-full mr-2 ${slot.status === 'confirmed' ? 'bg-green-500' :
-                                            slot.status === 'invited' ? 'bg-amber-500' :
-                                                slot.status === 'open' ? 'bg-blue-500' : 'bg-red-500'
-                                            }`} />
-                                        <Text className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{slot.status}</Text>
-                                    </View>
-                                </View>
+                                <TouchableOpacity
+                                    onPress={() => startEditingRole(slot)}
+                                    className="flex-1"
+                                >
+                                    {editingSlotId === slot.id ? (
+                                        <View className="flex-row items-center gap-2">
+                                            <TextInput
+                                                className="flex-1 bg-white border border-blue-100 p-2 rounded-xl font-bold text-foreground text-sm"
+                                                value={tempRole}
+                                                onChangeText={setTempRole}
+                                                autoFocus
+                                                onBlur={saveRole}
+                                                onSubmitEditing={saveRole}
+                                            />
+                                            <TouchableOpacity onPress={saveRole} className="bg-blue-600 p-2 rounded-lg">
+                                                <Ionicons name="checkmark" size={16} color="white" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ) : (
+                                        <>
+                                            <Text className="text-sm font-black text-foreground uppercase tracking-tight">{slot.role}</Text>
+                                            <View className="flex-row items-center mt-1">
+                                                <View className={`w-2 h-2 rounded-full mr-2 ${slot.status === 'confirmed' ? 'bg-green-500' :
+                                                    slot.status === 'invited' ? 'bg-amber-500' :
+                                                        slot.status === 'open' ? 'bg-blue-500' : 'bg-red-500'
+                                                    }`} />
+                                                <Text className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{slot.status}</Text>
+                                            </View>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
                                 <View className="flex-row items-center gap-2">
                                     <View className="bg-blue-50/50 border border-blue-100 flex-row items-center px-3 py-1.5 rounded-2xl">
                                         <Text className="text-blue-600 font-black text-xs mr-2">$</Text>
@@ -140,8 +190,8 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
                                             keyboardType="numeric"
                                         />
                                     </View>
-                                    <TouchableOpacity onPress={() => removeSlot(slot.id)} className="p-1 opacity-20">
-                                        <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                                    <TouchableOpacity onPress={() => removeSlot(slot.id)} className="p-1.5 ml-1 rounded-lg bg-red-50 flex-row items-center">
+                                        <Ionicons name="trash-outline" size={14} color="#ef4444" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -164,39 +214,63 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
                                                         setSelectedSlot(slot);
                                                         setIsSmsVisible(true);
                                                     }}
-                                                    className="bg-amber-100 p-2 rounded-full"
+                                                    className="bg-amber-100 px-3 py-1.5 rounded-xl flex-row items-center"
                                                 >
-                                                    <Ionicons name="mail-outline" size={16} color="#d97706" />
+                                                    <Ionicons name="mail-outline" size={14} color="#d97706" />
+                                                    <Text className="text-amber-700 font-bold text-[10px] ml-1.5 uppercase">Invite</Text>
                                                 </TouchableOpacity>
                                                 <TouchableOpacity
                                                     onPress={() => updateSlotStatus(slot.id, 'confirmed')}
-                                                    className="bg-green-100 p-2 rounded-full"
+                                                    className="bg-green-100 px-3 py-1.5 rounded-xl flex-row items-center"
                                                 >
-                                                    <Ionicons name="checkmark" size={16} color="#16a34a" />
+                                                    <Ionicons name="checkmark" size={14} color="#16a34a" />
+                                                    <Text className="text-green-700 font-bold text-[10px] ml-1.5 uppercase">Confirm</Text>
                                                 </TouchableOpacity>
                                             </>
                                         )}
                                         <TouchableOpacity
-                                            onPress={() => assignMusician(slot.id, undefined)}
-                                            className="bg-gray-200 p-2 rounded-full"
+                                            onPress={() => setChangingSlotId(slot.id)}
+                                            className="bg-blue-50 px-3 py-1.5 rounded-xl flex-row items-center"
                                         >
-                                            <Ionicons name="person-remove-outline" size={16} color="#4b5563" />
+                                            <Ionicons name="swap-horizontal-outline" size={14} color="#2563eb" />
+                                            <Text className="text-blue-700 font-bold text-[10px] ml-1.5 uppercase">Replace</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => assignMusician(slot.id, undefined)}
+                                            className="bg-gray-100 px-3 py-1.5 rounded-xl flex-row items-center"
+                                        >
+                                            <Ionicons name="person-remove-outline" size={14} color="#4b5563" />
+                                            <Text className="text-gray-600 font-bold text-[10px] ml-1.5 uppercase">Clear</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
-                            ) : (
-                                <View>
-                                    <Text className="text-[10px] uppercase font-black text-muted-foreground mb-3 tracking-widest px-1">Assign Musician</Text>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-                                        {availablePeople.map(person => (
-                                            <TouchableOpacity
-                                                key={person.id}
-                                                onPress={() => assignMusician(slot.id, person.id)}
-                                                className="bg-white border border-gray-100 px-4 py-3 rounded-2xl flex-row items-center shadow-xs"
-                                            >
-                                                <Text className="font-bold text-foreground text-xs">{person.firstName} {person.lastName}</Text>
+                            ) : null}
+
+                            {(!musician || changingSlotId === slot.id) && (
+                                <View className={musician ? "mt-4 border-t border-gray-100 pt-4" : ""}>
+                                    <View className="flex-row justify-between items-center mb-3 px-1">
+                                        <Text className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">{musician ? 'Replace With' : 'Assign Musician'}</Text>
+                                        {changingSlotId === slot.id && (
+                                            <TouchableOpacity onPress={() => setChangingSlotId(null)}>
+                                                <Text className="text-blue-600 font-bold text-[10px] uppercase">Cancel</Text>
                                             </TouchableOpacity>
-                                        ))}
+                                        )}
+                                    </View>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+                                        {availablePeople
+                                            .filter(p => p.id !== slot.musicianId)
+                                            .map(person => (
+                                                <TouchableOpacity
+                                                    key={person.id}
+                                                    onPress={() => {
+                                                        assignMusician(slot.id, person.id);
+                                                        setChangingSlotId(null);
+                                                    }}
+                                                    className="bg-white border border-gray-100 px-4 py-3 rounded-2xl flex-row items-center shadow-xs"
+                                                >
+                                                    <Text className="font-bold text-foreground text-xs">{person.firstName} {person.lastName}</Text>
+                                                </TouchableOpacity>
+                                            ))}
                                         {availablePeople.length === 0 && (
                                             <Text className="text-xs text-muted-foreground italic">No musicians in your Library yet.</Text>
                                         )}
@@ -211,7 +285,15 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
             {selectedSlot && selectedMusician && (
                 <SmsInviteModal
                     visible={isSmsVisible}
-                    onClose={() => setIsSmsVisible(false)}
+                    onClose={() => {
+                        setIsSmsVisible(false);
+                        setSelectedSlot(null);
+                        setSelectedMusician(null);
+                    }}
+                    onConfirm={(mid) => {
+                        handleConfirmAssignment(mid);
+                        setChangingSlotId(null);
+                    }}
                     event={event}
                     musician={selectedMusician}
                     slot={selectedSlot}

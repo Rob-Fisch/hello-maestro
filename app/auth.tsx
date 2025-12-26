@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useContentStore } from '@/store/contentStore';
 import { supabase } from '@/lib/supabase';
+import { useContentStore } from '@/store/contentStore';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AuthScreen() {
     const [email, setEmail] = useState('');
@@ -179,14 +179,16 @@ export default function AuthScreen() {
                                 if (isForgotPassword) {
                                     setIsForgotPassword(false);
                                 } else {
+                                    // TEMPORARY: Enable Sign Up for Testing
                                     setIsSignUp(!isSignUp);
+                                    // Alert.alert('Invite Only', 'OpusMode is currently in private beta. Please contact Rob for an invitation.');
                                 }
                             }}
                             className="mt-6 p-4 items-center"
                         >
                             <Text className="text-gray-500 font-bold">
-                                {isForgotPassword ? 'Back to ' : (isSignUp ? 'Already have an account? ' : "Don't have an account? ")}
-                                <Text className="text-blue-600"> {isForgotPassword ? 'Sign In' : (isSignUp ? 'Sign In' : 'Sign Up')}</Text>
+                                {isForgotPassword ? 'Back to Sign In' : isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+                                <Text className="text-blue-600"> {isForgotPassword ? '' : isSignUp ? 'Sign In' : 'Sign Up'}</Text>
                             </Text>
                         </TouchableOpacity>
 

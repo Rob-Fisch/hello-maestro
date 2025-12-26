@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Alert, KeyboardAvoidingView } from 'react-native';
-import { router, useGlobalSearchParams } from 'expo-router';
 import { useContentStore } from '@/store/contentStore';
 import { Person, PersonType } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
+import { router, useGlobalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function PersonEditor() {
     // Standard params hook
@@ -25,7 +25,12 @@ export default function PersonEditor() {
     const [verifiedPhone, setVerifiedPhone] = useState('');
     const [notes, setNotes] = useState('');
     const [source, setSource] = useState<'maestro' | 'native'>('maestro');
+
     const [nativeId, setNativeId] = useState<string | undefined>(undefined);
+    // Venue Manager Fields
+    const [venueName, setVenueName] = useState('');
+    const [venueType, setVenueType] = useState('');
+    const [venueLocation, setVenueLocation] = useState('');
 
 
     // Initial state setup after hydration/mounting
@@ -41,7 +46,11 @@ export default function PersonEditor() {
             setVerifiedPhone(existingPerson.verifiedPhone || '');
             setNotes(existingPerson.notes || '');
             setSource(existingPerson.source || 'maestro');
+
             setNativeId(existingPerson.nativeId);
+            setVenueName(existingPerson.venueName || '');
+            setVenueType(existingPerson.venueType || '');
+            setVenueLocation(existingPerson.venueLocation || '');
 
         }
     }, [id, existingPerson]);
@@ -84,7 +93,11 @@ export default function PersonEditor() {
             instruments: instruments.length > 0 ? instruments : (instrument ? [instrument] : []),
             notes: notes.trim() || undefined,
             source,
+
             nativeId,
+            venueName: type === 'venue_manager' ? venueName : undefined,
+            venueType: type === 'venue_manager' ? venueType : undefined,
+            venueLocation: type === 'venue_manager' ? venueLocation : undefined,
             createdAt: existingPerson?.createdAt || new Date().toISOString(),
         };
 
@@ -100,7 +113,7 @@ export default function PersonEditor() {
     const personTypes: { key: PersonType; label: string; icon: string }[] = [
         { key: 'student', label: 'Student', icon: 'graduation-cap' },
         { key: 'musician', label: 'Musician', icon: 'musical-notes' },
-        { key: 'venue_manager', label: 'Manager', icon: 'business' },
+        { key: 'venue_manager', label: 'Venue Manager', icon: 'business' },
         { key: 'fan', label: 'Fan', icon: 'heart' },
         { key: 'other', label: 'Other', icon: 'person' },
     ];
@@ -167,14 +180,57 @@ export default function PersonEditor() {
                         />
                     </View>
 
-                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Instruments (Comma Separated)</Text>
-                    <TextInput
-                        className="text-lg font-semibold py-1 mb-4 border-b border-gray-100"
-                        placeholder="Piano, Guitar, Vocals..."
-                        value={instruments.join(', ')}
-                        onChangeText={(text) => setInstruments(text.split(',').map(s => s.trim()).filter(s => s !== ''))}
-                    />
+                    {type !== 'venue_manager' && (
+                        <>
+                            <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Instruments (Comma Separated)</Text>
+                            <TextInput
+                                className="text-lg font-semibold py-1 mb-4 border-b border-gray-100"
+                                placeholder="Piano, Guitar, Vocals..."
+                                value={instruments.join(', ')}
+                                onChangeText={(text) => setInstruments(text.split(',').map(s => s.trim()).filter(s => s !== ''))}
+                            />
+                        </>
+                    )}
                 </View>
+
+                {/* Venue Details (Conditional) */}
+                {type === 'venue_manager' && (
+                    <View className="bg-orange-50 p-6 rounded-[32px] border border-orange-100 mb-6">
+                        <View className="flex-row items-center mb-4">
+                            <Ionicons name="business" size={18} color="#ea580c" />
+                            <Text className="text-[10px] uppercase font-black text-orange-600 tracking-widest ml-2">Venue Details</Text>
+                        </View>
+
+                        <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Venue Name</Text>
+                        <TextInput
+                            className="text-lg font-bold py-1 mb-4 border-b border-orange-200 text-orange-900"
+                            placeholder="e.g. The Blue Note"
+                            value={venueName}
+                            onChangeText={setVenueName}
+                        />
+
+                        <View className="flex-row gap-4">
+                            <View className="flex-1">
+                                <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Type / Vibe</Text>
+                                <TextInput
+                                    className="text-base font-semibold py-1 border-b border-orange-200 text-orange-900"
+                                    placeholder="Jazz Club"
+                                    value={venueType}
+                                    onChangeText={setVenueType}
+                                />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Location</Text>
+                                <TextInput
+                                    className="text-base font-semibold py-1 border-b border-orange-200 text-orange-900"
+                                    placeholder="City, State"
+                                    value={venueLocation}
+                                    onChangeText={setVenueLocation}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                )}
 
                 {/* Notes Section */}
                 <View className="bg-gray-50 p-6 rounded-[32px] border border-gray-100 mb-8">

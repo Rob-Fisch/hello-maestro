@@ -1,11 +1,11 @@
-import { View, Text, FlatList, TouchableOpacity, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState, useMemo } from 'react';
-import { useContentStore } from '@/store/contentStore';
-import { router } from 'expo-router';
-import { AppEvent, BookingSlot, Person } from '@/store/types';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme';
+import { useContentStore } from '@/store/contentStore';
+import { AppEvent } from '@/store/types';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function EngagementsScreen() {
     const { events = [], people = [] } = useContentStore();
@@ -77,26 +77,29 @@ export default function EngagementsScreen() {
                 )}
 
                 <View className="flex-row flex-wrap gap-2">
-                    {item.slots?.map(slot => (
-                        <View
-                            key={slot.id}
-                            className={`px-3 py-2 rounded-2xl flex-row items-center border ${slot.status === 'confirmed' ? 'bg-green-50 border-green-100' :
-                                slot.status === 'invited' ? 'bg-amber-50 border-amber-100' :
-                                    'bg-gray-50 border-gray-100'
-                                }`}
-                        >
-                            <View className={`w-2 h-2 rounded-full mr-2 ${slot.status === 'confirmed' ? 'bg-green-500' :
-                                slot.status === 'invited' ? 'bg-amber-500' :
-                                    'bg-blue-500'
-                                }`} />
-                            <Text className={`text-[10px] font-black uppercase tracking-tight ${slot.status === 'confirmed' ? 'text-green-700' :
-                                slot.status === 'invited' ? 'text-amber-700' :
-                                    'text-gray-600'
-                                }`}>
-                                {slot.role}
-                            </Text>
-                        </View>
-                    ))}
+                    {item.slots?.map(slot => {
+                        const musician = people.find(p => p.id === slot.musicianId);
+                        return (
+                            <View
+                                key={slot.id}
+                                className={`px-3 py-2 rounded-2xl flex-row items-center border ${slot.status === 'confirmed' ? 'bg-green-50 border-green-100' :
+                                    slot.status === 'invited' ? 'bg-amber-50 border-amber-100' :
+                                        'bg-gray-50 border-gray-100'
+                                    }`}
+                            >
+                                <View className={`w-2 h-2 rounded-full mr-2 ${slot.status === 'confirmed' ? 'bg-green-500' :
+                                    slot.status === 'invited' ? 'bg-amber-500' :
+                                        'bg-blue-500'
+                                    }`} />
+                                <Text className={`text-[10px] font-black uppercase tracking-tight ${slot.status === 'confirmed' ? 'text-green-700' :
+                                    slot.status === 'invited' ? 'text-amber-700' :
+                                        'text-gray-600'
+                                    }`}>
+                                    {musician ? `${slot.role} (${musician.firstName} ${musician.lastName})` : `${slot.role} (-unassigned-)`}
+                                </Text>
+                            </View>
+                        );
+                    })}
                     {totalSlots === 0 && (
                         <Text className="text-gray-400 text-xs italic">No slots defined yet</Text>
                     )}
@@ -109,15 +112,21 @@ export default function EngagementsScreen() {
         <View className="flex-1" style={{ backgroundColor: theme.background }}>
             <View className="px-8 pb-4" style={{ paddingTop: Math.max(insets.top, 20) }}>
                 <View className="flex-row justify-between items-center mb-8">
-                    <View className="flex-1">
-                        <View className="flex-row items-center mb-1">
-                            <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Gigs</Text>
-                            <View className="ml-3 px-2 py-0.5 rounded-lg" style={{ backgroundColor: theme.primary }}>
-                                <Text className="text-[10px] text-white font-black uppercase tracking-widest">Pro</Text>
+                    <View className="flex-row items-center flex-1 mr-4">
+                        <TouchableOpacity onPress={() => router.push('/')} className="mr-4 p-2 -ml-2 rounded-full">
+                            <Ionicons name="home-outline" size={26} color={theme.text} />
+                        </TouchableOpacity>
+                        <View className="flex-1">
+                            <View className="flex-row items-center mb-1">
+                                <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Gigs</Text>
+                                <View className="ml-3 px-2 py-0.5 rounded-lg" style={{ backgroundColor: theme.primary }}>
+                                    <Text className="text-[10px] text-white font-black uppercase tracking-widest">Pro</Text>
+                                </View>
                             </View>
+                            <Text className="font-medium text-base" style={{ color: theme.mutedText }}>Personnel & Roster Logistics</Text>
                         </View>
-                        <Text className="font-medium text-base" style={{ color: theme.mutedText }}>Personnel & Roster Logistics</Text>
                     </View>
+
                     <TouchableOpacity
                         onPress={() => router.push('/modal/event-editor?type=gig')}
                         className="bg-blue-600 w-14 h-14 rounded-2xl items-center justify-center shadow-lg shadow-blue-400"

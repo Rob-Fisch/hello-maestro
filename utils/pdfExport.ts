@@ -1,19 +1,51 @@
-import * as Print from 'expo-print';
-import { PDFDocument } from 'pdf-lib';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system/legacy';
-import { Platform, Alert } from 'react-native';
 import { Routine, UserSettings } from '@/store/types';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { Alert, Platform } from 'react-native';
 
-const base64ToUint8Array = (base64: string) => {
-    const raw = atob(base64);
-    const uint8Array = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++) {
-        uint8Array[i] = raw.charCodeAt(i);
+// Helper: Fetch bytes (Web/Native compatible)
+const getFileBytes = async (uri: string): Promise<Uint8Array | null> => {
+    try {
+        if (Platform.OS === 'web') {
+            const response = await fetch(uri);
+            const buffer = await response.arrayBuffer();
+            return new Uint8Array(buffer);
+        } else {
+            // Native: Resolve file URI
+            let cleanUri = uri;
+            if (uri.startsWith('http')) {
+                const filename = uri.split('/').pop()?.split('?')[0] || 'temp_down';
+                cleanUri = `${FileSystem.cacheDirectory}${filename}`;
+                await FileSystem.downloadAsync(uri, cleanUri);
+            }
+
+            const base64 = await FileSystem.readAsStringAsync(cleanUri, { encoding: 'base64' });
+            // Manual base64 to Uint8Array conversion for Native
+            const raw = atob(base64);
+            const uint8Array = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) uint8Array[i] = raw.charCodeAt(i);
+            return uint8Array;
+        }
+    } catch (e) {
+        console.warn('Error fetching bytes:', uri, e);
+        return null;
     }
-    return uint8Array;
 };
 
+// Helper: Base64 decode for Native (polyfill if needed)
+const atob = (input: string) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    let str = input.replace(/=+$/, '');
+    let output = '';
+    if (str.length % 4 == 1) throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
+    for (let bc = 0, bs = 0, buffer, i = 0; buffer = str.charAt(i++); ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer, bc++) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0) {
+        buffer = chars.indexOf(buffer);
+    }
+    return output;
+};
+
+// Helper: Resolve URI (Exported for general use)
 export const resolveFileUri = async (uri: string): Promise<string | null> => {
     if (!uri || uri.startsWith('data:')) return uri;
     if ((Platform.OS as any) === 'web') return uri;
@@ -33,7 +65,6 @@ export const resolveFileUri = async (uri: string): Promise<string | null> => {
             return uri; // Fallback to raw URL
         }
     }
-
 
     let cleanUri = uri;
     try {
@@ -61,237 +92,174 @@ export const resolveFileUri = async (uri: string): Promise<string | null> => {
     let fileInfo = await FileSystem.getInfoAsync(cleanUri);
     if (fileInfo.exists) return cleanUri;
 
-    if (docDir) {
-        const filename = cleanUri.split('/').pop();
-        const currentDest = `${docDir}${filename}`;
-        const checkDest = await FileSystem.getInfoAsync(currentDest);
-        if (checkDest.exists) return currentDest;
-    }
-
-    const checkOriginal = await FileSystem.getInfoAsync(uri);
-    if (checkOriginal.exists) return uri;
-
     return null;
 };
 
-const getBase64 = async (uri: string) => {
-    const resolvedUri = await resolveFileUri(uri);
-    if (!resolvedUri) return null;
-    if (resolvedUri.startsWith('data:')) return resolvedUri;
+// Helper: Simple Word Wrap
+const wrapText = (text: string, maxWidth: number, font: any, fontSize: number) => {
+    const words = text.split(' ');
+    let lines: string[] = [];
+    let currentLine = words[0];
 
-    // If it's still a remote URL after resolve (failed download), we can't get base64 easily via FS
-    if (resolvedUri.startsWith('http')) {
-        // We could try to fetch and convert here, but resolveFileUri should have handled it.
-        // If it didn't, we return the URL and hope the consumer can handle it.
-        return resolvedUri;
+    for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = font.widthOfTextAtSize(`${currentLine} ${word}`, fontSize);
+        if (width < maxWidth) {
+            currentLine += ` ${word}`;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
     }
-
-
-    try {
-        const base64 = await FileSystem.readAsStringAsync(resolvedUri, { encoding: 'base64' });
-        const extension = resolvedUri.split('.').pop()?.toLowerCase();
-        const mimeType = (extension === 'png') ? 'image/png' : 'image/jpeg';
-        return `data:${mimeType};base64,${base64}`;
-    } catch (e) {
-        return null;
-    }
-};
-
-const generateTOC = (routine: Routine) => {
-    return `
-        <html>
-            <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
-                <style>
-                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 60px; color: #333; }
-                    h1 { font-size: 36px; border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 40px; }
-                    .toc-item { display: flex; align-items: baseline; margin-bottom: 15px; font-size: 18px; }
-                    .toc-name { font-weight: bold; color: #111; }
-                    .toc-leader { flex: 1; border-bottom: 1px dotted #ccc; margin: 0 10px; }
-                    .toc-type { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 800; }
-                </style>
-            </head>
-            <body>
-                <h1>Set List: ${routine.title}</h1>
-                <div style="margin-bottom: 40px; font-style: italic; color: #666;">
-                    ${routine.blocks.length} items in this set
-                </div>
-                ${routine.blocks.map((block, i) => `
-                    <div class="toc-item">
-                        <span class="toc-name">${i + 1}. ${block.title}</span>
-                        <span class="toc-leader"></span>
-                        <span class="toc-type">${block.type === 'sheet_music' ? '🎼 Sheet Music' : '📝 Text'}</span>
-                    </div>
-                `).join('')}
-                <div style="margin-top: 100px; text-align: center; font-size: 12px; color: #aaa; border-top: 1px solid #eee; padding-top: 20px;">
-                    Generated by HelloMaestro &bull; ${new Date().toLocaleDateString()}
-                </div>
-            </body>
-        </html>
-    `;
-};
-
-const generateHtmlForSegment = (blocks: any[], routineTitle: string, segmentIndex: number, routineDescription?: string) => {
-    return `
-        <html>
-            <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
-                <style>
-                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
-                    h1 { color: #1a1a1a; font-size: 32px; margin-bottom: 5px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }
-                    h2 { color: #666; font-size: 18px; font-weight: normal; margin-bottom: 40px; }
-                    .block { 
-                        margin-bottom: 30px; 
-                        padding: 25px; 
-                        border: 1px solid #e5e7eb;
-                        border-left: 5px solid #3b82f6;
-                        border-radius: 12px;
-                        page-break-inside: avoid;
-                        page-break-before: always;
-                        background-color: #fcfcfc;
-                    }
-                    .block-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-                    .block-title { font-weight: bold; font-size: 22px; color: #111; }
-                    .block-type { background-color: #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; font-weight: 800; }
-                    .block-content { margin-top: 15px; white-space: pre-wrap; font-size: 16px; color: #4b5563; }
-                    .media-box { margin-top: 20px; text-align: center; }
-                    .media-image { max-width: 100%; max-height: 600px; border-radius: 8px; border: 1px solid #eaeaea; }
-                    .link-box { margin-top: 15px; font-size: 14px; padding: 10px; background-color: #f3f4f6; border-radius: 8px; }
-                    .link-box a { color: #2563eb; text-decoration: none; font-weight: bold; }
-                    .footer { margin-top: 50px; font-size: 12px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
-                </style>
-            </head>
-            <body>
-                ${segmentIndex === 0 ? `
-                    <h1>${routineTitle}</h1>
-                    ${routineDescription ? `<h2>${routineDescription}</h2>` : '<div style="margin-bottom: 40px;"></div>'}
-                ` : ''}
-                <div class="blocks">
-                    ${blocks.map((block) => `
-                        <div class="block">
-                            <div class="block-header">
-                                <div class="block-title">${block.title}</div>
-                                <div class="block-type">${block.type}</div>
-                            </div>
-                            ${block.content ? `<div class="block-content">${block.content}</div>` : ''}
-                            ${block.mediaUri ? (
-            block.isPdf ? `
-                                    <div class="link-box">
-                                        <span>📄 Attached PDF: </span>
-                                        <strong>${block.mediaUri.split('/').pop()}</strong>
-                                    </div>
-                                ` : `
-                                    <div class="media-box">
-                                        ${block.base64Uri ? `
-                                            <img src="${block.base64Uri}" class="media-image" alt="Media content" />
-                                        ` : `
-                                            <div style="color: #999; font-style: italic; padding: 10px; border: 1px dashed #ccc;">
-                                                Image not found on this device
-                                            </div>
-                                        `}
-                                    </div>
-                                `
-        ) : ''}
-                            ${block.linkUrl ? `
-                                <div class="link-box">
-                                    <span>🔗 External Link: </span>
-                                    <a href="${block.linkUrl}">${block.linkUrl}</a>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="footer">
-                    Generated by HelloMaestro &bull; ${new Date().toLocaleDateString()}
-                </div>
-            </body>
-        </html>
-    `;
+    lines.push(currentLine);
+    return lines;
 };
 
 export const exportToPdf = async (routine: Routine, settings: UserSettings) => {
     try {
-        const mergedPdf = await PDFDocument.create();
-        let currentHtmlBlocks: any[] = [];
+        // 1. Create a new PDF Document
+        const pdfDoc = await PDFDocument.create();
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-        const flushHtmlBlocks = async () => {
-            if (currentHtmlBlocks.length === 0) return;
-            const processedBlocks = [];
-            for (const block of currentHtmlBlocks) {
-                const isPdf = block.mediaUri?.toLowerCase().split('?')[0].endsWith('.pdf');
-                if (block.mediaUri && !isPdf) {
-                    const base64 = await getBase64(block.mediaUri);
-                    processedBlocks.push({ ...block, base64Uri: base64, isPdf: false });
-                } else {
-                    processedBlocks.push({ ...block, isPdf: !!isPdf });
-                }
-            }
-            const html = generateHtmlForSegment(processedBlocks, routine.title, mergedPdf.getPageCount(), routine.description);
-            const { base64 } = await Print.printToFileAsync({ html, base64: true });
-            if (base64) {
-                const pdfBytes = base64ToUint8Array(base64);
-                const htmlPdf = await PDFDocument.load(pdfBytes);
-                const pages = await mergedPdf.copyPages(htmlPdf, htmlPdf.getPageIndices());
-                pages.forEach((page) => mergedPdf.addPage(page));
-            }
-            currentHtmlBlocks = [];
-        };
+        // 2. Add Title Page
+        let page = pdfDoc.addPage();
+        const { width, height } = page.getSize();
+        const margin = 50;
 
-        if (settings.includeTOC) {
-            const tocHtml = generateTOC(routine);
-            const { base64: tocB64 } = await Print.printToFileAsync({ html: tocHtml, base64: true });
-            if (tocB64) {
-                const tocDoc = await PDFDocument.load(base64ToUint8Array(tocB64));
-                const [tocPage] = await mergedPdf.copyPages(tocDoc, [0]);
-                mergedPdf.addPage(tocPage);
-            }
+        page.drawText(routine.title, {
+            x: margin,
+            y: height - 80,
+            size: 24,
+            font: fontBold,
+            color: rgb(0, 0, 0),
+        });
+
+        if (routine.description) {
+            const descLines = wrapText(routine.description, width - (margin * 2), font, 12);
+            let yPos = height - 120;
+            descLines.forEach(line => {
+                page.drawText(line, { x: margin, y: yPos, size: 12, font: font, color: rgb(0.4, 0.4, 0.4) });
+                yPos -= 18;
+            });
         }
 
+        page.drawText(`Generated by OpusMode • ${new Date().toLocaleDateString()}`, {
+            x: margin,
+            y: 30,
+            size: 10,
+            font: font,
+            color: rgb(0.6, 0.6, 0.6),
+        });
+
+        // 3. Process Content Blocks
         for (const block of routine.blocks) {
             const isPdf = block.mediaUri?.toLowerCase().split('?')[0].endsWith('.pdf');
+
             if (isPdf && block.mediaUri) {
-                await flushHtmlBlocks();
-                const resolvedUri = await resolveFileUri(block.mediaUri);
-                if (resolvedUri) {
+                // --- MERGE PDF ---
+                const pdfBytes = await getFileBytes(block.mediaUri);
+                if (pdfBytes) {
                     try {
-                        const pdfBase64 = await FileSystem.readAsStringAsync(resolvedUri, { encoding: 'base64' });
-                        const pdfBytes = base64ToUint8Array(pdfBase64);
-                        const attachmentPdf = await PDFDocument.load(pdfBytes);
-                        const pages = await mergedPdf.copyPages(attachmentPdf, attachmentPdf.getPageIndices());
-                        pages.forEach((page) => mergedPdf.addPage(page));
+                        const srcDoc = await PDFDocument.load(pdfBytes);
+                        const indices = srcDoc.getPageIndices();
+                        const copiedPages = await pdfDoc.copyPages(srcDoc, indices);
+                        copiedPages.forEach((p) => pdfDoc.addPage(p));
                     } catch (e) {
-                        console.warn('Failed to merge PDF block:', block.title, e);
+                        console.warn('Failed to merge PDF:', block.title);
                     }
                 }
             } else {
-                currentHtmlBlocks.push(block);
+                // --- DRAW TEXT / IMAGE ---
+                // Always start a new page for a new block (Book/Chapter style)
+                page = pdfDoc.addPage();
+                let yCursor = height - 60;
+
+                // Block Title
+                page.drawText(block.title, {
+                    x: margin,
+                    y: yCursor,
+                    size: 18,
+                    font: fontBold,
+                    color: rgb(0, 0, 0),
+                });
+                yCursor -= 30;
+
+                // Block Content (Text)
+                if (block.content) {
+                    const lines = wrapText(block.content, width - (margin * 2), font, 12);
+                    for (const line of lines) {
+                        if (yCursor < 50) {
+                            page = pdfDoc.addPage();
+                            yCursor = height - 60;
+                        }
+                        page.drawText(line, { x: margin, y: yCursor, size: 12, font: font });
+                        yCursor -= 18;
+                    }
+                    yCursor -= 20;
+                }
+
+                // Block Image (if exists and not PDF)
+                if (block.mediaUri && !isPdf) {
+                    try {
+                        const imgBytes = await getFileBytes(block.mediaUri);
+                        if (imgBytes) {
+                            let image;
+                            // Naive check for PNG vs JPG headers could be better, but try/catch works
+                            try {
+                                image = await pdfDoc.embedPng(imgBytes);
+                            } catch {
+                                image = await pdfDoc.embedJpg(imgBytes);
+                            }
+
+                            if (image) {
+                                const imgDims = image.scaleToFit(width - (margin * 2), height / 2);
+
+                                if (yCursor - imgDims.height < 50) {
+                                    page = pdfDoc.addPage();
+                                    yCursor = height - 60;
+                                }
+
+                                page.drawImage(image, {
+                                    x: margin,
+                                    y: yCursor - imgDims.height,
+                                    width: imgDims.width,
+                                    height: imgDims.height,
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to embed image:', block.title);
+                    }
+                }
             }
         }
 
-        await flushHtmlBlocks();
+        // 4. Save & Encode
+        const pdfBase64 = await pdfDoc.saveAsBase64();
 
-        const pdfBase64 = await mergedPdf.saveAsBase64();
-        const filename = `${routine.title.replace(/[^a-zA-Z0-9]/g, '_')}_Master.pdf`;
-        const fileUri = `${FileSystem.documentDirectory}${filename}`;
-
-        await FileSystem.writeAsStringAsync(fileUri, pdfBase64, { encoding: 'base64' });
-
+        // 5. Download / Share
         if (Platform.OS === 'web') {
-            const pdfBytes = await mergedPdf.save();
-            const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+            // Web: Create Blob and Click Link
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = filename;
+            link.download = `${routine.title.replace(/\s+/g, '_')}.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url);
         } else {
-            await Sharing.shareAsync(fileUri, { UTI: '.pdf', mimeType: 'application/pdf' });
+            // Native: Save to FileSystem and Share
+            const filename = `${routine.title.replace(/\s+/g, '_')}.pdf`;
+            const fileUri = `${FileSystem.documentDirectory}${filename}`;
+            await FileSystem.writeAsStringAsync(fileUri, pdfBase64, { encoding: 'base64' });
+            await Sharing.shareAsync(fileUri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
         }
+
     } catch (error) {
-        console.error('Error generating PDF:', error);
-        Alert.alert('Error', 'Failed to generate PDF.');
+        console.error('PDF Generation Failed:', error);
+        Alert.alert('Export Error', 'Failed to generate PDF. Check log.');
     }
 };

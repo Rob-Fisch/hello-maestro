@@ -1,12 +1,61 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
-
-import { ContentBlock, Routine, AppEvent, Category, Person, UserSettings, UserProfile, SyncStatus, LearningPath, UserProgress, ProofOfWork, AppTheme } from './types';
-import { syncToCloud, deleteFromCloud, pullFromCloud, pushAllToCloud, pullProfileFromCloud } from '@/lib/sync';
 import { supabase } from '@/lib/supabase';
+import { deleteFromCloud, pullFromCloud, pullProfileFromCloud, pushAllToCloud, syncToCloud } from '@/lib/sync';
+import { Alert, Platform } from 'react-native';
+import { create } from 'zustand';
+import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
+import { useGearStore } from './gearStore';
+import { AppEvent, AppTheme, Category, ContentBlock, InteractionLog, LearningPath, Person, ProofOfWork, Routine, SessionLog, SyncStatus, UserProfile, UserProgress, UserSettings } from './types';
 
+// Platform-specific storage for Zustand persistence
+const createPlatformStorageAdapter = (): StateStorage => {
+    if (Platform.OS === 'web') {
+        // Use localStorage for web/PWA
+        return {
+            getItem: (name: string) => {
+                try {
+                    if (typeof window === 'undefined') return null;
+                    return window.localStorage.getItem(name);
+                } catch {
+                    return null;
+                }
+            },
+            setItem: (name: string, value: string) => {
+                try {
+                    if (typeof window === 'undefined') return;
+                    window.localStorage.setItem(name, value);
+                } catch { }
+            },
+            removeItem: (name: string) => {
+                try {
+                    if (typeof window === 'undefined') return;
+                    window.localStorage.removeItem(name);
+                } catch { }
+            },
+        };
+    }
+
+    // Use AsyncStorage for native platforms
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    return {
+        getItem: async (name: string) => {
+            try {
+                return await AsyncStorage.getItem(name);
+            } catch {
+                return null;
+            }
+        },
+        setItem: async (name: string, value: string) => {
+            try {
+                await AsyncStorage.setItem(name, value);
+            } catch { }
+        },
+        removeItem: async (name: string) => {
+            try {
+                await AsyncStorage.removeItem(name);
+            } catch { }
+        },
+    };
+};
 
 
 interface ContentState {
@@ -44,6 +93,14 @@ interface ContentState {
     forkPathRemote: (originalPathId: string, originatorName?: string, originatorPathTitle?: string) => Promise<string | null>;
     updateProgress: (pathId: string, nodeId: string, completed: boolean) => void;
     addProof: (proof: ProofOfWork) => void;
+    // Session Logs
+    sessionLogs: SessionLog[];
+    logSession: (log: SessionLog) => void;
+    // Interaction Logs (CRM)
+    interactionLogs: InteractionLog[];
+    logInteraction: (log: InteractionLog) => void;
+    updateInteractionLog: (id: string, updates: Partial<InteractionLog>) => void;
+    deleteInteractionLog: (id: string) => void;
 
     // Cloud Actions
     fullSync: () => Promise<void>;
@@ -90,6 +147,31 @@ export const useContentStore = create<ContentState>()(
             paths: [],
             progress: [],
             proofs: [],
+            sessionLogs: [],
+            logSession: (log) => {
+                set((state) => ({
+                    sessionLogs: [log, ...(state.sessionLogs || [])],
+                    // Auto-reset progress for this routine upon logging
+                    progress: state.progress.filter(p => p.pathId !== log.routineId),
+                }));
+                // Future: syncToCloud('session_logs', log);
+            },
+            interactionLogs: [],
+            logInteraction: (log) => {
+                set((state) => ({
+                    interactionLogs: [log, ...(state.interactionLogs || [])],
+                }));
+            },
+            updateInteractionLog: (id, updates) => {
+                set((state) => ({
+                    interactionLogs: (state.interactionLogs || []).map(l => l.id === id ? { ...l, ...updates } : l),
+                }));
+            },
+            deleteInteractionLog: (id) => {
+                set((state) => ({
+                    interactionLogs: (state.interactionLogs || []).filter(l => l.id !== id),
+                }));
+            },
             profile: null,
             setProfile: (profile) => set({ profile }),
             syncStatus: 'offline',
@@ -318,6 +400,8 @@ export const useContentStore = create<ContentState>()(
                         pushAllToCloud('learning_paths', state.paths),
                         pushAllToCloud('user_progress', state.progress),
                         pushAllToCloud('proof_of_work', state.proofs),
+                        pushAllToCloud('gear_assets', useGearStore.getState().assets),
+                        pushAllToCloud('pack_lists', useGearStore.getState().packLists),
                     ]);
 
                     // 2. Pull stage: Get everything else
@@ -351,6 +435,12 @@ export const useContentStore = create<ContentState>()(
                         });
 
                         Alert.alert('Sync Successful', 'Your data is now fully reconciled with the cloud.');
+
+                        // 3. Sync Gear Store
+                        useGearStore.getState().mergeFromCloud(
+                            cloudData.gear_assets || [],
+                            cloudData.pack_lists || []
+                        );
                     } else {
                         set({ syncStatus: 'offline' });
                     }
@@ -389,17 +479,25 @@ export const useContentStore = create<ContentState>()(
                     syncStatus: 'offline'
                 });
 
-                // 3. Clear Storage explicitly
-                await AsyncStorage.removeItem('maestro-content-storage');
+                // 3. Clear Storage explicitly using platform-specific method
+                if (Platform.OS === 'web') {
+                    if (typeof window !== 'undefined') {
+                        window.localStorage.removeItem('maestro-content-storage');
+                    }
+                } else {
+                    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+                    await AsyncStorage.removeItem('maestro-content-storage');
+                }
             },
 
 
         }),
         {
             name: 'maestro-content-storage',
-            storage: createJSONStorage(() => AsyncStorage),
+            storage: createJSONStorage(() => createPlatformStorageAdapter()),
             version: 3,
             onRehydrateStorage: () => (state) => {
+                console.log('🚀 [ContentStore] Hydration complete');
                 state?.setHasHydrated(true);
             },
             migrate: (persistedState: any, version: number) => {

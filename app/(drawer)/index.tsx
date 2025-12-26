@@ -1,15 +1,13 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useContentStore } from '@/store/contentStore';
-import { useRouter, Link, useNavigation } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { DrawerActions } from '@react-navigation/native';
-import { useEffect } from 'react';
 import { useTheme } from '@/lib/theme';
+import { useContentStore } from '@/store/contentStore';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRouter } from 'expo-router';
 
 export default function HomeScreen() {
-    const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage } = useContentStore();
+    const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage, sessionLogs, progress } = useContentStore();
 
     const router = useRouter();
     const navigation = useNavigation();
@@ -42,33 +40,94 @@ export default function HomeScreen() {
         return e.date === todayStr;
     });
 
-    // Map of all possible modules
-    const moduleMap: Record<string, { title: string, icon: any, color: string, path: any }> = {
-        'modal/routine-editor': { title: 'New Routine', icon: 'add-circle-outline', path: '/modal/routine-editor', color: 'bg-blue-500' },
-        'content': { title: 'Activities', icon: 'library-outline', path: '/content', color: 'bg-purple-500' },
-        'events': { title: 'Schedule', icon: 'calendar-outline', path: '/events', color: 'bg-green-500' },
-        'routines': { title: 'Routines', icon: 'list-outline', path: '/routines', color: 'bg-orange-500' },
-        'people': { title: 'Contacts', icon: 'people-outline', path: '/people', color: 'bg-indigo-500' },
-        'pathfinder': { title: 'Compass', icon: 'map-outline', path: '/pathfinder', color: 'bg-rose-500' },
-        'engagements': { title: 'Gigs', icon: 'star-outline', path: '/engagements', color: 'bg-amber-500' },
-        'settings': { title: 'Settings', icon: 'settings-outline', path: '/settings', color: 'bg-gray-500' },
+    // Calculate Date Ranges
+    const startOfWeek = new Date(today);
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + 7);
+
+    // Filter Logic
+    const countEventsInRange = (start: Date, end: Date) => {
+        return (events || []).filter(e => {
+            if (e.schedule?.type === 'recurring') {
+                // Simplified recurring logic for stats (checking if it happens at least once in range)
+                // Ideally we'd expand occurrences, but for specific counts we might just check active status
+                // For "Today", we use exact match logic
+                return true; // Simplified: Assuming recurring events "exist" this week
+            }
+            const eDate = new Date(e.date);
+            return eDate >= start && eDate <= end;
+        }).length;
     };
 
-    const quickActions = recentModuleIds.map(id => moduleMap[id]).filter(Boolean);
+    const upcomingEventsCount = countEventsInRange(today, endOfWeek);
+    const todaysEventsCount = todaysEvents.length;
+    // todaysEvents logic assumed from existing code (lines 32-41 of original file, which count as 'todaysEvents')
+    // We can reuse the existing `todaysEvents` variable defined above this replacement block.
     const isMock = profile?.id.startsWith('mock-');
 
+
+    const mainModules = [
+        {
+            title: 'Studio',
+            subtitle: 'Creative Hub',
+            icon: 'layers-outline',
+            path: '/studio',
+            color: 'bg-indigo-500',
+            description: 'Levels 1 & 2'
+        },
+        {
+            title: 'Schedule',
+            subtitle: 'Calendar & CRM',
+            icon: 'calendar-outline',
+            path: '/events',
+            color: 'bg-blue-500',
+            description: 'Gigs, Rehearsals'
+        },
+        {
+            title: 'Contacts',
+            subtitle: 'People & Roster',
+            icon: 'people-outline',
+            path: '/people',
+            color: 'bg-purple-500',
+            description: 'Bandmates, Venues'
+        },
+        {
+            title: 'Vault',
+            subtitle: 'Gear Inventory',
+            icon: 'briefcase-outline',
+            path: '/gear-vault',
+            color: 'bg-emerald-500',
+            description: 'Instruments, Tech'
+        },
+        {
+            title: 'Scout',
+            subtitle: 'AI Intel',
+            icon: 'telescope-outline',
+            path: '/scout',
+            color: 'bg-orange-500',
+            description: 'Lead Gen & Prompts'
+        },
+        {
+            title: 'System',
+            subtitle: 'Config & Help',
+            icon: 'settings-outline',
+            path: '/settings',
+            color: 'bg-gray-500',
+            description: 'Preferences, FAQ'
+        },
+    ];
+
     return (
-        <ScrollView className="flex-1 p-6" style={{ backgroundColor: theme.background }}>
-            <View className="mb-8 px-2" style={{ marginTop: Math.max(insets.top, 20) }}>
-                <View className="flex-row justify-between items-start mb-10">
+        <ScrollView className="flex-1 p-6" style={{ backgroundColor: theme.background, height: Platform.OS === 'web' ? '100vh' as any : undefined }}>
+            <View className="mb-8" style={{ marginTop: Math.max(insets.top, 20) }}>
+                {/* Header Profile Section */}
+                <View className="flex-row justify-between items-start mb-6">
                     <View className="flex-1 mr-4">
-                        <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2 px-1" style={{ color: theme.primary }}>Control Center</Text>
-                        <Text className="text-5xl font-black tracking-tighter leading-[48px]" style={{ color: theme.text }}>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2 px-1" style={{ color: theme.primary }}>Maestro Hub</Text>
+                        <Text className="text-4xl font-black tracking-tighter leading-tight" style={{ color: theme.text }}>
                             {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
                         </Text>
-
                     </View>
-
 
                     <TouchableOpacity
                         onPress={() => {
@@ -91,152 +150,121 @@ export default function HomeScreen() {
                             syncStatus === 'syncing' ? 'text-blue-700' :
                                 'text-gray-500'
                             }`}>
-                            {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Sync Now'}
+                            {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
                         </Text>
                     </TouchableOpacity>
                 </View>
 
-                {isMock && (
-                    <View className="border p-4 rounded-2xl mb-6 flex-row items-center" style={{ backgroundColor: '#fff7ed', borderColor: '#ffedd5' }}>
-                        <Ionicons name="cloud-offline-outline" size={20} color="#d97706" />
-                        <Text className="text-amber-700 font-bold ml-3 text-xs flex-1">
-                            Storage is local-only. Sign in to push your {routines.length + blocks.length} items to the cloud.
+                {/* Consistency Graph (Heatmap) */}
+                <View className="mb-8">
+                    <View className="flex-row justify-between items-end mb-3">
+                        <Text className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Consistency</Text>
+                        <Text className="text-[10px] font-bold text-gray-400">Last 5 Weeks</Text>
+                    </View>
+                    <View className="flex-row flex-wrap justify-between" style={{ gap: 4 }}>
+                        {Array.from({ length: 35 }).map((_, i) => {
+                            const date = new Date();
+                            date.setDate(date.getDate() - (34 - i));
+                            const dateStr = date.toISOString().split('T')[0];
+
+                            // Activity Score
+                            // 1 point per checkmark, 3 points per session log
+                            const logsCount = (sessionLogs || []).filter(l => l.date.startsWith(dateStr)).length;
+                            const progressCount = (progress || []).filter(p => p.completedAt?.startsWith(dateStr)).length;
+                            const score = (logsCount * 3) + progressCount;
+
+                            let bgClass = 'bg-gray-100'; // Default (0)
+                            if (score >= 4) bgClass = 'bg-green-600'; // High
+                            else if (score >= 2) bgClass = 'bg-green-400'; // Medium
+                            else if (score >= 1) bgClass = 'bg-green-200'; // Low
+
+                            return (
+                                <View
+                                    key={i}
+                                    className={`h-4 w-[11%] rounded-sm ${bgClass}`}
+                                    style={{
+                                        opacity: 0.8,
+                                        // Optional: Highlight today
+                                        borderColor: i === 34 ? theme.text : 'transparent',
+                                        borderWidth: i === 34 ? 1 : 0
+                                    }}
+                                />
+                            );
+                        })}
+                    </View>
+                </View>
+
+                {/* SECTION 1: TOP OF THE FOLD (Daily Briefing) */}
+                <TouchableOpacity
+                    onPress={() => router.push('/events')}
+                    className="p-6 rounded-[32px] mb-8 border shadow-sm relative overflow-hidden"
+                    style={{ backgroundColor: theme.card, borderColor: theme.border }}
+                >
+                    <View className="absolute top-0 right-0 p-6 opacity-10">
+                        <Ionicons name="calendar" size={120} color={theme.text} />
+                    </View>
+
+                    <View className="flex-row items-baseline mb-2 relative z-10">
+                        <Text className="text-6xl font-black tracking-tighter" style={{ color: theme.primary }}>
+                            {todaysEvents.length}
+                        </Text>
+                        <Text className="text-xl font-bold ml-2" style={{ color: theme.text }}>
+                            Events Today
                         </Text>
                     </View>
-                )}
 
-
-                {/* Separator and Global Menu Trigger */}
-                <View className="flex-row items-center mb-6">
-                    <TouchableOpacity
-                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-                        className="w-12 h-12 rounded-2xl items-center justify-center shadow-sm border mr-4"
-                        style={{ backgroundColor: theme.card, borderColor: theme.border }}
-                    >
-                        <Ionicons name="menu-outline" size={24} color={theme.text} />
-                    </TouchableOpacity>
-                    <View className="flex-1 h-[1px]" style={{ backgroundColor: theme.border }} />
-                </View>
-
-                <View className="mb-10">
-                    <Text className="font-medium text-lg leading-7 px-1" style={{ color: theme.mutedText }}>
-                        We have organized your schedule and practice routines for today.
-                    </Text>
-                </View>
-
-            </View>
-
-            {/* Today's Events */}
-            <View className="p-10 rounded-card shadow-2xl shadow-blue-400/30 mb-10 border border-blue-400/20" style={{ backgroundColor: theme.primary }}>
-                <View className="flex-row items-center mb-8">
-                    <View className="bg-white/20 p-2 rounded-xl">
-                        <Ionicons name="sparkles" size={20} color="white" />
+                    <View className="w-[70%] relative z-10">
+                        <Text className="font-medium text-base mb-4" style={{ color: theme.mutedText }}>
+                            You also have <Text style={{ color: theme.text, fontWeight: 'bold' }}>{upcomingEventsCount}</Text> items on the schedule for the next 7 days.
+                        </Text>
                     </View>
-                    <Text className="text-2xl font-black ml-3 text-white tracking-tight">Today&apos;s Gigs & Events</Text>
-                </View>
 
-                {todaysEvents.length === 0 ? (
-                    <View className="bg-white/5 p-6 rounded-[32px] border border-white/10 items-center">
-                        <Text className="text-white font-bold text-center opacity-90">No performances or lessons today.</Text>
-                        <Text className="text-white text-[10px] font-black uppercase mt-1 tracking-widest opacity-60">Open Schedule</Text>
+                    <View className="flex-row items-center relative z-10">
+                        <Text className="font-bold text-sm uppercase tracking-wider mr-2" style={{ color: theme.primary }}>View Schedule</Text>
+                        <Ionicons name="arrow-forward" size={16} color={theme.primary} />
                     </View>
-                ) : (
-                    <View>
-                        {todaysEvents.map((item) => (
-                            <Link key={item.id} href={{ pathname: '/modal/event-editor', params: { id: item.id } }} asChild>
-                                <TouchableOpacity className="flex-row items-center py-6 border-b border-white/10 last:border-b-0">
-                                    <View className="flex-1">
-                                        <Text className="text-2xl font-black text-white tracking-tight">{item.title}</Text>
-                                        <View className="flex-row items-center mt-1.5">
-                                            <View className="bg-white/20 px-2 py-0.5 rounded-md mr-2">
-                                                <Text className="text-[10px] text-white font-black uppercase tracking-widest">{item.type}</Text>
-                                            </View>
-                                            <Text className="text-white text-xs font-bold uppercase tracking-widest opacity-80">
-                                                {item.time} • {item.venue}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                    <View className="bg-white/10 w-10 h-10 rounded-full items-center justify-center">
-                                        <Ionicons name="chevron-forward" size={20} color="white" />
-                                    </View>
-                                </TouchableOpacity>
-                            </Link>
-                        ))}
-                    </View>
-                )}
-            </View>
+                </TouchableOpacity>
 
 
-            <View className="p-10 rounded-card shadow-sm border mb-10" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
-                <View className="flex-row items-center mb-8">
-                    <View className="p-2 rounded-xl" style={{ backgroundColor: `${theme.primary}15` }}>
-                        <Ionicons name="time" size={20} color={theme.primary} />
-                    </View>
-                    <Text className="text-2xl font-black ml-3 tracking-tight" style={{ color: theme.text }}>Practice Routines</Text>
-                </View>
+                {/* DIVIDER */}
+                <View className="h-[1px] w-full mb-8 opacity-20" style={{ backgroundColor: theme.border }} />
 
 
-                {todaysRoutines.length === 0 ? (
-                    <View className="py-6 items-center">
-                        <Text className="text-gray-400 italic text-lg">No routines scheduled for today.</Text>
+                {/* SECTION 2: STUDIO & TOOLS (Switchboard Grid) */}
+                <Text className="text-2xl font-black tracking-tight mb-6" style={{ color: theme.text }}>
+                    Studio & Tools
+                </Text>
+
+                <View className="flex-row flex-wrap justify-between">
+                    {mainModules.map((item, index) => (
                         <TouchableOpacity
-                            onPress={() => {
-                                trackModuleUsage('routines');
-                                router.push('/routines');
-                            }}
-                            className="mt-4 px-6 py-3 rounded-2xl"
-                            style={{ backgroundColor: `${theme.primary}15` }}
-                        >
-                            <Text className="font-bold text-base" style={{ color: theme.primary }}>Browse All Routines →</Text>
-                        </TouchableOpacity>
-                    </View>
-                ) : (
-                    <View>
-                        {todaysRoutines.map((item) => (
-                            <Link key={item.id} href={{ pathname: '/modal/routine-editor', params: { id: item.id } }} asChild>
-                                <TouchableOpacity
-                                    onPress={() => trackModuleUsage('modal/routine-editor')}
-                                    className="flex-row items-center py-6 border-b last:border-b-0"
-                                    style={{ borderBottomColor: theme.border }}
-                                >
-                                    <View className="w-16 h-16 rounded-[24px] items-center justify-center mr-5 shadow-sm border" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                                        <Ionicons name="play" size={24} color={theme.primary} />
-                                    </View>
-                                    <View className="flex-1">
-                                        <Text className="text-xl font-black tracking-tight" style={{ color: theme.text }}>{item.title}</Text>
-                                        <Text className="text-sm font-bold mt-0.5" style={{ color: theme.mutedText }}>{item.blocks.length} Practice Blocks</Text>
-                                    </View>
-                                    <View className="w-8 h-8 rounded-full items-center justify-center" style={{ backgroundColor: theme.background }}>
-                                        <Ionicons name="chevron-forward" size={18} color={theme.mutedText} />
-                                    </View>
-                                </TouchableOpacity>
-                            </Link>
-                        ))}
-
-                    </View>
-                )}
-            </View>
-
-            <Text className="text-2xl font-black mb-6 px-2 tracking-tight" style={{ color: theme.text }}>Quick Actions</Text>
-            <View className="flex-row flex-wrap justify-between px-1">
-                {quickActions.map((action, index) => (
-                    <Link key={index} href={action.path} asChild>
-                        <TouchableOpacity
-                            onPress={() => trackModuleUsage(action.path.startsWith('/') ? action.path.slice(1) : action.path)}
-                            className="w-[48%] mb-6 p-8 rounded-card border flex-col items-center shadow-lg shadow-gray-200/50"
+                            key={item.title}
+                            onPress={() => router.push(item.path as any)}
+                            className="w-[48%] mb-4 p-4 rounded-3xl border shadow-sm relative overflow-hidden h-[160px] justify-between"
                             style={{ backgroundColor: theme.card, borderColor: theme.border }}
                         >
-                            <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-5 shadow-inner ${action.color}`}>
-                                <Ionicons name={action.icon} size={30} color="white" />
+                            <View>
+                                <View className={`w-10 h-10 rounded-full items-center justify-center mb-4 ${item.color}`}>
+                                    <Ionicons name={item.icon as any} size={20} color="white" />
+                                </View>
+                                <Text className="text-lg font-black tracking-tight leading-none mb-1" style={{ color: theme.text }}>
+                                    {item.title}
+                                </Text>
+                                <Text className="text-[10px] font-bold uppercase tracking-wider opacity-70" style={{ color: theme.text }}>
+                                    {item.subtitle}
+                                </Text>
                             </View>
-                            <Text className="text-lg font-black tracking-tight text-center leading-5" style={{ color: theme.text }}>{action.title}</Text>
-                            <Text className="text-[10px] font-black uppercase tracking-widest mt-2" style={{ color: theme.mutedText }}>{action.title === 'Activities' ? 'Assets' : 'Manage'}</Text>
-                        </TouchableOpacity>
-                    </Link>
-                ))}
 
+                            <Text className="text-xs mt-3 leading-tight opacity-50 font-medium" style={{ color: theme.text }}>
+                                {item.description}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                {/* Footer Padding */}
+                <View className="h-20" />
             </View>
-            <View className="h-20" />
         </ScrollView>
     );
 }

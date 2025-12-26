@@ -1,13 +1,15 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, Platform, Pressable, Modal } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system/legacy';
+import { uploadMediaToCloud } from '@/lib/sync';
 import { useContentStore } from '@/store/contentStore';
 import { ContentBlock } from '@/store/types';
-import { uploadMediaToCloud } from '@/lib/sync';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Sharing from 'expo-sharing';
+import * as WebBrowser from 'expo-web-browser';
+import { useState } from 'react';
+import { Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const FS: any = FileSystem;
 
@@ -335,10 +337,28 @@ export default function BlockEditor() {
                                     <>
                                         <Text className="text-xs text-gray-500 mb-1">Attached Media:</Text>
                                         {mediaUri.endsWith('.pdf') ? (
-                                            <View className="flex-row items-center p-2 bg-white rounded-lg border border-gray-200">
+                                            <TouchableOpacity
+                                                onPress={async () => {
+                                                    if (mediaUri.startsWith('http')) {
+                                                        // Remote PDF: Open in In-App Browser
+                                                        await WebBrowser.openBrowserAsync(mediaUri);
+                                                    } else if (await Sharing.isAvailableAsync()) {
+                                                        // Local File: Share/Preview
+                                                        await Sharing.shareAsync(mediaUri);
+                                                    } else {
+                                                        Alert.alert('Preview Unavailable', 'Cannot preview this file.');
+                                                    }
+                                                }}
+                                                className="flex-row items-center p-2 bg-white rounded-lg border border-gray-200"
+                                            >
                                                 <Ionicons name="document-text" size={24} color="#ef4444" />
-                                                <Text className="ml-2 font-semibold flex-1" numberOfLines={1}>{mediaUri.split('/').pop()}</Text>
-                                            </View>
+                                                <View className="ml-2 flex-1">
+                                                    <Text className="font-semibold text-foreground" numberOfLines={1}>
+                                                        {decodeURIComponent(mediaUri.split('/').pop()?.replace(/^\d+-/, '') || 'Document')}
+                                                    </Text>
+                                                    <Text className="text-[10px] text-blue-500 font-bold uppercase mt-0.5">Tap to Preview</Text>
+                                                </View>
+                                            </TouchableOpacity>
                                         ) : (
                                             <Image source={{ uri: mediaUri }} className="w-full h-40 rounded bg-gray-300" resizeMode="cover" />
                                         )}

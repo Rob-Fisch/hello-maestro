@@ -120,3 +120,50 @@ BEGIN
     END IF;
 END $$;
 
+-- 7. Gear Assets Table
+CREATE TABLE IF NOT EXISTS public.gear_assets (
+    id TEXT PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    brand TEXT,
+    model TEXT,
+    serial_number TEXT,
+    manufacture_year TEXT,
+    status TEXT NOT NULL,
+    is_wishlist BOOLEAN DEFAULT false,
+    notes TEXT,
+    financials JSONB DEFAULT '{}',
+    loan_details JSONB,
+    media JSONB DEFAULT '{"photoUris": []}',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    last_synced_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.gear_assets ENABLE ROW LEVEL SECURITY;
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can only access their own gear' AND tablename = 'gear_assets') THEN
+        CREATE POLICY "Users can only access their own gear" ON public.gear_assets FOR ALL USING (auth.uid() = user_id);
+    END IF;
+END $$;
+
+-- 8. Pack Lists Table
+CREATE TABLE IF NOT EXISTS public.pack_lists (
+    id TEXT PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    event_id TEXT NOT NULL,
+    item_ids TEXT[] DEFAULT '{}',
+    checked_item_ids TEXT[] DEFAULT '{}',
+    notes TEXT,
+    last_synced_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.pack_lists ENABLE ROW LEVEL SECURITY;
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can only access their own pack lists' AND tablename = 'pack_lists') THEN
+        CREATE POLICY "Users can only access their own pack lists" ON public.pack_lists FOR ALL USING (auth.uid() = user_id);
+    END IF;
+END $$;
