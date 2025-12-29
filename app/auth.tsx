@@ -80,6 +80,7 @@ export default function AuthScreen() {
                         id: 'mock-rob',
                         email: email.toLowerCase().includes('@') ? email.toLowerCase() : 'rob@maestro.com',
                         displayName: 'Rob',
+                        isPremium: true
                     });
                     setLoading(false);
                     router.replace('/(drawer)');
@@ -90,11 +91,17 @@ export default function AuthScreen() {
                 if (error) throw error;
 
                 if (data.user) {
+                    const profileData = data.user.user_metadata || {};
+                    const isPremium = !!profileData.is_premium;
+
                     setProfile({
                         id: data.user.id,
                         email: data.user.email || '',
-                        displayName: data.user.user_metadata?.display_name || 'Maestro',
+                        displayName: profileData.display_name || 'Maestro',
+                        isPremium: isPremium
                     });
+
+                    // Trigger sync (Store handles the permissions)
                     await fullSync();
                     setLoading(false);
                     router.replace('/(drawer)');

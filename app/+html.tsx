@@ -20,6 +20,15 @@ export default function Root({ children }: PropsWithChildren) {
         */}
         <ScrollViewStyleReset />
 
+        {/* Inject Ionicons Font for Web PWA (Local Strategy) */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          @font-face {
+            font-family: 'Ionicons';
+            src: url(/Ionicons.ttf) format('truetype');
+          }
+        ` }} />
+
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#2563eb" />
 
@@ -39,19 +48,17 @@ export default function Root({ children }: PropsWithChildren) {
       </head>
       <body>
         {children}
-        {/* 
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                   navigator.serviceWorker.register('/sw.js');
                 });
               }
             `,
-                    }}
-                />
-                */}
+          }}
+        />
       </body>
     </html>
   );

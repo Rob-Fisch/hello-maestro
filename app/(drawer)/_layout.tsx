@@ -15,11 +15,13 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
     { name: 'index', icon: 'home-outline', label: 'Home', path: '/' },
+    { name: 'studio', icon: 'easel-outline', label: 'Studio', path: '/studio' },
     { name: 'content', icon: 'library-outline', label: 'Level 1', path: '/content' },
     { name: 'routines', icon: 'layers-outline', label: 'Level 2', path: '/routines' },
     { name: 'events', icon: 'calendar-outline', label: 'Schedule', path: '/events' },
-    { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
-    { name: 'engagements', icon: 'star-outline', label: 'Gigs', path: '/engagements' },
+    { name: 'scout', icon: 'telescope-outline', label: 'Scout', path: '/scout' },
+    // { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
+    { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
     { name: 'people', icon: 'people-outline', label: 'Contacts', path: '/people' },
     // Compass removed for V3 Consolidation
     { name: 'settings', icon: 'settings-outline', label: 'Settings', path: '/settings' },

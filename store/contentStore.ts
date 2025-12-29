@@ -338,11 +338,13 @@ export const useContentStore = create<ContentState>()(
                     return;
                 }
 
+                // PREMIUM GATE LIFTED: Puddle Proofing (Push) is now for everyone.
+                // However, PULL (Active Sync between devices) is Restricted to Premium.
+
                 set({ syncStatus: 'syncing' });
 
                 try {
-                    // 1. Push stage: Make sure everything local is up there
-                    // This will now throw if the DB schema is not aligned!
+                    // 1. Push stage: BACKUP EVERYONE
                     await Promise.all([
                         pushAllToCloud('blocks', state.blocks),
                         pushAllToCloud('routines', state.routines),
@@ -355,6 +357,13 @@ export const useContentStore = create<ContentState>()(
                         pushAllToCloud('gear_assets', useGearStore.getState().assets),
                         pushAllToCloud('pack_lists', useGearStore.getState().packLists),
                     ]);
+
+                    // 2. Pull stage: PREMIUM ONLY
+                    if (!state.profile?.isPremium) {
+                        set({ syncStatus: 'synced' }); // Backed up!
+                        // console.log('Pull skipped: Free Tier');
+                        return;
+                    }
 
                     // 2. Pull stage: Get everything else
                     const [cloudData, cloudProfile] = await Promise.all([

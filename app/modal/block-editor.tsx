@@ -262,21 +262,23 @@ export default function BlockEditor() {
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false}>
-                                    {categories.map((cat) => (
-                                        <TouchableOpacity
-                                            key={cat.id}
-                                            onPress={() => {
-                                                setCategoryId(cat.id);
-                                                setShowCategoryPicker(false);
-                                            }}
-                                            className={`p-5 mb-2 rounded-2xl flex-row justify-between items-center ${categoryId === cat.id ? 'bg-blue-50 border border-blue-100' : 'bg-gray-50'}`}
-                                        >
-                                            <Text className={`text-lg font-bold ${categoryId === cat.id ? 'text-blue-600' : 'text-gray-700'}`}>
-                                                {cat.name}
-                                            </Text>
-                                            {categoryId === cat.id && <Text className="text-blue-600 font-black">✓</Text>}
-                                        </TouchableOpacity>
-                                    ))}
+                                    {categories
+                                        .sort((a, b) => a.name.localeCompare(b.name)) // ALPHABETICAL SORT
+                                        .map((cat) => (
+                                            <TouchableOpacity
+                                                key={cat.id}
+                                                onPress={() => {
+                                                    setCategoryId(cat.id);
+                                                    setShowCategoryPicker(false);
+                                                }}
+                                                className={`p-5 mb-2 rounded-2xl flex-row justify-between items-center ${categoryId === cat.id ? 'bg-blue-50 border border-blue-100' : 'bg-gray-50'}`}
+                                            >
+                                                <Text className={`text-lg font-bold ${categoryId === cat.id ? 'text-blue-600' : 'text-gray-700'}`}>
+                                                    {cat.name}
+                                                </Text>
+                                                {categoryId === cat.id && <Text className="text-blue-600 font-black">✓</Text>}
+                                            </TouchableOpacity>
+                                        ))}
                                 </ScrollView>
                             </View>
                         </View>
@@ -339,11 +341,23 @@ export default function BlockEditor() {
                                         {mediaUri.endsWith('.pdf') ? (
                                             <TouchableOpacity
                                                 onPress={async () => {
+                                                    if (Platform.OS === 'web') {
+                                                        // Debug info
+                                                        console.log('Attempting to open:', mediaUri);
+                                                        if (!mediaUri) {
+                                                            alert('Error: No URI found');
+                                                            return;
+                                                        }
+                                                        window.open(mediaUri, '_blank');
+                                                        return;
+                                                    }
+
+                                                    // Native handling
                                                     if (mediaUri.startsWith('http')) {
-                                                        // Remote PDF: Open in In-App Browser
+                                                        // Remote PDF (Native): In-App Browser
                                                         await WebBrowser.openBrowserAsync(mediaUri);
                                                     } else if (await Sharing.isAvailableAsync()) {
-                                                        // Local File: Share/Preview
+                                                        // Local File (Native): Share/Preview Sheet
                                                         await Sharing.shareAsync(mediaUri);
                                                     } else {
                                                         Alert.alert('Preview Unavailable', 'Cannot preview this file.');

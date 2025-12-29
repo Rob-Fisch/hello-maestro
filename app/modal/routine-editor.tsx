@@ -5,80 +5,48 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Image, Modal, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 
-// --- WEB PICKER COMPONENTS ---
-const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '' }: any) => {
-    const [visible, setVisible] = useState(false);
-    const selected = options.find((o: any) => o.value == value);
-    return (
-        <>
-            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 ${labelClassName}`}>
-                <Text className="font-bold text-foreground flex-1" numberOfLines={1}>{selected ? selected.label : placeholder}</Text>
-                <Ionicons name="chevron-down" size={12} color="#94a3b8" />
-            </TouchableOpacity>
-            <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
-                <TouchableOpacity activeOpacity={1} onPress={() => setVisible(false)} className="flex-1 bg-black/50 justify-center items-center p-4">
-                    <View className="bg-white w-[80%] max-w-[300px] max-h-[70%] rounded-2xl overflow-hidden shadow-xl">
-                        <ScrollView contentContainerStyle={{ padding: 8 }}>
-                            {options.map((opt: any) => (
-                                <TouchableOpacity
-                                    key={opt.value}
-                                    onPress={() => { onChange(opt.value); setVisible(false); }}
-                                    className={`p-3 rounded-xl mb-1 ${opt.value == value ? 'bg-blue-50' : 'bg-transparent'}`}
-                                >
-                                    <Text className={`text-center font-bold ${opt.value == value ? 'text-blue-600' : 'text-gray-700'}`}>{opt.label}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-                </TouchableOpacity>
-            </Modal>
-        </>
-    );
-};
+
 
 const WebDatePicker = ({ date, onChange }: { date?: string, onChange: (d: string) => void }) => {
-    const [yStr, mStr, dStr] = (date || '2025-01-01').split('-');
-    const y = parseInt(yStr) || new Date().getFullYear();
-    const m = parseInt(mStr) || 1;
-    const d = parseInt(dStr) || 1;
-
-    const months = [
-        { label: 'Jan', value: 1 }, { label: 'Feb', value: 2 }, { label: 'Mar', value: 3 },
-        { label: 'Apr', value: 4 }, { label: 'May', value: 5 }, { label: 'Jun', value: 6 },
-        { label: 'Jul', value: 7 }, { label: 'Aug', value: 8 }, { label: 'Sep', value: 9 },
-        { label: 'Oct', value: 10 }, { label: 'Nov', value: 11 }, { label: 'Dec', value: 12 },
-    ];
-    const days = Array.from({ length: 31 }, (_, i) => ({ label: (i + 1).toString(), value: i + 1 }));
-
-    const update = (key: 'y' | 'm' | 'd', val: any) => {
-        let ny = y, nm = m, nd = d;
-        if (key === 'y') ny = parseInt(val) || 0;
-        if (key === 'm') nm = val;
-        if (key === 'd') nd = val;
-        onChange(`${ny.toString().padStart(4, '0')}-${nm.toString().padStart(2, '0')}-${nd.toString().padStart(2, '0')}`);
-    };
-
     return (
-        <View className="flex-row gap-1 w-full max-w-[380px]">
-            <View className="flex-[1.3]">
-                <WebSelect options={months} value={m} onChange={(v: any) => update('m', v)} />
-            </View>
-            <View className="flex-[0.9]">
-                <WebSelect options={days} value={d} onChange={(v: any) => update('d', v)} />
-            </View>
-            <View className="flex-[1.2]">
-                <TextInput
-                    className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 font-bold text-center text-foreground"
-                    value={y.toString()}
-                    keyboardType="number-pad"
-                    onChangeText={(t) => update('y', t)}
-                    maxLength={4}
-                    placeholder="YYYY"
-                />
-            </View>
+        <View className="bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-sm w-full h-[50px] justify-center relative">
+            <input
+                type="date"
+                value={date}
+                onChange={(e) => onChange(e.target.value)}
+                onClick={(e) => {
+                    try {
+                        if (typeof e.currentTarget.showPicker === 'function') {
+                            e.currentTarget.showPicker();
+                        } else {
+                            e.currentTarget.focus();
+                        }
+                    } catch (err) {
+                        e.currentTarget.focus();
+                    }
+                }}
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    padding: 12,
+                    fontSize: 16,
+                    border: 'none',
+                    background: 'transparent',
+                    width: '100%',
+                    height: '100%',
+                    fontFamily: 'inherit',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    appearance: 'none',
+                    WebkitAppearance: 'none'
+                }}
+            />
         </View>
     );
 };

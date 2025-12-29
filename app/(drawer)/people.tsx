@@ -2,7 +2,7 @@ import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Person, PersonType } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,12 +12,37 @@ export default function PeopleScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
+    const params = useLocalSearchParams();
+    // Parse filter param safely
+    const initialFilter = Array.isArray(params.filter) ? params.filter[0] : params.filter;
+    // Parse source param safely
+    const source = Array.isArray(params.source) ? params.source[0] : params.source;
+
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState<PersonType | 'all'>('all');
 
     useEffect(() => {
         trackModuleUsage('people');
-    }, []);
+        if (initialFilter && ['student', 'musician', 'venue_manager', 'other'].includes(initialFilter)) {
+            setActiveFilter(initialFilter as PersonType);
+        }
+    }, [initialFilter]);
+
+    // ... (rest of logic) ...
+
+    // IN RENDER:
+    // Replace the Home Button block lines 99-106 (approx)
+    {
+        source === 'gigs' ? (
+            <TouchableOpacity onPress={() => router.push('/(drawer)/gigs')} className="mr-4 p-2 -ml-2 rounded-full">
+                <Ionicons name="arrow-back" size={26} color={theme.text} />
+            </TouchableOpacity>
+        ) : (
+            <TouchableOpacity onPress={() => router.push('/')} className="mr-4 p-2 -ml-2 rounded-full">
+                <Ionicons name="home-outline" size={26} color={theme.text} />
+            </TouchableOpacity>
+        )
+    }
 
     const filteredPeople = useMemo(() => {
         try {
@@ -52,7 +77,6 @@ export default function PeopleScreen() {
             case 'student': return { label: 'Student', color: 'bg-purple-100', text: '#7e22ce', icon: 'graduation-cap' };
             case 'musician': return { label: 'Musician', color: 'bg-blue-100', text: '#2563eb', icon: 'musical-notes' };
             case 'venue_manager': return { label: 'Venue Manager', color: 'bg-amber-100', text: '#b45309', icon: 'business' };
-            case 'fan': return { label: 'Fan', color: 'bg-red-100', text: '#dc2626', icon: 'heart' };
             default: return { label: 'Other', color: 'bg-gray-100', text: '#4b5563', icon: 'person' };
         }
     };
@@ -97,12 +121,18 @@ export default function PeopleScreen() {
                 {/* Header with Home Button */}
                 <View className="flex-row justify-between items-center mb-6">
                     <View className="flex-row items-center flex-1 mr-4">
-                        <TouchableOpacity onPress={() => router.push('/')} className="mr-4 p-2 -ml-2 rounded-full">
-                            <Ionicons name="home-outline" size={26} color={theme.text} />
-                        </TouchableOpacity>
+                        {source === 'gigs' ? (
+                            <TouchableOpacity onPress={() => router.push('/(drawer)/gigs')} className="mr-4 p-2 -ml-2 rounded-full">
+                                <Ionicons name="arrow-back" size={26} color="white" />
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity onPress={() => router.push('/')} className="mr-4 p-2 -ml-2 rounded-full">
+                                <Ionicons name="home-outline" size={26} color="white" />
+                            </TouchableOpacity>
+                        )}
                         <View className="flex-1">
-                            <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Contacts</Text>
-                            <Text className="font-bold text-xs uppercase tracking-widest opacity-60" style={{ color: theme.text }}>People & Relationships</Text>
+                            <Text className="text-4xl font-black tracking-tight text-white">Contacts</Text>
+                            <Text className="font-bold text-xs uppercase tracking-widest text-teal-100">People & Relationships</Text>
                         </View>
                     </View>
                 </View>
@@ -123,21 +153,26 @@ export default function PeopleScreen() {
                         />
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-2">
-                        {[{ key: 'all', label: 'All' }, { key: 'student', label: 'Students' }, { key: 'musician', label: 'Musicians' }, { key: 'venue_manager', label: 'Venues' }].map(opt => (
-                            <TouchableOpacity
-                                key={opt.key}
-                                onPress={() => setActiveFilter(opt.key as any)}
-                                className={`mr-3 px-5 py-2.5 rounded-full border`}
-                                style={{
-                                    backgroundColor: activeFilter === opt.key ? theme.primary : theme.card,
-                                    borderColor: activeFilter === opt.key ? theme.primary : theme.border
-                                }}
-                            >
-                                <Text className={`text-xs uppercase font-black tracking-widest ${activeFilter === opt.key ? 'text-white' : ''}`} style={{ color: activeFilter === opt.key ? '#fff' : theme.mutedText }}>
-                                    {opt.label}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                        {[
+                            { key: 'all', label: 'All', color: 'bg-teal-700', border: 'border-teal-500', text: 'text-teal-100' },
+                            { key: 'venue_manager', label: 'Venue Managers', color: 'bg-amber-600', border: 'border-amber-400', text: 'text-amber-50' },
+                            { key: 'musician', label: 'Musicians', color: 'bg-blue-600', border: 'border-blue-400', text: 'text-blue-50' },
+                            { key: 'student', label: 'Students', color: 'bg-purple-600', border: 'border-purple-400', text: 'text-purple-50' },
+                            { key: 'other', label: 'Other', color: 'bg-zinc-600', border: 'border-zinc-500', text: 'text-zinc-100' }
+                        ].map(opt => {
+                            const isActive = activeFilter === opt.key;
+                            return (
+                                <TouchableOpacity
+                                    key={opt.key}
+                                    onPress={() => setActiveFilter(opt.key as any)}
+                                    className={`mr-3 px-5 py-2.5 rounded-full border-2 ${isActive ? `${opt.color} ${opt.border}` : 'bg-transparent border-white/20'}`}
+                                >
+                                    <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-white' : 'text-teal-100/70'}`}>
+                                        {opt.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </ScrollView>
                 </View>
 

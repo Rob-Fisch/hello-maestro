@@ -173,17 +173,19 @@ export default function ContentScreen() {
       }
     }
 
-    categories.forEach(cat => {
-      const catBlocks = blocks.filter(b => b.categoryId === cat.id);
-      if (catBlocks.length > 0) {
-        sections.push({
-          title: cat.name,
-          data: collapsedCategories.has(cat.id) ? [] : catBlocks,
-          id: cat.id,
-          type: 'category'
-        });
-      }
-    });
+    categories
+      .sort((a, b) => a.name.localeCompare(b.name)) // ALPHABETICAL SORT
+      .forEach(cat => {
+        const catBlocks = blocks.filter(b => b.categoryId === cat.id);
+        if (catBlocks.length > 0) {
+          sections.push({
+            title: cat.name,
+            data: collapsedCategories.has(cat.id) ? [] : catBlocks,
+            id: cat.id,
+            type: 'category'
+          });
+        }
+      });
 
     const uncategorized = blocks.filter(b => !b.categoryId || !categories.find(c => c.id === b.categoryId));
     if (uncategorized.length > 0) {

@@ -149,6 +149,7 @@ export interface UserProfile {
     displayName?: string;
     avatarUrl?: string;
     lastSyncedAt?: string;
+    isPremium?: boolean;
 }
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';

@@ -140,7 +140,7 @@ export default function RoutinesScreen() {
                             onPress={() => router.push('/')}
                             className="p-2 -ml-2 mr-2"
                         >
-                            <Ionicons name="home-outline" size={24} color={theme.text} />
+                            <Ionicons name="home-outline" size={24} color="white" />
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => router.push('/studio')}
@@ -166,9 +166,9 @@ export default function RoutinesScreen() {
                 {/* ROW 2: Title */}
                 <View className="mb-2">
                     <View className="flex-row items-center mb-2">
-                        <Text className="text-[10px] font-black uppercase tracking-[3px]" style={{ color: theme.primary }}>Level 2</Text>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] text-teal-100">Level 2</Text>
                     </View>
-                    <Text className="text-4xl font-black tracking-tight leading-tight" style={{ color: theme.text }}>
+                    <Text className="text-4xl font-black tracking-tight leading-tight text-white">
                         Collections
                     </Text>
                 </View>

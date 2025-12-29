@@ -2,10 +2,87 @@ import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { exportToPdf } from '@/utils/pdfExport';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+// --- WEB PICKER COMPONENTS ---
+const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '', icon }: any) => {
+    const [visible, setVisible] = useState(false);
+    const selected = options.find((o: any) => o.value == value);
+
+    // Ensure current value is represented if not in options
+    const displayLabel = selected ? selected.label : (value ? value : placeholder);
+
+    return (
+        <>
+            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 ${labelClassName}`}>
+                <Text className="font-bold text-foreground flex-1" numberOfLines={1}>{displayLabel}</Text>
+                <Ionicons name={icon || "chevron-down"} size={icon ? 20 : 12} color={icon ? "#64748b" : "#94a3b8"} />
+            </TouchableOpacity>
+            <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
+                <TouchableOpacity activeOpacity={1} onPress={() => setVisible(false)} className="flex-1 bg-black/50 justify-center items-center p-4">
+                    <View className="bg-white w-[80%] max-w-[300px] max-h-[70%] rounded-2xl overflow-hidden shadow-xl">
+                        <ScrollView contentContainerStyle={{ padding: 8 }}>
+                            {options.map((opt: any) => (
+                                <TouchableOpacity
+                                    key={opt.value}
+                                    onPress={() => { onChange(opt.value); setVisible(false); }}
+                                    className={`p-3 rounded-xl mb-1 ${opt.value == value ? 'bg-blue-50' : 'bg-transparent'}`}
+                                >
+                                    <Text className={`text-center font-bold ${opt.value == value ? 'text-blue-600' : 'text-gray-700'}`}>{opt.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        </>
+    );
+};
+
+const WebDatePicker = ({ date, onChange }: { date?: string, onChange: (d: string) => void }) => {
+    return (
+        <View className="bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-sm w-full h-[50px] justify-center relative">
+            <input
+                type="date"
+                value={date}
+                onChange={(e) => onChange(e.target.value)}
+                onClick={(e) => {
+                    try {
+                        if (typeof e.currentTarget.showPicker === 'function') {
+                            e.currentTarget.showPicker();
+                        } else {
+                            e.currentTarget.focus();
+                        }
+                    } catch (err) {
+                        e.currentTarget.focus();
+                    }
+                }}
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    padding: 12,
+                    fontSize: 16,
+                    border: 'none',
+                    background: 'transparent',
+                    width: '100%',
+                    height: '100%',
+                    fontFamily: 'inherit',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    appearance: 'none',
+                    WebkitAppearance: 'none'
+                }}
+            />
+        </View>
+    );
+};
 
 export default function CollectionDetail() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,6 +91,43 @@ export default function CollectionDetail() {
     const { routines, updateRoutine, progress, updateProgress, settings, logSession, sessionLogs } = useContentStore();
 
     const routine = routines.find(r => r.id === id);
+
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [showLogModal, setShowLogModal] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [includeTOC, setIncludeTOC] = useState(settings.includeTOC);
+
+    // Session Log State
+    const [sessionNotes, setSessionNotes] = useState('');
+    const [sessionRating, setSessionRating] = useState(3);
+    const [sessionDate, setSessionDate] = useState(new Date());
+    const [sessionDateText, setSessionDateText] = useState(new Date().toISOString().split('T')[0]);
+
+    // Time State
+    const [sessionTime, setSessionTime] = useState('12:00');
+    const [showTimePicker, setShowTimePicker] = useState(false);
+
+    useEffect(() => {
+        setIncludeTOC(settings.includeTOC);
+    }, [settings.includeTOC]);
+
+    const formatDisplayTime = (timeStr: string) => {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    };
+
+    const timeOptions = useMemo(() => {
+        const opts = [];
+        for (let h = 0; h < 24; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                const val = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                opts.push({ label: formatDisplayTime(val), value: val });
+            }
+        }
+        return opts;
+    }, []);
 
     if (!routine) {
         return (
@@ -26,21 +140,8 @@ export default function CollectionDetail() {
         );
     }
 
-    // Public/Private State (Gatekeeper)
-    // We assume routines have an 'isPublic' field. If not, we might need to add it to the type.
-    // For now, let's treat it as a concept we enforce, even if the DB field is missing (we can use description tag or similar, or just add the field).
-    // WAIT: Routine type currently DOES NOT have isPublic. 
-    // I will add it to the type definition in a separate step or just mock it for now.
-    // Let's assume we maintain it in the store/DB. For now, I'll mock it or use a custom tag.
-    // UPDATE: I will use a local state that pretends until we update Schema. 
-    // actually, let's just assume we will add it. I'll use 'isPublic' property casted.
     const isPublic = !!(routine as any).isPublic;
 
-    // Progress Logic
-    // ... later in the file ...
-
-
-    // Progress Logic
     const completedBlocks = routine.blocks.filter(b =>
         progress.some(p => p.pathId === routine.id && p.nodeId === b.id)
     );
@@ -53,43 +154,23 @@ export default function CollectionDetail() {
         updateProgress(routine.id, blockId, !isComplete);
     };
 
-    const handleResetProgress = () => {
-        Alert.alert(
-            'Reset Progress',
-            'Uncheck all items in this collection?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Reset',
-                    style: 'destructive',
-                    onPress: () => {
-                        routine.blocks.forEach(b => updateProgress(routine.id, b.id, false));
-                    }
-                }
-            ]
-        );
-    };
-
-    const [showExportModal, setShowExportModal] = React.useState(false);
-    const [showLogModal, setShowLogModal] = React.useState(false);
-    const [showHistoryModal, setShowHistoryModal] = React.useState(false);
-    const [includeTOC, setIncludeTOC] = React.useState(settings.includeTOC);
-
-    // Session Log State
-    const [sessionNotes, setSessionNotes] = React.useState('');
-    const [sessionRating, setSessionRating] = React.useState(3); // Default 3 stars
-
-    // Sync local toggle with global settings on mount/change
-    React.useEffect(() => {
-        setIncludeTOC(settings.includeTOC);
-    }, [settings.includeTOC]);
-
     const handleConfirmExport = async () => {
         setShowExportModal(false);
-        // Slight delay to allow modal to close before heavy PDF gen (prevents UI stutter)
         setTimeout(() => {
             exportToPdf(routine, { ...settings, includeTOC });
         }, 300);
+    };
+
+    const openLogModal = () => {
+        const now = new Date();
+        setSessionDate(now);
+        setSessionDateText(now.toISOString().split('T')[0]);
+        setSessionNotes('');
+        setSessionRating(3);
+        const h = now.getHours().toString().padStart(2, '0');
+        const m = now.getMinutes().toString().padStart(2, '0');
+        setSessionTime(`${h}:${m}`);
+        setShowLogModal(true);
     };
 
     const handleLogSession = () => {
@@ -97,10 +178,21 @@ export default function CollectionDetail() {
             progress.some(p => p.pathId === routine.id && p.nodeId === b.id)
         ).length;
 
+        let finalDate: Date;
+        if (Platform.OS === 'web') {
+            const dtString = `${sessionDateText}T${sessionTime}:00`;
+            finalDate = new Date(dtString);
+        } else {
+            finalDate = new Date(sessionDate);
+            const [h, m] = sessionTime.split(':').map(Number);
+            finalDate.setHours(h);
+            finalDate.setMinutes(m);
+        }
+
         logSession({
             id: Date.now().toString(),
             routineId: routine.id,
-            date: new Date().toISOString(),
+            date: finalDate.toISOString(),
             notes: sessionNotes,
             rating: sessionRating,
             itemsCompletedCount: completedCount,
@@ -110,7 +202,39 @@ export default function CollectionDetail() {
         setShowLogModal(false);
         setSessionNotes('');
         setSessionRating(3);
-        Alert.alert('Session Logged', 'Your progress has been saved and the checklist is ready for your next session!');
+
+        // Reset to now
+        const now = new Date();
+        setSessionDate(now);
+        setSessionDateText(now.toISOString().split('T')[0]);
+        const h = now.getHours().toString().padStart(2, '0');
+        const m = now.getMinutes().toString().padStart(2, '0');
+        setSessionTime(`${h}:${m}`);
+
+        Alert.alert('Session Logged', 'Your progress has been saved!');
+    };
+
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        const currentDate = selectedDate || sessionDate;
+        setSessionDate(currentDate);
+        setSessionDateText(currentDate.toISOString().split('T')[0]);
+    };
+
+    const onTimeChange = (event: any, selectedTime?: Date) => {
+        if (Platform.OS === 'android') setShowTimePicker(false);
+        if (selectedTime) {
+            const hours = selectedTime.getHours().toString().padStart(2, '0');
+            const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+            setSessionTime(`${hours}:${minutes}`);
+        }
+    };
+
+    const getSessionTimeDate = () => {
+        const [h, m] = sessionTime.split(':').map(Number);
+        const d = new Date(sessionDate);
+        d.setHours(h || 0);
+        d.setMinutes(m || 0);
+        return d;
     };
 
     return (
@@ -118,12 +242,10 @@ export default function CollectionDetail() {
             {/* Header */}
             <View className="px-6 pt-12 pb-4 border-b" style={{ borderColor: theme.border, backgroundColor: theme.headerBg }}>
                 <View className="flex-row justify-between items-start mb-4">
-                    {/* Fixed Navigation: Always go to Routines list */}
                     <TouchableOpacity onPress={() => router.navigate('/routines')} className="p-2 -ml-2">
                         <Ionicons name="arrow-back" size={24} color={theme.text} />
                     </TouchableOpacity>
                     <View className="flex-row gap-2">
-                        {/* Edit Button (Labeled) */}
                         <TouchableOpacity
                             onPress={() => router.push({ pathname: '/modal/routine-editor', params: { id: routine.id } })}
                             className="bg-gray-100 px-3 py-2 rounded-lg flex-row items-center border border-gray-200"
@@ -132,7 +254,6 @@ export default function CollectionDetail() {
                             <Text className="text-xs font-bold ml-1.5" style={{ color: theme.text }}>Edit Info</Text>
                         </TouchableOpacity>
 
-                        {/* Export Button (Labeled) */}
                         <TouchableOpacity
                             onPress={() => setShowExportModal(true)}
                             className="bg-blue-50 px-3 py-2 rounded-lg flex-row items-center border border-blue-100"
@@ -148,9 +269,7 @@ export default function CollectionDetail() {
                     <Text className="text-base mb-4 leading-relaxed" style={{ color: theme.mutedText }}>{routine.description}</Text>
                 )}
 
-                {/* Controls Bar */}
                 <View className="flex-row justify-between items-center mt-2">
-                    {/* Visibility Badge (Read Only) */}
                     <View className={`flex-row items-center px-3 py-1.5 rounded-full border ${isPublic ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100'} `}>
                         <Ionicons name={isPublic ? "earth" : "lock-closed"} size={12} color={isPublic ? "#2563eb" : "#64748b"} />
                         <Text className={`text-xs font-bold ml-1.5 ${isPublic ? 'text-blue-600' : 'text-gray-500'} `}>
@@ -158,21 +277,19 @@ export default function CollectionDetail() {
                         </Text>
                     </View>
 
-                    {/* Log Session Button (Replaces Reset) */}
                     <View className="flex-row gap-2">
                         <TouchableOpacity onPress={() => setShowHistoryModal(true)} className="flex-row items-center bg-gray-100 px-3 py-2 rounded-full">
                             <Ionicons name="time" size={16} color={theme.text} />
                             <Text className="text-xs font-bold ml-1.5 uppercase" style={{ color: theme.text }}>History</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => setShowLogModal(true)} className="flex-row items-center bg-blue-600 px-4 py-2 rounded-full shadow-sm">
+                        <TouchableOpacity onPress={openLogModal} className="flex-row items-center bg-blue-600 px-4 py-2 rounded-full shadow-sm">
                             <Ionicons name="checkbox" size={16} color="white" />
                             <Text className="text-xs font-bold text-white ml-1.5 uppercase">Log Session</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* Progress Bar */}
                 <View className="mt-6">
                     <View className="flex-row justify-between mb-1">
                         <Text className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Progress</Text>
@@ -206,7 +323,6 @@ export default function CollectionDetail() {
                             </Text>
                         </View>
 
-                        {/* Options */}
                         <View className="bg-gray-50 p-4 rounded-xl mb-6 border border-gray-100">
                             <TouchableOpacity
                                 onPress={() => setIncludeTOC(!includeTOC)}
@@ -248,7 +364,7 @@ export default function CollectionDetail() {
                 onRequestClose={() => setShowLogModal(false)}
             >
                 <View className="flex-1 bg-black/60 justify-end">
-                    <View className="bg-white rounded-t-[32px] p-6 h-[85%]">
+                    <View className="bg-white rounded-t-[32px] p-6 h-[90%]">
                         <View className="flex-row justify-between items-center mb-6">
                             <Text className="text-2xl font-black">Log Session</Text>
                             <TouchableOpacity onPress={() => setShowLogModal(false)} className="bg-gray-100 p-2 rounded-full">
@@ -257,7 +373,6 @@ export default function CollectionDetail() {
                         </View>
 
                         <ScrollView showsVerticalScrollIndicator={false}>
-                            {/* Summary */}
                             <View className="bg-gray-50 p-6 rounded-2xl mb-6 items-center">
                                 <Text className="text-gray-500 font-bold uppercase tracking-wider text-xs mb-1">Items Completed</Text>
                                 <Text className="text-4xl font-black text-blue-600">
@@ -266,7 +381,85 @@ export default function CollectionDetail() {
                                 </Text>
                             </View>
 
-                            {/* Rating */}
+                            <View className="flex-row gap-4 mb-6">
+                                <View className="flex-1">
+                                    <Text className="text-base font-bold mb-3 text-gray-500">Date</Text>
+                                    {Platform.OS === 'web' ? (
+                                        <WebDatePicker
+                                            date={sessionDate.toISOString().split('T')[0]}
+                                            onChange={(d) => {
+                                                const date = new Date(d);
+                                                if (!isNaN(date.getTime())) {
+                                                    setSessionDate(date);
+                                                    setSessionDateText(d);
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <View className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+                                            <DateTimePicker
+                                                value={sessionDate}
+                                                mode="date"
+                                                display="spinner"
+                                                onChange={onDateChange}
+                                                style={{ height: 120, width: '100%' }}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+
+                                <View className="flex-1">
+                                    <Text className="text-base font-bold mb-3 text-gray-500">Time</Text>
+                                    {Platform.OS === 'web' ? (
+                                        <WebSelect
+                                            value={sessionTime}
+                                            options={timeOptions}
+                                            onChange={setSessionTime}
+                                            icon="time-outline"
+                                        />
+                                    ) : (
+                                        <View>
+                                            <TouchableOpacity
+                                                onPress={() => setShowTimePicker(true)}
+                                                className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex-row justify-between items-center h-[50px] justify-center"
+                                            >
+                                                <Text className="font-bold text-foreground text-center flex-1">{formatDisplayTime(sessionTime)}</Text>
+                                                <Ionicons name="time-outline" size={20} color="#64748b" />
+                                            </TouchableOpacity>
+
+                                            {showTimePicker && Platform.OS === 'ios' && (
+                                                <Modal transparent animationType="fade" visible={showTimePicker} onRequestClose={() => setShowTimePicker(false)}>
+                                                    <View className="flex-1 bg-black/40 justify-center items-center p-6">
+                                                        <View className="bg-white rounded-[40px] p-8 w-full shadow-2xl items-center">
+                                                            <Text className="text-center font-black text-2xl mb-2 text-foreground">Set Time</Text>
+                                                            <DateTimePicker
+                                                                value={getSessionTimeDate()}
+                                                                mode="time"
+                                                                display="spinner"
+                                                                onChange={onTimeChange}
+                                                                style={{ width: '100%', height: 200 }}
+                                                            />
+                                                            <TouchableOpacity onPress={() => setShowTimePicker(false)} className="mt-8 bg-blue-600 w-full p-5 rounded-3xl items-center shadow-lg shadow-blue-400">
+                                                                <Text className="text-white font-black text-xl">Done</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </View>
+                                                </Modal>
+                                            )}
+                                            {showTimePicker && Platform.OS !== 'ios' && (
+                                                <DateTimePicker
+                                                    value={getSessionTimeDate()}
+                                                    mode="time"
+                                                    display="default"
+                                                    is24Hour={false}
+                                                    onChange={onTimeChange}
+                                                />
+                                            )}
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+
                             <Text className="text-lg font-bold mb-3">How did it feel?</Text>
                             <View className="flex-row justify-between mb-6 bg-gray-50 p-4 rounded-xl">
                                 {[1, 2, 3, 4, 5].map(star => (
@@ -280,7 +473,6 @@ export default function CollectionDetail() {
                                 ))}
                             </View>
 
-                            {/* Journal */}
                             <Text className="text-lg font-bold mb-3">Session Notes</Text>
                             <View className="bg-gray-50 p-4 rounded-xl mb-6 border border-gray-100 h-40">
                                 <ScrollView>
@@ -295,9 +487,10 @@ export default function CollectionDetail() {
                                 </ScrollView>
                             </View>
 
+                            <View className="h-20" />
                         </ScrollView>
 
-                        <View className="pt-4 border-t border-gray-100">
+                        <View className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100">
                             <TouchableOpacity
                                 onPress={handleLogSession}
                                 className="bg-blue-600 py-4 rounded-2xl items-center shadow-lg shadow-blue-200"
@@ -331,7 +524,6 @@ export default function CollectionDetail() {
                                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                                 .map((log) => (
                                     <View key={log.id} className="bg-gray-50 p-5 rounded-2xl mb-4 border border-gray-100">
-                                        {/* Header */}
                                         <View className="flex-row justify-between items-center mb-3">
                                             <Text className="text-gray-500 font-bold text-xs uppercase">
                                                 {new Date(log.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -343,13 +535,11 @@ export default function CollectionDetail() {
                                             </View>
                                         </View>
 
-                                        {/* Stats Bar */}
                                         <View className="flex-row items-baseline mb-3">
                                             <Text className="text-2xl font-black text-gray-900 mr-1">{log.itemsCompletedCount}</Text>
                                             <Text className="text-sm font-bold text-gray-400">/ {log.totalItemsCount} items</Text>
                                         </View>
 
-                                        {/* Notes */}
                                         {log.notes ? (
                                             <View className="bg-white p-3 rounded-xl border border-gray-100">
                                                 <Text className="text-gray-700 italic leading-snug">"{log.notes}"</Text>
@@ -368,7 +558,6 @@ export default function CollectionDetail() {
                 </View>
             </Modal>
 
-            {/* List */}
             <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
                 {routine.blocks.map((block, index) => {
                     const isComplete = progress.some(p => p.pathId === routine.id && p.nodeId === block.id);
@@ -378,12 +567,10 @@ export default function CollectionDetail() {
                             onPress={() => handleToggleComplete(block.id)}
                             className={`mb-4 p-4 rounded-2xl border flex-row items-center shadow-sm ${isComplete ? 'bg-green-50 border-green-100' : 'bg-white border-gray-100'} `}
                         >
-                            {/* Checkbox */}
                             <View className={`w-6 h-6 rounded-full border-2 items-center justify-center mr-4 ${isComplete ? 'border-green-500 bg-green-500' : 'border-gray-300'} `}>
                                 {isComplete && <Ionicons name="checkmark" size={16} color="white" />}
                             </View>
 
-                            {/* Content */}
                             <View className="flex-1">
                                 <Text className={`text - base font - bold mb - 0.5 ${isComplete ? 'text-green-900' : 'text-gray-900'} `}>
                                     {block.title}
@@ -398,14 +585,12 @@ export default function CollectionDetail() {
                                 </View>
                             </View>
 
-                            {/* Action Arrow (if link/file) */}
                             {(block.mediaUri || block.linkUrl) && (
                                 <TouchableOpacity
                                     className="p-2 bg-gray-50 rounded-full"
                                     onPress={(e) => {
-                                        e.stopPropagation(); // prevent toggling check
+                                        e.stopPropagation();
                                         if (block.linkUrl) Linking.openURL(block.linkUrl);
-                                        // TODO: Handle File Viewing via Modal if not a link
                                         else Alert.alert('File', 'File viewing logic here');
                                     }}
                                 >

@@ -1,20 +1,36 @@
 
-# Next Session Plan: User Management & Testing
+# Next Session Plan: MVP Strategy & Design Refinement
 
-**Date:** 2025-12-24
-**Context:** User is taking a break. Returning to focus on multi-user testing.
+**Date:** 2025-12-26
+**Status:** PWA Deployed & Fixed (Icons + Loading bypass). Pivoting to Product Strategy & Polish.
 
-## Objectives
-1.  **Create "Golden User" (Demo Account)**
-    -   Purpose: A realistic model for demos/videos.
-    -   Requirement: Eventually make this "Read-Only" for public viewers (or shared credentials where writes are disabled/reset).
+## 🧠 Strategic Decisions (Confirmed)
+1.  **Business Model:** **Annual Membership** ($19.99/year).
+    *   **Philosophy:** "Fair & Sustainable." Covers server costs, supports dev. Renewal notices sent early.
+    *   **Cost Analysis:** Since AI is "Client-Side Prompt Gen" (User's own LLM) and Sync is low-bandwidth, this price point is sustainable and profitable.
     
-2.  **Create "Tester User"**
-    -   Purpose: To test the "Public Sharing" and "Forking" workflows.
-    -   Goal: Verify that User A (Golden) can publish a path, and User B (Tester) can see it and fork it.
+2.  **MVP Feature Scope ("The Cut Line")**
+    *   **Scout (AI):** No API Integration. "Prompt Engineer" tool only. Locked behind Pro.
+    *   **Sync:** Locked behind Pro. Free tier is strictly **Local First**.
+    *   **Vault:** Text & Basic details only for MVP. No drag-and-drop gig bags yet.
 
-## Technical Tasks
--   [ ] Sign up 2 new accounts via the App UI (or Supabase dashboard).
--   [ ] Populate the "Golden User" with the new Compass V2 data (Routines, Resources, Tasks).
--   [ ] Verify the "Gatekeeper" logic prevents the Golden User from accidentally sharing private content.
--   [ ] Sign in as Tester -> Fork the Golden Path -> Verify data integrity.
+3.  **Deploy Strategy**
+    *   **Beta:** Manual "Drag and Drop" to Netlify (Beta Site).
+    *   **Production:** Manual "Drag and Drop" to Netlify (Main Site) when stable.
+    *   **PWA:** Infrastructure is FIXED. Icons, Loading, and Sync are operational.
+
+## 🛠️ Technical Tasks for Next Session
+1.  **Implement 'The Gate'**:
+    *   Add `is_premium` boolean to Supabase `profiles` table.
+    *   Create a reusable `<PremiumGate>` component to wrap features like Scout and Sync Settings.
+    *   Build a mock "Upgrade" screen (Paywall UI) to test the flow.
+
+2.  **Scout Prompt UI**:
+    *   Build the interface where users select their instrument/genre, and we generate the complex prompt text for them to copy.
+
+3.  **Sync Polish**:
+    *   Test the "Pull-to-Refresh" mechanism now that the PWA is live.
+
+## 📝 Notes
+- **Scout**: Confirmed as a "Huge" value add. Keep polishing.
+- **Golden User**: Still needed for testing the MVP flow once defined.

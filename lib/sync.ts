@@ -122,6 +122,42 @@ export async function uploadMediaToCloud(localUri: string, filename: string): Pr
         const response = await fetch(localUri);
         const blob = await response.blob();
 
+        // ---------------------------------------------------------
+        // TOTAL STORAGE QUOTA CHECK
+        // ---------------------------------------------------------
+        const fileSize = blob.size;
+        const isPro = session.user.user_metadata?.is_premium === true; // "Pro"
+        const isProPlus = session.user.user_metadata?.is_pro_plus === true; // "Pro+"
+
+        // TOTAL QUOTAS (in Bytes)
+        const QUOTA_FREE = 500 * 1024 * 1024;        // 500 MB
+        const QUOTA_PRO = 10 * 1024 * 1024 * 1024;   // 10 GB
+        const QUOTA_PRO_PLUS = 100 * 1024 * 1024 * 1024; // 100 GB
+
+        let quota = QUOTA_FREE;
+        if (isProPlus) quota = QUOTA_PRO_PLUS;
+        else if (isPro) quota = QUOTA_PRO;
+
+        // Check current usage via RPC
+        const { data: currentUsage, error: usageError } = await supabase.rpc('get_user_storage_usage');
+
+        if (!usageError) {
+            const totalProjected = (currentUsage || 0) + fileSize;
+            if (totalProjected > quota) {
+                const quotaGB = (quota / (1024 * 1024 * 1024)).toFixed(1);
+                const usedMB = ((currentUsage || 0) / (1024 * 1024)).toFixed(1);
+
+                const msg = isProPlus
+                    ? `Storage Limit Reached. You have used ${usedMB}MB of your ${quotaGB}GB limit.`
+                    : isPro
+                        ? `Storage Limit Reached. Upgrade to Pro+ for 100GB of storage.`
+                        : `Storage Limit Reached. Upgrade to Pro for 10GB of storage.`;
+
+                throw new Error(msg);
+            }
+        }
+        // ---------------------------------------------------------
+
         const fileExt = filename.split('.').pop();
         const filePath = `${session.user.id}/${Date.now()}.${fileExt}`;
 

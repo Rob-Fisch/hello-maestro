@@ -3,7 +3,7 @@ import { AppEvent, AppEventType, Person, Routine } from '@/store/types';
 import { addUnifiedToCalendar } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
-import { Link, useRouter } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,7 +33,17 @@ export default function ScheduleScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
-    const [activeFilters, setActiveFilters] = useState<ScheduleFilter[]>(['performance', 'lesson', 'rehearsal', 'practice']);
+    const { filter } = useLocalSearchParams();
+    const [activeFilters, setActiveFilters] = useState<ScheduleFilter[]>(() => {
+        if (filter) {
+            const filterParam = Array.isArray(filter) ? filter[0] : filter;
+            // Validate that the filter is a valid ScheduleFilter
+            if (['performance', 'lesson', 'rehearsal', 'practice'].includes(filterParam)) {
+                return [filterParam as ScheduleFilter];
+            }
+        }
+        return ['performance', 'lesson', 'rehearsal', 'practice'];
+    });
 
 
     const toggleFilter = (filter: ScheduleFilter) => {
@@ -369,12 +379,18 @@ export default function ScheduleScreen() {
             <View style={{ paddingTop: Math.max(insets.top, 20), paddingHorizontal: 32, paddingBottom: 16 }}>
                 <View className="flex-row justify-between items-center mb-8">
                     <View className="flex-row items-center">
-                        <TouchableOpacity onPress={() => router.push('/')} className="mr-5 p-2 -ml-2 rounded-full">
-                            <Ionicons name="home-outline" size={28} color={theme.text} />
-                        </TouchableOpacity>
+                        {(Array.isArray(filter) ? filter[0] : filter) === 'performance' ? (
+                            <TouchableOpacity onPress={() => router.push('/(drawer)/gigs')} className="mr-5 p-2 -ml-2 rounded-full">
+                                <Ionicons name="arrow-back" size={28} color="white" />
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity onPress={() => router.push('/')} className="mr-5 p-2 -ml-2 rounded-full">
+                                <Ionicons name="home-outline" size={28} color="white" />
+                            </TouchableOpacity>
+                        )}
                         <View>
-                            <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Schedule</Text>
-                            <Text className="font-medium text-base mt-1" style={{ color: theme.mutedText }}>Your entire musical life</Text>
+                            <Text className="text-4xl font-black tracking-tight text-white">Schedule</Text>
+                            <Text className="font-medium text-base mt-1 text-teal-100">Your entire musical life</Text>
                         </View>
                     </View>
                     <Link href="/modal/event-editor" asChild>

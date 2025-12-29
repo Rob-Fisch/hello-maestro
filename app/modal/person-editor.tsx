@@ -82,6 +82,19 @@ export default function PersonEditor() {
             return;
         }
 
+        // FREEMIUM LIMIT CHECK
+        if (type === 'venue_manager' && !isEditing) {
+            const currentCount = people.filter(p => p.type === 'venue_manager').length;
+            if (currentCount >= 10) {
+                if (Platform.OS === 'web') {
+                    alert('Free Plan Limit: You can only manage 10 Venues. Upgrade to Premium for unlimited entries.');
+                } else {
+                    Alert.alert('Limit Reached', 'You have reached the limit of 10 Venues on the free plan. Upgrade to add more.');
+                }
+                return;
+            }
+        }
+
         const personData: Person = {
             id: id || Date.now().toString(),
             firstName: firstName.trim(),
@@ -114,7 +127,6 @@ export default function PersonEditor() {
         { key: 'student', label: 'Student', icon: 'graduation-cap' },
         { key: 'musician', label: 'Musician', icon: 'musical-notes' },
         { key: 'venue_manager', label: 'Venue Manager', icon: 'business' },
-        { key: 'fan', label: 'Fan', icon: 'heart' },
         { key: 'other', label: 'Other', icon: 'person' },
     ];
 
@@ -128,7 +140,7 @@ export default function PersonEditor() {
             </View>
 
             <ScrollView className="flex-1 p-6" keyboardShouldPersistTaps="handled">
-                {!isEditing && (
+                {!isEditing && Platform.OS !== 'web' && (
                     <TouchableOpacity onPress={pickContact} className="bg-blue-50 p-4 rounded-2xl flex-row items-center justify-center mb-8 border border-blue-100">
                         <Ionicons name="person-add" size={20} color="#2563eb" />
                         <Text className="text-blue-600 font-bold ml-2">Import from Contacts</Text>
@@ -196,9 +208,16 @@ export default function PersonEditor() {
                 {/* Venue Details (Conditional) */}
                 {type === 'venue_manager' && (
                     <View className="bg-orange-50 p-6 rounded-[32px] border border-orange-100 mb-6">
-                        <View className="flex-row items-center mb-4">
-                            <Ionicons name="business" size={18} color="#ea580c" />
-                            <Text className="text-[10px] uppercase font-black text-orange-600 tracking-widest ml-2">Venue Details</Text>
+                        <View className="flex-row justify-between items-center mb-4">
+                            <View className="flex-row items-center">
+                                <Ionicons name="business" size={18} color="#ea580c" />
+                                <Text className="text-[10px] uppercase font-black text-orange-600 tracking-widest ml-2">Venue Details</Text>
+                            </View>
+                            {!isEditing && (
+                                <Text className="text-[10px] font-bold text-orange-400">
+                                    {people.filter(p => p.type === 'venue_manager').length} / 10 Free Used
+                                </Text>
+                            )}
                         </View>
 
                         <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Venue Name</Text>

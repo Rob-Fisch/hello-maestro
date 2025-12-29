@@ -24,3 +24,10 @@ This document serves as a memory bank for the user's specific working style and 
 ## Project Context
 *   **App Name**: OpusMode (formerly HelloMaestro).
 *   **Target Audience**: Musicians managing their own careers (Gigs, Teaching, Gear).
+
+## 🚀 Deployment & Sync Quirks
+*   **PWA Icons**: The web build process sometimes ignores `+html.tsx`.
+    *   **Fix**: If icons are missing on `opusmode.net`, verify `dist/index.html` contains the manual `<style>@font-face...</style>` injection or `dist/Ionicons.ttf` exists.
+*   **PDFs on Web**: Native `Sharing.shareAsync` fails on web. Use `window.open(uri, '_blank')`.
+*   **Manual Deploy**: Netlify is NOT auto-deploying. Run `npx expo export -p web` locally, then drag-and-drop the `dist` folder to Netlify Dashboard.
+*   **Sync Behavior**: There is NO real-time socket sync. Data is pushed to Supabase on save. To see changes on another device, **restart the app** or implement a "Pull-to-Refresh".

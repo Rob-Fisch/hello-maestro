@@ -76,8 +76,16 @@ export default function HomeScreen() {
             description: 'Levels 1 & 2'
         },
         {
+            title: 'Performance',
+            subtitle: 'Gigs & Tours',
+            icon: 'musical-notes-outline',
+            path: '/gigs',
+            color: 'bg-rose-500',
+            description: 'Contracts & Sets'
+        },
+        {
             title: 'Schedule',
-            subtitle: 'Calendar & CRM',
+            subtitle: 'Calendar',
             icon: 'calendar-outline',
             path: '/events',
             color: 'bg-blue-500',
@@ -91,14 +99,7 @@ export default function HomeScreen() {
             color: 'bg-purple-500',
             description: 'Bandmates, Venues'
         },
-        {
-            title: 'Vault',
-            subtitle: 'Gear Inventory',
-            icon: 'briefcase-outline',
-            path: '/gear-vault',
-            color: 'bg-emerald-500',
-            description: 'Instruments, Tech'
-        },
+
         {
             title: 'Scout',
             subtitle: 'AI Intel',
@@ -123,8 +124,8 @@ export default function HomeScreen() {
                 {/* Header Profile Section */}
                 <View className="flex-row justify-between items-start mb-6">
                     <View className="flex-1 mr-4">
-                        <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2 px-1" style={{ color: theme.primary }}>Maestro Hub</Text>
-                        <Text className="text-4xl font-black tracking-tighter leading-tight" style={{ color: theme.text }}>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2 px-1 text-teal-100">Maestro Hub</Text>
+                        <Text className="text-4xl font-black tracking-tighter leading-tight text-white">
                             {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
                         </Text>
                     </View>
@@ -137,18 +138,18 @@ export default function HomeScreen() {
                                 fullSync();
                             }
                         }}
-                        className={`flex-row items-center px-4 py-2 rounded-2xl border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-green-50 border-green-100' :
-                            syncStatus === 'syncing' ? 'bg-blue-50 border-blue-100' :
-                                'bg-gray-50 border-gray-100'
+                        className={`flex-row items-center px-4 py-2 rounded-2xl border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-white/20 border-white/30' :
+                            syncStatus === 'syncing' ? 'bg-blue-500/20 border-blue-400/30' :
+                                'bg-white/10 border-white/10'
                             }`}
                     >
-                        <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-green-500' :
-                            syncStatus === 'syncing' ? 'bg-blue-500' :
+                        <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-green-400' :
+                            syncStatus === 'syncing' ? 'bg-blue-300' :
                                 'bg-gray-400'
                             }`} />
-                        <Text className={`text-[10px] font-black uppercase tracking-normal ${syncStatus === 'synced' ? 'text-green-700' :
-                            syncStatus === 'syncing' ? 'text-blue-700' :
-                                'text-gray-500'
+                        <Text className={`text-[10px] font-black uppercase tracking-normal ${syncStatus === 'synced' ? 'text-green-100' :
+                            syncStatus === 'syncing' ? 'text-blue-100' :
+                                'text-gray-300'
                             }`}>
                             {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
                         </Text>
@@ -156,43 +157,65 @@ export default function HomeScreen() {
                 </View>
 
                 {/* Consistency Graph (Heatmap) */}
-                <View className="mb-8">
-                    <View className="flex-row justify-between items-end mb-3">
-                        <Text className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Consistency</Text>
-                        <Text className="text-[10px] font-bold text-gray-400">Last 5 Weeks</Text>
+                <TouchableOpacity
+                    onPress={() => router.push('/(drawer)/history')}
+                    activeOpacity={0.7}
+                    className="mb-8"
+                >
+                    <View className="flex-row justify-between items-end mb-3 px-1">
+                        <View>
+                            <Text className="text-xs font-black uppercase text-teal-100 tracking-widest mb-1 shadow-sm">Practice Momentum</Text>
+                            <Text className="text-2xl font-black text-white shadow-sm">
+                                {(() => {
+                                    // Calculate simple streak
+                                    // This is a naive implementation; a real one would traverse backwards day by day
+                                    return "Keep it up!";
+                                })()}
+                            </Text>
+                        </View>
+                        <View className="flex-row items-center bg-white/10 px-3 py-1.5 rounded-full">
+                            <Text className="text-xs font-bold text-white mr-1">View History</Text>
+                            <Ionicons name="chevron-forward" size={12} color="white" />
+                        </View>
                     </View>
-                    <View className="flex-row flex-wrap justify-between" style={{ gap: 4 }}>
-                        {Array.from({ length: 35 }).map((_, i) => {
-                            const date = new Date();
-                            date.setDate(date.getDate() - (34 - i));
-                            const dateStr = date.toISOString().split('T')[0];
 
-                            // Activity Score
-                            // 1 point per checkmark, 3 points per session log
-                            const logsCount = (sessionLogs || []).filter(l => l.date.startsWith(dateStr)).length;
-                            const progressCount = (progress || []).filter(p => p.completedAt?.startsWith(dateStr)).length;
-                            const score = (logsCount * 3) + progressCount;
+                    <View className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100/50">
+                        <View className="flex-row flex-wrap justify-between" style={{ gap: 4 }}>
+                            {Array.from({ length: 35 }).map((_, i) => {
+                                const date = new Date();
+                                date.setDate(date.getDate() - (34 - i));
+                                const dateStr = date.toISOString().split('T')[0];
 
-                            let bgClass = 'bg-gray-100'; // Default (0)
-                            if (score >= 4) bgClass = 'bg-green-600'; // High
-                            else if (score >= 2) bgClass = 'bg-green-400'; // Medium
-                            else if (score >= 1) bgClass = 'bg-green-200'; // Low
+                                // Activity Score
+                                const logsCount = (sessionLogs || []).filter(l => l.date.startsWith(dateStr)).length;
+                                const progressCount = (progress || []).filter(p => p.completedAt?.startsWith(dateStr)).length;
+                                const score = (logsCount * 3) + progressCount;
 
-                            return (
-                                <View
-                                    key={i}
-                                    className={`h-4 w-[11%] rounded-sm ${bgClass}`}
-                                    style={{
-                                        opacity: 0.8,
-                                        // Optional: Highlight today
-                                        borderColor: i === 34 ? theme.text : 'transparent',
-                                        borderWidth: i === 34 ? 1 : 0
-                                    }}
-                                />
-                            );
-                        })}
+                                let bgClass = 'bg-gray-200'; // Default (0)
+                                if (score >= 4) bgClass = 'bg-green-600'; // High
+                                else if (score >= 2) bgClass = 'bg-green-400'; // Medium
+                                else if (score >= 1) bgClass = 'bg-green-300'; // Low
+
+                                return (
+                                    <View
+                                        key={i}
+                                        className={`h-4 w-[11%] rounded-sm ${bgClass}`}
+                                        style={{
+                                            opacity: 0.9,
+                                            // Highlight today
+                                            borderColor: i === 34 ? theme.text : 'transparent',
+                                            borderWidth: i === 34 ? 1 : 0
+                                        }}
+                                    />
+                                );
+                            })}
+                        </View>
+                        <View className="flex-row justify-between mt-2">
+                            <Text className="text-[9px] font-bold text-gray-400">30 Days Ago</Text>
+                            <Text className="text-[9px] font-bold text-gray-400">Today</Text>
+                        </View>
                     </View>
-                </View>
+                </TouchableOpacity>
 
                 {/* SECTION 1: TOP OF THE FOLD (Daily Briefing) */}
                 <TouchableOpacity
@@ -225,6 +248,46 @@ export default function HomeScreen() {
                     </View>
                 </TouchableOpacity>
 
+
+                {/* VENUE MANAGEMENT PROMO */}
+                <TouchableOpacity
+                    onPress={() => router.push({ pathname: '/people', params: { filter: 'venue_manager' } })}
+                    className="p-6 rounded-[32px] mb-8 border shadow-sm relative overflow-hidden"
+                    style={{ backgroundColor: '#fff7ed', borderColor: '#fed7aa' }}
+                >
+                    <View className="absolute -right-4 -bottom-4 opacity-10">
+                        <Ionicons name="business" size={140} color="#ea580c" />
+                    </View>
+
+                    <View className="relative z-10 mb-2">
+                        <Text className="font-black text-[10px] uppercase tracking-widest text-amber-600 mb-1">Feature Spotlight</Text>
+                        <Text className="text-2xl font-black text-amber-950 leading-tight">Venue Manager</Text>
+                    </View>
+
+                    <Text className="text-amber-800/80 font-medium mb-4 relative z-10 w-[85%] leading-snug">
+                        Track booking history and manage relationships with venue owners.
+                    </Text>
+
+                    <View className="flex-row items-center relative z-10">
+                        <Text className="font-bold text-xs uppercase tracking-wider mr-2 text-amber-700">Open Venues</Text>
+                        <Ionicons name="arrow-forward" size={14} color="#b45309" />
+                    </View>
+                </TouchableOpacity>
+
+                {/* FREE TIER SYNC WARNING */}
+                {profile && !profile.isPremium && !isMock && syncStatus === 'synced' && (
+                    <View className="mb-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex-row items-start">
+                        <View className="mr-3 mt-1 bg-blue-100 p-1.5 rounded-full">
+                            <Ionicons name="cloud-offline-outline" size={16} color="#2563eb" />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="font-bold text-blue-900 text-sm mb-1">Backup Active (Free Tier)</Text>
+                            <Text className="text-blue-800/70 text-xs leading-relaxed">
+                                Your data is safely backed up ("Puddle Proof"), but will not sync to your other devices until you upgrade.
+                            </Text>
+                        </View>
+                    </View>
+                )}
 
                 {/* DIVIDER */}
                 <View className="h-[1px] w-full mb-8 opacity-20" style={{ backgroundColor: theme.border }} />

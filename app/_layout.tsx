@@ -1,14 +1,13 @@
 // [AGENT NOTIFICATION] The user says the PWA is running and you might be stuck.
-import { Stack, router, useSegments, useRootNavigationState } from 'expo-router';
 import { useContentStore } from '@/store/contentStore';
 import { useGearStore } from '@/store/gearStore';
-import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Stack, router, useRootNavigationState, useSegments } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import '../global.css';
 
 export default function RootLayout() {
@@ -74,15 +73,23 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, [isHydrated]);
 
-  if (!isHydrated || !fontsLoaded) {
+  if ((!isHydrated || !fontsLoaded) && !forceReady) {
     return (
       <View style={styles.loadingOverlay}>
         <ActivityIndicator size="large" color="#2563eb" />
         <View style={{ marginTop: 20 }}>
-          <Text style={{ color: '#999' }}>Loading OpusMode...</Text>
+          <Text style={{ color: '#999', textAlign: 'center', marginBottom: 8 }}>
+            Loading OpusMode...
+          </Text>
+          <Text style={{ color: '#ccc', fontSize: 10, textAlign: 'center' }}>
+            [Data: {contentHydrated ? 'OK' : '...'} / Gear: {gearHydrated ? 'OK' : '...'} / UI: {fontsLoaded ? 'OK' : '...'}]
+          </Text>
           <Text
-            onPress={() => setForceReady(true)}
-            style={{ color: '#2563eb', marginTop: 20, textDecorationLine: 'underline' }}>
+            onPress={() => {
+              console.log('Force entering app...');
+              setForceReady(true);
+            }}
+            style={{ color: '#2563eb', marginTop: 20, textDecorationLine: 'underline', textAlign: 'center' }}>
             Click here if stuck
           </Text>
         </View>
@@ -127,6 +134,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="modal/asset-editor"
             options={{ presentation: 'modal', title: 'Asset Editor' }}
+          />
+          <Stack.Screen
+            name="modal/upgrade"
+            options={{ presentation: 'modal', headerShown: false }}
           />
         </Stack>
         <StatusBar style="dark" />

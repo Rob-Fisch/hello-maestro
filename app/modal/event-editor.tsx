@@ -323,15 +323,18 @@ export default function EventEditor() {
 
 // --- Specialized Components for Stability ---
 
-// --- WEB PICKER COMPONENTS ---
-const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '' }: any) => {
+const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '', icon }: any) => {
     const [visible, setVisible] = useState(false);
     const selected = options.find((o: any) => o.value == value);
+
+    // Ensure current value is represented if not in options
+    const displayLabel = selected ? selected.label : (value ? value : placeholder);
+
     return (
         <>
-            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 ${labelClassName}`}>
-                <Text className="font-bold text-foreground flex-1" numberOfLines={1}>{selected ? selected.label : placeholder}</Text>
-                <Ionicons name="chevron-down" size={12} color="#94a3b8" />
+            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 ${labelClassName}`}>
+                <Text className="font-bold text-foreground flex-1" numberOfLines={1}>{displayLabel}</Text>
+                <Ionicons name={icon || "chevron-down"} size={icon ? 20 : 12} color={icon ? "#64748b" : "#94a3b8"} />
             </TouchableOpacity>
             <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
                 <TouchableOpacity activeOpacity={1} onPress={() => setVisible(false)} className="flex-1 bg-black/50 justify-center items-center p-4">
@@ -355,84 +358,124 @@ const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClas
 };
 
 const WebDatePicker = ({ date, onChange }: { date: string, onChange: (d: string) => void }) => {
-    const [yStr, mStr, dStr] = (date || '2025-01-01').split('-');
-    const y = parseInt(yStr) || new Date().getFullYear();
-    const m = parseInt(mStr) || 1;
-    const d = parseInt(dStr) || 1;
-
-    const months = [
-        { label: 'Jan', value: 1 }, { label: 'Feb', value: 2 }, { label: 'Mar', value: 3 },
-        { label: 'Apr', value: 4 }, { label: 'May', value: 5 }, { label: 'Jun', value: 6 },
-        { label: 'Jul', value: 7 }, { label: 'Aug', value: 8 }, { label: 'Sep', value: 9 },
-        { label: 'Oct', value: 10 }, { label: 'Nov', value: 11 }, { label: 'Dec', value: 12 },
-    ];
-    const days = Array.from({ length: 31 }, (_, i) => ({ label: (i + 1).toString(), value: i + 1 }));
-
-    const update = (key: 'y' | 'm' | 'd', val: any) => {
-        let ny = y, nm = m, nd = d;
-        if (key === 'y') ny = parseInt(val) || 0;
-        if (key === 'm') nm = val;
-        if (key === 'd') nd = val;
-        onChange(`${ny.toString().padStart(4, '0')}-${nm.toString().padStart(2, '0')}-${nd.toString().padStart(2, '0')}`);
-    };
-
     return (
-        <View className="flex-row gap-1 w-full max-w-[380px]">
-            <View className="flex-[1.3]">
-                <WebSelect options={months} value={m} onChange={(v: any) => update('m', v)} />
-            </View>
-            <View className="flex-[0.9]">
-                <WebSelect options={days} value={d} onChange={(v: any) => update('d', v)} />
-            </View>
-            <View className="flex-[1.2]">
-                <TextInput
-                    className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-3 font-bold text-center text-foreground"
-                    value={y.toString()}
-                    keyboardType="number-pad"
-                    onChangeText={(t) => update('y', t)}
-                    maxLength={4}
-                    placeholder="YYYY"
-                />
+        <View className="bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-sm w-full h-[50px] justify-center relative">
+            {/* Native Input: Visible, Transparent Background, fills container */}
+            <input
+                type="date"
+                value={date}
+                onChange={(e) => onChange(e.target.value)}
+                onClick={(e) => {
+                    try {
+                        if (typeof e.currentTarget.showPicker === 'function') {
+                            e.currentTarget.showPicker();
+                        }
+                    } catch (err) {
+                        // Ignore
+                    }
+                }}
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    paddingLeft: 16,
+                    paddingRight: 40, // Space for icon
+                    fontSize: 16,
+                    border: 'none',
+                    background: 'transparent',
+                    fontFamily: 'inherit',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    zIndex: 10,
+                    cursor: 'pointer',
+                    appearance: 'none',
+                    WebkitAppearance: 'none'
+                }}
+            />
+            {/* Icon Decoration */}
+            <View className="absolute right-3 top-0 bottom-0 justify-center pointer-events-none" style={{ zIndex: 5 }}>
+                <Ionicons name="calendar-outline" size={20} color="#64748b" />
             </View>
         </View>
     );
 };
 
-const WebTimePicker = ({ time, onChange }: { time: string, onChange: (t: string) => void }) => {
-    let [h, min] = (time || '12:00').split(':').map(Number);
-    if (isNaN(h)) h = 12;
-    if (isNaN(min)) min = 0;
+const WebTimePicker = ({ value, onChange }: { value: string, onChange: (t: string) => void }) => {
+    // Value format: "HH:MM" (24h)
+    // We need to parse this into 12h format for the UI
+    const [h24, m] = value.split(':').map(Number);
+    const isPM = h24 >= 12;
+    const h12 = h24 % 12 || 12; // 0 -> 12, 13 -> 1
 
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const displayH = h % 12 || 12;
+    const updateTime = (newH12: number, newM: number, newIsPM: boolean) => {
+        let finalH = newH12;
+        if (newIsPM && finalH < 12) finalH += 12;
+        if (!newIsPM && finalH === 12) finalH = 0;
 
-    const hours = Array.from({ length: 12 }, (_, i) => ({ label: (i + 1).toString(), value: i + 1 }));
-    const minutes = [0, 15, 30, 45].map(m => ({ label: m.toString().padStart(2, '0'), value: m }));
-    const ampms = [{ label: 'AM', value: 'AM' }, { label: 'PM', value: 'PM' }];
-
-    const update = (key: 'h' | 'm' | 'ap', val: any) => {
-        let nh = displayH, nm = min, nap = ampm;
-        if (key === 'h') nh = val;
-        if (key === 'm') nm = val;
-        if (key === 'ap') nap = val;
-
-        let finalH = nh;
-        if (nap === 'PM' && finalH < 12) finalH += 12;
-        if (nap === 'AM' && finalH === 12) finalH = 0;
-
-        onChange(`${finalH.toString().padStart(2, '0')}:${nm.toString().padStart(2, '0')}`);
+        const timeString = `${finalH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
+        onChange(timeString);
     };
 
     return (
-        <View className="flex-row gap-1 w-full max-w-[380px]">
-            <View className="flex-1">
-                <WebSelect options={hours} value={displayH} onChange={(v: any) => update('h', v)} />
+        <View className="flex-row gap-2 w-full">
+            {/* Hour Picker */}
+            <View className="flex-1 relative bg-gray-50 border border-gray-100 rounded-xl overflow-hidden h-[50px]">
+                <select
+                    value={h12}
+                    onChange={(e) => updateTime(parseInt(e.target.value), m, isPM)}
+                    style={{
+                        position: 'absolute', inset: 0, width: '100%', height: '100%',
+                        opacity: 0, cursor: 'pointer', zIndex: 10
+                    }}
+                >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
+                        <option key={h} value={h}>{h}</option>
+                    ))}
+                </select>
+                <View className="flex-1 items-center justify-center pointer-events-none">
+                    <Text className="font-bold text-lg text-slate-800">{h12}</Text>
+                </View>
             </View>
-            <View className="flex-1">
-                <WebSelect options={minutes} value={min} onChange={(v: any) => update('m', v)} />
+
+            <Text className="self-center font-black text-slate-300">:</Text>
+
+            {/* Minute Picker */}
+            <View className="flex-1 relative bg-gray-50 border border-gray-100 rounded-xl overflow-hidden h-[50px]">
+                <select
+                    value={m}
+                    onChange={(e) => updateTime(h12, parseInt(e.target.value), isPM)}
+                    style={{
+                        position: 'absolute', inset: 0, width: '100%', height: '100%',
+                        opacity: 0, cursor: 'pointer', zIndex: 10
+                    }}
+                >
+                    {Array.from({ length: 12 }, (_, i) => i * 5).map(min => (
+                        <option key={min} value={min}>{min.toString().padStart(2, '0')}</option>
+                    ))}
+                </select>
+                <View className="flex-1 items-center justify-center pointer-events-none">
+                    <Text className="font-bold text-lg text-slate-800">{m.toString().padStart(2, '0')}</Text>
+                </View>
             </View>
-            <View className="flex-1">
-                <WebSelect options={ampms} value={ampm} onChange={(v: any) => update('ap', v)} />
+
+            {/* AM/PM Picker */}
+            <View className="w-20 relative bg-gray-50 border border-gray-100 rounded-xl overflow-hidden h-[50px]">
+                <select
+                    value={isPM ? 'PM' : 'AM'}
+                    onChange={(e) => updateTime(h12, m, e.target.value === 'PM')}
+                    style={{
+                        position: 'absolute', inset: 0, width: '100%', height: '100%',
+                        opacity: 0, cursor: 'pointer', zIndex: 10
+                    }}
+                >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                </select>
+                <View className="flex-1 items-center justify-center pointer-events-none bg-slate-100">
+                    <Text className="font-black text-sm text-slate-600">{isPM ? 'PM' : 'AM'}</Text>
+                </View>
             </View>
         </View>
     );
@@ -487,7 +530,18 @@ const EditorHeader = ({
     const [showVenuePicker, setShowVenuePicker] = useState(false);
     const venueManagers = useMemo(() => people.filter(p => p.type === 'venue_manager'), [people]);
 
-
+    // Generate time options for web picker
+    // Generate time options for web picker
+    const timeOptions = useMemo(() => {
+        const opts = [];
+        for (let h = 0; h < 24; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                const val = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                opts.push({ label: formatDisplayTime(val), value: val });
+            }
+        }
+        return opts;
+    }, []);
 
     const onDateChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(false);
@@ -564,7 +618,7 @@ const EditorHeader = ({
                         <Text className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Venue / Location</Text>
                         <TouchableOpacity onPress={() => setShowVenuePicker(true)} className="flex-row items-center">
                             <Ionicons name="people-circle-outline" size={16} color="#2563eb" />
-                            <Text className="text-[10px] font-bold text-blue-600 ml-1">Select from Contacts</Text>
+                            <Text className="text-10px font-bold text-blue-600 ml-1">Select from Contacts</Text>
                         </TouchableOpacity>
                     </View>
                     <TextInput
@@ -697,7 +751,12 @@ const EditorHeader = ({
                 <View className="mb-2">
                     <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Time</Text>
                     {Platform.OS === 'web' ? (
-                        <WebTimePicker time={time} onChange={setTime} />
+                        <WebSelect
+                            value={time}
+                            options={timeOptions}
+                            onChange={setTime}
+                            icon="time-outline"
+                        />
                     ) : (
                         <TouchableOpacity onPress={() => setShowTimePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
                             <Text className="font-bold text-foreground text-center flex-1">{formatDisplayTime(time)}</Text>

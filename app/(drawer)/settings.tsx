@@ -1,15 +1,11 @@
 import { supabase } from '@/lib/supabase';
-import { THEMES, useTheme } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
-import { AppTheme, Category } from '@/store/types';
+import { Category } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, Image, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-
-
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
     const { categories, addCategory, updateCategory, deleteCategory, settings, updateSettings, profile, setProfile, trackModuleUsage, setTheme } = useContentStore();
@@ -201,18 +197,18 @@ export default function SettingsScreen() {
         <ScrollView className="flex-1" style={{ backgroundColor: theme.background }} contentContainerStyle={{ padding: 24 }}>
             <View className="mb-8 flex-row items-center">
                 <TouchableOpacity onPress={() => router.push('/')} className="mr-5 -ml-2 p-2 rounded-full">
-                    <Ionicons name="home-outline" size={32} color={theme.text} />
+                    <Ionicons name="home-outline" size={32} color="white" />
                 </TouchableOpacity>
                 <View>
-                    <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Settings</Text>
-                    <Text className="font-medium text-base mt-2" style={{ color: theme.mutedText }}>Personalize your experience</Text>
+                    <Text className="text-4xl font-black tracking-tight text-white">Settings</Text>
+                    <Text className="font-medium text-base mt-2 text-teal-100">Personalize your experience</Text>
                 </View>
             </View>
 
             {/* Category Management Section */}
             <View className="mb-8">
                 <View className="flex-row items-center mb-4">
-                    <Text className="text-2xl font-bold" style={{ color: theme.text }}>Content Categories</Text>
+                    <Text className="text-2xl font-bold text-white">Content Categories</Text>
                 </View>
 
                 <View className="p-4 rounded-3xl border shadow-sm mb-6" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
@@ -236,47 +232,49 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
-                {categories.map((cat) => (
-                    <View key={cat.id} className="border rounded-2xl mb-3 p-4 flex-row items-center justify-between shadow-xs" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
-                        {editingId === cat.id ? (
-                            <View className="flex-1 flex-row gap-2">
-                                <TextInput
-                                    className="flex-1 border p-2 rounded-xl font-bold"
-                                    style={{ backgroundColor: theme.background, borderColor: theme.border, color: theme.text }}
-                                    value={editingName}
-                                    onChangeText={setEditingName}
-                                    autoFocus
-                                />
-                                <TouchableOpacity onPress={handleSaveEdit} className="bg-green-600 px-3 rounded-xl justify-center">
-                                    <Text className="text-white font-bold text-xs">Save</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => setEditingId(null)} className="bg-gray-200 px-3 rounded-xl justify-center">
-                                    <Text className="text-gray-600 font-bold text-xs">X</Text>
-                                </TouchableOpacity>
-                            </View>
-                        ) : (
-                            <>
-                                <View className="flex-1">
-                                    <Text className="font-bold text-lg" style={{ color: theme.text }}>{cat.name}</Text>
-                                </View>
-                                <View className="flex-row gap-2">
-                                    <TouchableOpacity
-                                        onPress={() => handleStartEdit(cat)}
-                                        className="p-2 opacity-40"
-                                    >
-                                        <Text style={{ color: theme.primary }} className="font-bold">Edit</Text>
+                {categories
+                    .sort((a, b) => a.name.localeCompare(b.name)) // ALPHABETICAL SORT
+                    .map((cat) => (
+                        <View key={cat.id} className="border rounded-2xl mb-3 p-4 flex-row items-center justify-between shadow-xs" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                            {editingId === cat.id ? (
+                                <View className="flex-1 flex-row gap-2">
+                                    <TextInput
+                                        className="flex-1 border p-2 rounded-xl font-bold"
+                                        style={{ backgroundColor: theme.background, borderColor: theme.border, color: theme.text }}
+                                        value={editingName}
+                                        onChangeText={setEditingName}
+                                        autoFocus
+                                    />
+                                    <TouchableOpacity onPress={handleSaveEdit} className="bg-green-600 px-3 rounded-xl justify-center">
+                                        <Text className="text-white font-bold text-xs">Save</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity
-                                        onPress={() => handleDelete(cat.id, cat.name)}
-                                        className="p-2 opacity-40"
-                                    >
-                                        <Text className="text-red-600 font-bold">Delete</Text>
+                                    <TouchableOpacity onPress={() => setEditingId(null)} className="bg-gray-200 px-3 rounded-xl justify-center">
+                                        <Text className="text-gray-600 font-bold text-xs">X</Text>
                                     </TouchableOpacity>
                                 </View>
-                            </>
-                        )}
-                    </View>
-                ))}
+                            ) : (
+                                <>
+                                    <View className="flex-1">
+                                        <Text className="font-bold text-lg" style={{ color: theme.text }}>{cat.name}</Text>
+                                    </View>
+                                    <View className="flex-row gap-2">
+                                        <TouchableOpacity
+                                            onPress={() => handleStartEdit(cat)}
+                                            className="p-2 opacity-40"
+                                        >
+                                            <Text style={{ color: theme.primary }} className="font-bold">Edit</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => handleDelete(cat.id, cat.name)}
+                                            className="p-2 opacity-40"
+                                        >
+                                            <Text className="text-red-600 font-bold">Delete</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    ))}
             </View>
 
             {/* PDF Export Section */}
@@ -337,57 +335,7 @@ export default function SettingsScreen() {
                 ))}
             </View>
 
-            {/* Skins Section */}
-            <View className="mb-12">
-                <Text className="text-2xl font-bold mb-4" style={{ color: theme.text }}>Skins</Text>
-                <View className="p-6 rounded-[40px] border shadow-sm" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
-                    <Text className="mb-6 font-medium" style={{ color: theme.mutedText }}>
-                        Change the look and feel of your entire experience.
-                    </Text>
-                    <View className="flex-row gap-4">
-                        {(['vibrant', 'midnight', 'zen'] as AppTheme[]).map((t) => {
-                            const tokens = THEMES[t];
-                            const isActive = (settings.theme || 'vibrant') === t;
-                            return (
-                                <TouchableOpacity
-                                    key={t}
-                                    onPress={() => setTheme(t)}
-                                    className={`flex-1 aspect-square rounded-[30px] border-4 items-center justify-center p-2`}
-                                    style={{
-                                        backgroundColor: tokens.background,
-                                        borderColor: isActive ? tokens.primary : tokens.border
-                                    }}
-                                >
-                                    <View
-                                        className="w-10 h-10 rounded-2xl shadow-sm mb-3 overflow-hidden"
-                                        style={{ backgroundColor: tokens.primary }}
-                                    >
-                                        <View className="flex-1 items-center justify-center">
-                                            {tokens.brandLogo ? (
-                                                <Image
-                                                    source={tokens.brandLogo}
-                                                    style={{ width: '100%', height: '100%' }}
-                                                    resizeMode="cover"
-                                                />
-                                            ) : (
-                                                <Ionicons name="color-palette" size={18} color="white" />
-                                            )}
-                                        </View>
-                                    </View>
-                                    <Text className="text-[10px] font-black uppercase tracking-widest" style={{ color: isActive ? tokens.text : tokens.mutedText }}>
-                                        {t === 'vibrant' ? 'Vibrant' : t === 'midnight' ? 'Midnight' : 'Zen'}
-                                    </Text>
-                                    {isActive && (
-                                        <View className="absolute -top-2 -right-2 w-6 h-6 rounded-full items-center justify-center shadow-md" style={{ backgroundColor: tokens.primary }}>
-                                            <Ionicons name="checkmark" size={14} color="white" />
-                                        </View>
-                                    )}
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                </View>
-            </View>
+
 
             {/* Support & FAQ Section */}
             <View className="mb-12">
@@ -413,6 +361,67 @@ export default function SettingsScreen() {
                         </View>
                         <Ionicons name="chevron-forward" size={20} color={theme.mutedText} />
                     </TouchableOpacity>
+                </View>
+            </View>
+
+
+            {/* Subscription Section */}
+            <View className="mb-8">
+                <Text className="text-2xl font-bold mb-4" style={{ color: theme.text }}>Membership</Text>
+                <View className="p-6 rounded-[30px] border shadow-sm relative overflow-hidden" style={{ backgroundColor: profile?.isPremium ? theme.card : '#111827', borderColor: theme.border }}>
+                    {!profile?.isPremium && (
+                        <View className="absolute top-0 right-0 p-32 bg-blue-500/20 rounded-full -mr-16 -mt-16 blur-2xl" />
+                    )}
+
+                    <View className="flex-row justify-between items-start mb-4">
+                        <View>
+                            <Text className={`font-black text-xl tracking-tight ${profile?.isPremium ? 'text-green-600' : 'text-white'}`}>
+                                {profile?.isPremium ? 'OPUSMODE PRO' : 'OPUSMODE FREE'}
+                            </Text>
+                            <Text className={`text-xs font-medium mt-1 ${profile?.isPremium ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {profile?.isPremium ? 'Active Subscription' : 'Upgrade to unlock global sync & AI tools'}
+                            </Text>
+                        </View>
+                        {profile?.isPremium && (
+                            <View className="bg-green-100 px-3 py-1 rounded-full border border-green-200">
+                                <Text className="text-green-700 font-bold text-xs uppercase">Active</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {!profile?.isPremium ? (
+                        <View>
+                            <View className="flex-row items-center mb-2">
+                                <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
+                                <Text className="text-gray-300 ml-2 font-medium">Cloud Sync across all devices</Text>
+                            </View>
+                            <View className="flex-row items-center mb-6">
+                                <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
+                                <Text className="text-gray-300 ml-2 font-medium">Scout AI Booking Agent</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                onPress={() => router.push('/modal/upgrade')}
+                                className="bg-white p-4 rounded-2xl items-center flex-row justify-center"
+                            >
+                                <Text className="text-black font-black text-base mr-2">Upgrade for $19.99/yr</Text>
+                                <Ionicons name="arrow-forward" size={18} color="black" />
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <View>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    // MOCK DOWNGRADE ACTION
+                                    setProfile({ ...profile!, isPremium: false });
+                                    alert("Pro subscription cancelled. You are now on the Free plan.");
+                                }}
+                                className="bg-gray-100 border border-gray-200 p-3 rounded-xl items-center"
+                            >
+                                <Text className="text-gray-600 font-bold">Manage Subscription</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
             </View>
 
@@ -526,7 +535,6 @@ export default function SettingsScreen() {
                         <Text className="text-gray-600 font-black text-lg">Sign Out</Text>
                     </TouchableOpacity>
                 </View>
-
             </View>
 
             {/* Danger Zone */}
@@ -550,10 +558,28 @@ export default function SettingsScreen() {
                 </View>
             </View>
 
-            {/* App Info Footer */}
+            {/* DEBUG: Admin Toggle */}
+            <View className="mb-12 p-6 rounded-3xl bg-gray-100 border border-gray-200">
+                <Text className="text-xs font-black uppercase tracking-widest mb-4">👑 Developer Options</Text>
+                <View className="flex-row justify-between items-center">
+                    <Text className="font-bold">Mock "Pro" Status</Text>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setProfile({ ...profile!, isPremium: !profile?.isPremium });
+                            alert(`Pro Status: ${!profile?.isPremium ? 'ACTIVE' : 'INACTIVE'}`);
+                        }}
+                        className={`px-4 py-2 rounded-lg ${profile?.isPremium ? 'bg-green-500' : 'bg-gray-300'}`}
+                    >
+                        <Text className="text-white font-bold">{profile?.isPremium ? 'ENABLED' : 'DISABLED'}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
 
+            {/* App Info Footer */}
             <View className="mt-12 pt-8 border-t items-center" style={{ borderTopColor: theme.border }}>
-                <Text className="text-xs font-bold uppercase tracking-widest" style={{ color: theme.mutedText }}>OpusMode Pro</Text>
+                <Text className="text-xs font-bold uppercase tracking-widest" style={{ color: theme.mutedText }}>
+                    {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
+                </Text>
                 <Text className="text-[10px] mt-1" style={{ color: theme.mutedText }}>Version 1.2.0 • {profile?.id.startsWith('mock-') ? 'Local Mode' : 'Cloud Sync Enabled'}</Text>
             </View>
         </ScrollView>
