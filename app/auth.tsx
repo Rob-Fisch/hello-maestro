@@ -1,9 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+
+const SLIDE_IMAGES = [
+    require('../assets/images/chaos_drift.png'),
+    require('../assets/images/studio_order.png'),
+    require('../assets/images/performance_glory.png'),
+];
 
 export default function AuthScreen() {
     const [email, setEmail] = useState('');
@@ -14,6 +22,45 @@ export default function AuthScreen() {
     const { setProfile, fullSync } = useContentStore();
 
     const router = useRouter();
+
+    // --- ANIMATION REFS ---
+    const fadeAnim = useRef(new Animated.Value(1)).current; // Opacity for transitions
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    // Blob Animation
+    const blobScale = useRef(new Animated.Value(0.8)).current;
+
+    useEffect(() => {
+        // Blob Breathing
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(blobScale, { toValue: 1.1, duration: 4000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+                Animated.timing(blobScale, { toValue: 0.8, duration: 4000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) })
+            ])
+        ).start();
+
+        // Slideshow Loop
+        const interval = setInterval(() => {
+            // 1. Fade Out
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 1500, // Explicitly Slower fade out (was 500)
+                useNativeDriver: true,
+            }).start(() => {
+                // 2. Change Image
+                setCurrentImageIndex((prev) => (prev + 1) % SLIDE_IMAGES.length);
+
+                // 3. Fade In
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 1500, // Explicitly Slower fade in (was 500)
+                    useNativeDriver: true,
+                }).start();
+            });
+        }, 5000); // Wait longer (showing image) + transition times effectively
+
+        return () => clearInterval(interval);
+    }, []);
 
     async function handleForgotPassword() {
         if (!email) {
@@ -120,32 +167,59 @@ export default function AuthScreen() {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1 bg-white"
+            className="flex-1 bg-slate-950 relative" // Dark Background
         >
+            {/* --- BACKGROUND GRADIENT --- */}
+            <LinearGradient
+                colors={['#000000', '#4c1d95']}
+                start={{ x: 0, y: 0.2 }}
+                end={{ x: 1, y: 1 }}
+                locations={[0, 1]}
+                style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+            />
+
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-8">
                 <View className="flex-1 justify-center py-20">
+
+                    {/* --- IMAGE SLIDER SECTION --- */}
                     <View className="items-center mb-12">
-                        <View className="w-24 h-24 bg-blue-600 rounded-[30px] items-center justify-center shadow-2xl shadow-blue-400 rotate-3">
-                            <Ionicons name="musical-notes" size={50} color="white" />
+                        {/* 
+                            Container for the images. 
+                            Restored glowing edge, black background, and rounded corners.
+                        */}
+                        <View className="w-full max-w-[320px] aspect-square items-center justify-center rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl shadow-purple-900/50">
+                            {/* The Animated Image */}
+                            <Animated.Image
+                                source={SLIDE_IMAGES[currentImageIndex]}
+                                style={{
+                                    opacity: fadeAnim,
+                                    width: '100%',
+                                    height: '100%',
+                                    resizeMode: 'contain'
+                                }}
+                            />
                         </View>
                     </View>
-                    <Text className="text-5xl font-black text-white tracking-tighter mb-2">OpusMode</Text>
-                    <Text className="text-white/60 text-lg font-medium leading-relaxed">
+
+                    <Text className="text-5xl font-black text-white tracking-tighter mb-2 text-center">OpusMode</Text>
+                    <Text className="text-slate-400 text-lg font-medium leading-relaxed text-center mb-10">
                         Your journey to musical mastery,{"\n"}guided by the perfect roadmap.
                     </Text>
 
                     <View className="space-y-4">
                         <View>
-                            <Text className="text-xs uppercase font-black text-blue-600 tracking-widest ml-1 mb-2">Email Address</Text>
-                            <View className="flex-row items-center bg-gray-50 rounded-2xl px-5 border border-gray-100">
-                                <Ionicons name="mail-outline" size={20} color="#94a3b8" />
+                            <Text className="text-xs uppercase font-black text-white tracking-widest ml-1 mb-2">Email Address</Text>
+                            <View className="flex-row items-center bg-white/5 rounded-2xl px-5 border border-white/10 backdrop-blur-md">
+                                <Ionicons name="mail-outline" size={20} color="white" />
                                 <TextInput
-                                    className="flex-1 py-5 ml-3 text-gray-900 font-bold"
+                                    className="flex-1 py-5 ml-3 text-white font-bold"
                                     placeholder="maestro@example.com"
+                                    placeholderTextColor="#e4e4e7"
                                     value={email}
                                     onChangeText={setEmail}
                                     autoCapitalize="none"
                                     keyboardType="email-address"
+                                    selectionColor="white"
                                 />
                             </View>
                         </View>
@@ -153,21 +227,23 @@ export default function AuthScreen() {
                         {!isForgotPassword && (
                             <View className="mt-4">
                                 <View className="flex-row justify-between items-center mb-2 px-1">
-                                    <Text className="text-xs uppercase font-black text-blue-600 tracking-widest">Password</Text>
+                                    <Text className="text-xs uppercase font-black text-white tracking-widest">Password</Text>
                                     {!isSignUp && (
                                         <TouchableOpacity onPress={() => setIsForgotPassword(true)}>
-                                            <Text className="text-xs font-bold text-gray-400">Forgot?</Text>
+                                            <Text className="text-xs font-bold text-white">Forgot?</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
-                                <View className="flex-row items-center bg-gray-50 rounded-2xl px-5 border border-gray-100">
-                                    <Ionicons name="lock-closed-outline" size={20} color="#94a3b8" />
+                                <View className="flex-row items-center bg-white/5 rounded-2xl px-5 border border-white/10 backdrop-blur-md">
+                                    <Ionicons name="lock-closed-outline" size={20} color="white" />
                                     <TextInput
-                                        className="flex-1 py-5 ml-3 text-gray-900 font-bold"
+                                        className="flex-1 py-5 ml-3 text-white font-bold"
                                         placeholder="••••••••"
+                                        placeholderTextColor="#e4e4e7"
                                         value={password}
                                         onChangeText={setPassword}
                                         secureTextEntry
+                                        selectionColor="white"
                                     />
                                 </View>
                             </View>
@@ -176,9 +252,12 @@ export default function AuthScreen() {
                         <TouchableOpacity
                             onPress={handleAuth}
                             disabled={loading}
-                            className={`mt-10 py-5 rounded-3xl items-center shadow-xl ${loading ? 'bg-gray-400' : 'bg-blue-600 shadow-blue-400'}`}
+                            activeOpacity={0.8}
+                            className={`mt-10 py-5 rounded-3xl items-center shadow-xl shadow-purple-500/20 ${loading ? 'bg-zinc-800' : 'bg-white'}`}
                         >
-                            <Text className="text-white text-xl font-black">{loading ? 'Please Wait...' : (isForgotPassword ? 'Reset Password' : (isSignUp ? 'Create Account' : 'Sign In'))}</Text>
+                            <Text className={`text-xl font-black tracking-tight ${loading ? 'text-zinc-500' : 'text-black'}`}>
+                                {loading ? 'Please Wait...' : (isForgotPassword ? 'Reset Password' : (isSignUp ? 'Create Account' : 'Enter Studio'))}
+                            </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -193,9 +272,9 @@ export default function AuthScreen() {
                             }}
                             className="mt-6 p-4 items-center"
                         >
-                            <Text className="text-gray-500 font-bold">
+                            <Text className="text-zinc-300 font-bold">
                                 {isForgotPassword ? 'Back to Sign In' : isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-                                <Text className="text-blue-600"> {isForgotPassword ? '' : isSignUp ? 'Sign In' : 'Sign Up'}</Text>
+                                <Text className="text-white"> {isForgotPassword ? '' : isSignUp ? 'Sign In' : 'Sign Up'}</Text>
                             </Text>
                         </TouchableOpacity>
 
@@ -204,7 +283,7 @@ export default function AuthScreen() {
 
                 {/* Footer Credits */}
                 <View className="pb-10 items-center">
-                    <Text className="text-gray-300 text-xs font-bold uppercase tracking-[4px]">Puddle-Proof Technology</Text>
+                    <Text className="text-white/20 text-xs font-bold uppercase tracking-[4px]">Puddle-Proof Technology</Text>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
