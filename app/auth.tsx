@@ -203,7 +203,7 @@ export default function AuthScreen() {
 
                     <Text className="text-5xl font-black text-white tracking-tighter mb-2 text-center">OpusMode</Text>
                     <Text className="text-slate-400 text-lg font-medium leading-relaxed text-center mb-10">
-                        Your journey to musical mastery,{"\n"}guided by the perfect roadmap.
+                        Your career, fully composed and orchestrated. OpusMode is the ultimate toolkit for the working musician.
                     </Text>
 
                     <View className="space-y-4">
@@ -226,13 +226,8 @@ export default function AuthScreen() {
 
                         {!isForgotPassword && (
                             <View className="mt-4">
-                                <View className="flex-row justify-between items-center mb-2 px-1">
+                                <View className="mb-2 px-1">
                                     <Text className="text-xs uppercase font-black text-white tracking-widest">Password</Text>
-                                    {!isSignUp && (
-                                        <TouchableOpacity onPress={() => setIsForgotPassword(true)}>
-                                            <Text className="text-xs font-bold text-white">Forgot?</Text>
-                                        </TouchableOpacity>
-                                    )}
                                 </View>
                                 <View className="flex-row items-center bg-white/5 rounded-2xl px-5 border border-white/10 backdrop-blur-md">
                                     <Ionicons name="lock-closed-outline" size={20} color="white" />
@@ -246,6 +241,11 @@ export default function AuthScreen() {
                                         selectionColor="white"
                                     />
                                 </View>
+                                {!isSignUp && (
+                                    <TouchableOpacity onPress={() => setIsForgotPassword(true)} className="mt-2 ml-1 self-start">
+                                        <Text className="text-xs font-bold text-zinc-400">Forgot password?</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         )}
 
