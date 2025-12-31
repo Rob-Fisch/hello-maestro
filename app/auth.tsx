@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -70,7 +71,7 @@ export default function AuthScreen() {
         setLoading(true);
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: 'maestro://reset-password',
+                redirectTo: Linking.createURL('/'),
             });
             if (error) throw error;
             Alert.alert('Success', 'Check your email for the password reset link!');
@@ -114,7 +115,7 @@ export default function AuthScreen() {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
-                    options: { data: { display_name: isRob ? 'Rob' : undefined } }
+                    options: { data: { display_name: isRob ? 'Rob' : undefined }, emailRedirectTo: Linking.createURL('/') }
                 });
                 if (error) throw error;
                 Alert.alert('Success', 'Check your email for the confirmation link!');
@@ -264,12 +265,19 @@ export default function AuthScreen() {
                             onPress={() => {
                                 if (isForgotPassword) {
                                     setIsForgotPassword(false);
+                                } else if (isSignUp) {
+                                    setIsSignUp(false);
                                 } else {
-                                    // TEMPORARY: Enable Sign Up for Testing
-                                    setIsSignUp(!isSignUp);
-                                    // Alert.alert('Invite Only', 'OpusMode is currently in private beta. Please contact Rob for an invitation.');
+                                    Alert.alert('Invite Only', 'OpusMode is currently in private beta. Please contact Rob or an administrator for an invitation.');
                                 }
                             }}
+                            onLongPress={() => {
+                                if (!isForgotPassword) {
+                                    setIsSignUp(!isSignUp);
+                                    if (!isSignUp) Alert.alert('Admin Mode', 'Sign Up enabled for testing.');
+                                }
+                            }}
+                            delayLongPress={2000}
                             className="mt-6 p-4 items-center"
                         >
                             <Text className="text-zinc-300 font-bold">

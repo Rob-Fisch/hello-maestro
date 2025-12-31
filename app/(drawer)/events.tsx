@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ScheduleFilter = AppEventType | 'practice';
@@ -224,12 +224,13 @@ export default function ScheduleScreen() {
     };
 
     const getBadge = (type: ScheduleFilter) => {
+        // Updated colors for Dark Theme - using specific text colors instead of bg colors
         switch (type) {
-            case 'performance': return { label: 'Gig', color: 'bg-blue-100 text-blue-700', icon: '🎸' };
-            case 'lesson': return { label: 'Lesson', color: 'bg-purple-100 text-purple-700', icon: '👨‍🏫' };
-            case 'rehearsal': return { label: 'Rehearsal', color: 'bg-amber-100 text-amber-700', icon: '👥' };
-            case 'practice': return { label: 'Practice', color: 'bg-green-100 text-green-700', icon: '🎼' };
-            default: return { label: 'Other', color: 'bg-gray-100 text-gray-700', icon: '📅' };
+            case 'performance': return { label: 'Gig', className: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30', icon: '🎸' };
+            case 'lesson': return { label: 'Lesson', className: 'bg-purple-500/20 text-purple-300 border border-purple-500/30', icon: '👨‍🏫' };
+            case 'rehearsal': return { label: 'Rehearsal', className: 'bg-amber-500/20 text-amber-300 border border-amber-500/30', icon: '👥' };
+            case 'practice': return { label: 'Practice', className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30', icon: '🎼' };
+            default: return { label: 'Other', className: 'bg-slate-700 text-slate-300 border border-slate-600', icon: '📅' };
         }
     };
 
@@ -240,7 +241,14 @@ export default function ScheduleScreen() {
         const isToday = item.date === today;
 
         return (
-            <View className={`mb-4 border ${isToday ? 'shadow-blue-50' : ''} rounded-[32px] overflow-hidden shadow-sm`} style={{ backgroundColor: theme.card, borderColor: isToday ? '#bfdbfe' : theme.border }}>
+            <View
+                className={`mb-4 rounded-[32px] overflow-hidden`}
+                style={{
+                    backgroundColor: theme.card, // Glass
+                    borderColor: isToday ? '#60a5fa' : theme.border, // Blue border if today
+                    borderWidth: 1
+                }}
+            >
                 <TouchableOpacity
                     className="p-5"
                     onPress={() => {
@@ -251,41 +259,45 @@ export default function ScheduleScreen() {
                 >
                     <View className="flex-row justify-between items-start mb-3">
                         <View className="flex-1 mr-4">
-                            <View className={`self-start px-2 py-0.5 rounded-lg mb-2 ${badge.color}`}>
-                                <Text className="text-[9px] uppercase font-black tracking-widest">{badge.label}</Text>
+                            <View className={`self-start px-2 py-0.5 rounded-lg mb-2 ${badge.className}`}>
+                                <Text className={`text-[9px] uppercase font-black tracking-widest ${badge.className.split(' ').find(c => c.startsWith('text-'))}`}>{badge.label}</Text>
                             </View>
                             <Text className="text-xl font-bold leading-tight" style={{ color: theme.text }}>{item.title}</Text>
                             {!isRoutine && (item.originalItem as AppEvent).venue && (
                                 <Text className="text-sm font-semibold mt-1" style={{ color: theme.mutedText }}>@ {(item.originalItem as AppEvent).venue}</Text>
                             )}
                             {item.type === 'lesson' && (item.originalItem as AppEvent).studentName && (
-                                <Text className="text-sm font-bold text-purple-600 mt-1">Student: {(item.originalItem as AppEvent).studentName}</Text>
+                                <Text className="text-sm font-bold text-purple-400 mt-1">Student: {(item.originalItem as AppEvent).studentName}</Text>
                             )}
                         </View>
                         {!isRoutine && ((item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee) && (
-                            <View className="bg-green-100 px-2 py-1 rounded-xl">
-                                <Text className="text-[10px] font-black text-green-700">{(item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee}</Text>
+                            <View className="bg-emerald-500/20 border border-emerald-500/30 px-2 py-1 rounded-xl">
+                                <Text className="text-[10px] font-black text-emerald-400">{(item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee}</Text>
                             </View>
                         )}
                     </View>
 
                     <View className="flex-row items-center gap-3">
-                        <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                        {/* DATE BADGE */}
+                        <View className={`flex-row items-center px-3 py-1.5 rounded-xl border ${isToday ? 'bg-blue-500/20 border-blue-500/30' : 'bg-white/5 border-white/10'}`}>
                             <Text className="text-xs mr-2">{isToday ? '✨' : '📅'}</Text>
-                            <Text className={`text-xs font-bold ${isToday ? 'text-blue-600' : 'text-gray-600'}`}>{isToday ? 'Today' : formatDate(item.date)}</Text>
+                            <Text className={`text-xs font-bold ${isToday ? 'text-blue-300' : 'text-slate-400'}`}>{isToday ? 'Today' : formatDate(item.date)}</Text>
                         </View>
-                        <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+
+                        {/* TIME BADGE */}
+                        <View className="flex-row items-center bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
                             <Text className="text-xs mr-2">🕒</Text>
-                            <Text className="text-xs font-bold text-gray-600">
+                            <Text className="text-xs font-bold text-slate-400">
                                 {formatDisplayTime(item.time)}
                                 {item.type !== 'practice' && (item.originalItem as AppEvent).duration && (
                                     <> - {getEndTime(item.time, (item.originalItem as AppEvent).duration!)}</>
                                 )}
                             </Text>
                         </View>
+
                         {item.type !== 'practice' && (item.originalItem as AppEvent).duration && (
-                            <View className="hidden md:flex flex-row items-center bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
-                                <Text className="text-[10px] font-bold text-blue-600">
+                            <View className="hidden md:flex flex-row items-center bg-blue-500/10 px-3 py-1.5 rounded-xl border border-blue-500/20">
+                                <Text className="text-[10px] font-bold text-blue-400">
                                     {(item.originalItem as AppEvent).duration! < 60
                                         ? `${(item.originalItem as AppEvent).duration}m`
                                         : `${Math.floor((item.originalItem as AppEvent).duration! / 60)}h${(item.originalItem as AppEvent).duration! % 60 > 0 ? ` ${(item.originalItem as AppEvent).duration! % 60}m` : ''}`
@@ -295,17 +307,18 @@ export default function ScheduleScreen() {
                         )}
                     </View>
 
-                    <View className="mt-4 border-t border-gray-50 pt-3">
+                    <View className="mt-4 border-t border-white/5 pt-3">
                         {/* Musicians / Slots Row */}
                         {!isRoutine && (
                             <View className="flex-row flex-wrap gap-2 mb-2">
                                 {/* Prefer Slots */}
                                 {(item.originalItem as AppEvent).slots?.map((slot: any) => {
                                     const musician = people.find(p => p.id === slot.musicianId);
+                                    const isConfirmed = slot.status === 'confirmed';
                                     return (
-                                        <View key={slot.id} className={`flex-row items-center px-2 py-1 rounded-lg border ${slot.status === 'confirmed' ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100'}`}>
+                                        <View key={slot.id} className={`flex-row items-center px-2 py-1 rounded-lg border ${isConfirmed ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/10'}`}>
                                             <Text className="text-[10px]">👤</Text>
-                                            <Text className="text-[10px] font-bold ml-1 text-gray-700">
+                                            <Text className={`text-[10px] font-bold ml-1 ${isConfirmed ? 'text-emerald-400' : 'text-slate-400'}`}>
                                                 {musician ? `${slot.role} (${musician.firstName} ${musician.lastName})` : `${slot.role} (-unassigned-)`}
                                             </Text>
                                         </View>
@@ -317,9 +330,9 @@ export default function ScheduleScreen() {
                                     const person = people.find(p => p.id === pid);
                                     if (!person) return null;
                                     return (
-                                        <View key={pid} className="flex-row items-center px-2 py-1 rounded-lg bg-blue-50 border border-blue-100">
+                                        <View key={pid} className="flex-row items-center px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                             <Text className="text-[10px]">👤</Text>
-                                            <Text className="text-[10px] font-bold ml-1 text-blue-700">{person.firstName} {person.lastName}</Text>
+                                            <Text className="text-[10px] font-bold ml-1 text-blue-300">{person.firstName} {person.lastName}</Text>
                                         </View>
                                     );
                                 })}
@@ -330,10 +343,10 @@ export default function ScheduleScreen() {
                             {!isRoutine && ((item.originalItem as AppEvent).slots?.length > 0 || ((item.originalItem as AppEvent).personnelIds && (item.originalItem as AppEvent).personnelIds!.length > 0)) && (
                                 <TouchableOpacity
                                     onPress={() => handleMessage(item.originalItem as AppEvent)}
-                                    className="flex-row items-center bg-blue-50 px-4 py-2 rounded-full border border-blue-100"
+                                    className="flex-row items-center bg-blue-500/20 px-4 py-2 rounded-full border border-blue-500/30"
                                 >
-                                    <Ionicons name="chatbubble-outline" size={14} color="#2563eb" />
-                                    <Text className="text-blue-600 font-bold text-xs ml-1.5">Message Group</Text>
+                                    <Ionicons name="chatbubble-outline" size={14} color="#60a5fa" />
+                                    <Text className="text-blue-300 font-bold text-xs ml-1.5">Message Group</Text>
                                 </TouchableOpacity>
                             )}
 
@@ -346,10 +359,10 @@ export default function ScheduleScreen() {
                                     notes: !isRoutine ? (item.originalItem as AppEvent).notes : (item.originalItem as Routine).description,
                                     duration: !isRoutine ? (item.originalItem as AppEvent).duration : undefined,
                                 })}
-                                className="flex-row items-center bg-gray-50 px-4 py-2 rounded-full border border-gray-100"
+                                className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10"
                             >
-                                <Ionicons name="calendar-outline" size={14} color="#64748b" />
-                                <Text className="text-gray-600 font-bold text-xs ml-1.5">Sync to Calendar</Text>
+                                <Ionicons name="calendar-outline" size={14} color="#94a3b8" />
+                                <Text className="text-slate-400 font-bold text-xs ml-1.5">Sync to Calendar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -376,32 +389,42 @@ export default function ScheduleScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: theme.background }}>
-            <View style={{ paddingTop: Math.max(insets.top, 20), paddingHorizontal: 32, paddingBottom: 16 }}>
-                <View className="flex-row justify-between items-center mb-8">
-                    <View className="flex-row items-center">
-                        {(Array.isArray(filter) ? filter[0] : filter) === 'performance' ? (
-                            <TouchableOpacity onPress={() => router.push('/(drawer)/gigs')} className="mr-5 p-2 -ml-2 rounded-full">
-                                <Ionicons name="arrow-back" size={28} color="white" />
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity onPress={() => router.push('/')} className="mr-5 p-2 -ml-2 rounded-full">
-                                <Ionicons name="home-outline" size={28} color="white" />
-                            </TouchableOpacity>
-                        )}
-                        <View>
-                            <Text className="text-4xl font-black tracking-tight text-white">Schedule</Text>
-                            <Text className="font-medium text-base mt-1 text-teal-100">Your entire musical life</Text>
-                        </View>
+            {/* Header with Home Button - Top of Page (Replicated from Studio) */}
+            <View className="px-6 flex-row items-start pt-8 mb-2" style={{ paddingTop: insets.top }}>
+                <TouchableOpacity
+                    onPress={() => router.push('/')}
+                    className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
+                >
+                    <Ionicons name="home-outline" size={24} color="white" />
+                </TouchableOpacity>
+                <View className="flex-1 flex-row justify-between items-start">
+                    <View>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-1">
+                            Calendar
+                        </Text>
+                        <Text className="text-4xl font-black tracking-tight text-white">
+                            Schedule
+                        </Text>
                     </View>
                     <Link href="/modal/event-editor" asChild>
-                        <TouchableOpacity className="px-6 py-4 rounded-2xl flex-row items-center shadow-lg shadow-blue-400" style={{ backgroundColor: theme.primary }}>
-                            <Ionicons name="add" size={24} color="white" />
-                            <Text className="text-white text-lg font-bold ml-1">New Event</Text>
+                        <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white">
+                            <Ionicons name="add" size={28} color="black" />
                         </TouchableOpacity>
                     </Link>
                 </View>
+            </View>
 
-                <View className="flex-row flex-wrap gap-3">
+            {/* Hero Image Section - Dark & Moody */}
+            <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40 opacity-90">
+                <Image
+                    source={require('@/assets/images/schedule_header.png')}
+                    style={{ width: '100%', height: '100%', borderRadius: 32 }}
+                    resizeMode="contain"
+                />
+            </View>
+
+            <View className="px-6 pb-4">
+                <View className="flex-row flex-wrap gap-3 justify-center">
                     {filterOptions.map(opt => {
                         const isActive = activeFilters.includes(opt.key);
                         return (
@@ -410,12 +433,12 @@ export default function ScheduleScreen() {
                                 onPress={() => toggleFilter(opt.key)}
                                 className={`flex-row items-center px-5 py-2.5 rounded-full border`}
                                 style={{
-                                    backgroundColor: isActive ? theme.primary : theme.card,
-                                    borderColor: isActive ? theme.primary : theme.border
+                                    backgroundColor: isActive ? 'white' : 'transparent',
+                                    borderColor: isActive ? 'white' : 'rgba(255,255,255,0.1)'
                                 }}
                             >
                                 <Text className="mr-2 text-sm">{opt.icon}</Text>
-                                <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-white' : ''}`} style={{ color: isActive ? '#fff' : theme.mutedText }}>
+                                <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-black' : 'text-slate-400'}`}>
                                     {opt.label}
                                 </Text>
                             </TouchableOpacity>
@@ -431,11 +454,11 @@ export default function ScheduleScreen() {
                 contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
                 ListEmptyComponent={
                     <View className="flex-1 items-center justify-center pt-24">
-                        <View className="w-32 h-32 bg-gray-50 rounded-full items-center justify-center mb-6 border border-gray-100">
+                        <View className="w-32 h-32 bg-white/5 rounded-full items-center justify-center mb-6 border border-white/10">
                             <Text className="text-6xl">🗓️</Text>
                         </View>
-                        <Text className="text-2xl font-black text-foreground">Nothing Scheduled</Text>
-                        <Text className="text-muted-foreground text-center mt-3 px-12 leading-relaxed font-medium">
+                        <Text className="text-2xl font-black text-white">Nothing Scheduled</Text>
+                        <Text className="text-slate-400 text-center mt-3 px-12 leading-relaxed font-medium">
                             Adjust your filters or add a new event/routine to fill your schedule.
                         </Text>
                     </View>

@@ -22,6 +22,7 @@ interface ContentState {
     addRoutine: (routine: Routine) => void;
     updateRoutine: (id: string, updates: Partial<Routine>) => void;
     deleteRoutine: (id: string) => void;
+    duplicateRoutine: (id: string) => string | undefined;
     addEvent: (event: AppEvent) => void;
     updateEvent: (id: string, updates: Partial<AppEvent>) => void;
     deleteEvent: (id: string) => void;
@@ -69,6 +70,11 @@ interface ContentState {
     recentBlockIds: string[];
     trackBlockUsage: (blockId: string) => void;
     wipeAllData: () => Promise<void>;
+
+    // Public / Community
+    publicRoutines: Routine[];
+    fetchPublicRoutines: () => Promise<void>;
+    forkRemoteRoutine: (routine: Routine) => void;
 
     // Persistence
     _hasHydrated: boolean;
@@ -206,6 +212,28 @@ export const useContentStore = create<ContentState>()(
                     })),
                 }));
                 deleteFromCloud('routines', id);
+            },
+            duplicateRoutine: (id) => {
+                const state = get();
+                const original = state.routines.find((r) => r.id === id);
+                if (!original) return;
+
+                const newRoutine: Routine = {
+                    ...original,
+                    id: Date.now().toString(),
+                    title: `Copy of ${original.title}`,
+                    createdAt: new Date().toISOString(),
+                    isPublic: false, // Reset visibility
+                    // Deep copy blocks if necessary, but arguably blocks are references. 
+                    // If blocks are modified in the copy, do they affect the original? 
+                    // No, usually blocks are shared entities in the 'blocks' store. 
+                    // The 'blocks' array in a routine acts as a playlist sequence.
+                    blocks: [...original.blocks]
+                };
+
+                set((state) => ({ routines: [...state.routines, newRoutine] }));
+                syncToCloud('routines', newRoutine);
+                return newRoutine.id;
             },
 
             addEvent: (event) => {
@@ -437,7 +465,8 @@ export const useContentStore = create<ContentState>()(
                     recentModuleIds: [],
                     recentBlockIds: [],
                     profile: null,
-                    syncStatus: 'offline'
+                    syncStatus: 'offline',
+                    publicRoutines: [], // Clear public cache
                 });
 
                 // 3. Clear Storage explicitly using platform-specific method
@@ -449,6 +478,69 @@ export const useContentStore = create<ContentState>()(
                     const AsyncStorage = require('@react-native-async-storage/async-storage').default;
                     await AsyncStorage.removeItem('maestro-content-storage');
                 }
+            },
+
+            publicRoutines: [],
+            fetchPublicRoutines: async () => {
+                const state = get();
+                if (!state.profile || state.profile.id.startsWith('mock-')) {
+                    // Mock data for offline/demo users
+                    set({
+                        publicRoutines: [
+                            {
+                                id: 'public-1',
+                                title: 'Jazz Standards Vol. 1',
+                                description: 'A curated list of essential jazz standards for beginners.',
+                                blocks: [],
+                                createdAt: new Date().toISOString(),
+                                isPublic: true
+                            },
+                            {
+                                id: 'public-2',
+                                title: 'Drum Rudiments Daily',
+                                description: 'Morning warmup routine for drummers.',
+                                blocks: [],
+                                createdAt: new Date().toISOString(),
+                                isPublic: true
+                            }
+                        ]
+                    });
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase
+                        .from('routines')
+                        .select('*')
+                        .eq('is_public', true)
+                        .neq('user_id', state.profile.id)
+                        .order('created_at', { ascending: false })
+                        .limit(20);
+
+                    if (error) throw error;
+
+                    if (data) {
+                        set({ publicRoutines: data });
+                    }
+                } catch (err) {
+                    console.error('Error fetching public routines:', err);
+                }
+            },
+
+            forkRemoteRoutine: (routine) => {
+                const state = get();
+                const newRoutine: Routine = {
+                    ...routine,
+                    id: Date.now().toString(),
+                    title: `Copy of ${routine.title}`,
+                    createdAt: new Date().toISOString(),
+                    isPublic: false, // Reset visibility
+                    blocks: routine.blocks || [] // Ensure blocks are carried over
+                };
+
+                set((state) => ({ routines: [...state.routines, newRoutine] }));
+                syncToCloud('routines', newRoutine);
+                Alert.alert('Saved to Library', `"${newRoutine.title}" has been added to your collection.`);
             },
 
 

@@ -1,10 +1,9 @@
-import * as React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGearStore } from '@/store/gearStore';
-import { useTheme } from '@/lib/theme';
 import { GearAsset, GearCategory, GearStatus } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as React from 'react';
+import { Alert, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const CATEGORIES: GearCategory[] = ['Instrument', 'Sound Tech', 'Software', 'Supplies', 'Accessories', 'Other'];
 const STATUSES: GearStatus[] = ['Ready', 'In Repair', 'On Loan (To)', 'On Loan (From)', 'Retired'];
@@ -15,10 +14,9 @@ interface SectionProps {
 }
 
 function Section({ title, children }: SectionProps) {
-    const theme = useTheme();
     return (
-        <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.primary }]}>{title}</Text>
+        <View className="mb-8 px-6">
+            <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{title}</Text>
             {children}
         </View>
     );
@@ -34,22 +32,18 @@ interface InputProps {
 }
 
 function Input({ label, value, onChangeText, placeholder, keyboardType = 'default', multiline = false }: InputProps) {
-    const theme = useTheme();
     return (
-        <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.mutedText }]}>{label}</Text>
+        <View className="mb-4">
+            <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">{label}</Text>
             <TextInput
-                style={[
-                    styles.input,
-                    { backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
-                    multiline && { height: 100, textAlignVertical: 'top', paddingTop: 12 }
-                ]}
+                className={`bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-semibold text-base ${multiline ? 'h-[100px] pt-3 text-top' : ''}`}
                 value={value}
                 onChangeText={onChangeText}
                 placeholder={placeholder}
-                placeholderTextColor={theme.mutedText}
+                placeholderTextColor="#94a3b8"
                 keyboardType={keyboardType}
                 multiline={multiline}
+                textAlignVertical={multiline ? 'top' : 'center'}
             />
         </View>
     );
@@ -58,7 +52,6 @@ function Input({ label, value, onChangeText, placeholder, keyboardType = 'defaul
 export default function AssetEditor() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
-    const theme = useTheme();
     const { assets, addAsset, updateAsset } = useGearStore();
 
     const existingAsset = id ? assets.find(a => a.id === id) : undefined;
@@ -129,89 +122,109 @@ export default function AssetEditor() {
         router.back();
     };
 
+    const getStatusColor = (s: GearStatus) => {
+        switch (s) {
+            case 'Ready': return 'bg-green-100 border-green-200 text-green-700';
+            case 'In Repair': return 'bg-red-100 border-red-200 text-red-700';
+            case 'On Loan (To)': return 'bg-blue-100 border-blue-200 text-blue-700';
+            case 'On Loan (From)': return 'bg-purple-100 border-purple-200 text-purple-700';
+            case 'Retired': return 'bg-slate-100 border-slate-200 text-slate-500';
+            default: return 'bg-slate-100 border-slate-200 text-slate-500';
+        }
+    };
+
     return (
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View className="flex-1 bg-white">
             {/* Header */}
-            <View style={[styles.header, { borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-                    <Ionicons name="close" size={24} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={[styles.title, { color: theme.text }]}>
-                    {existingAsset ? 'Edit Gear' : 'Add New Gear'}
-                </Text>
-                <TouchableOpacity onPress={handleSave} style={styles.actionButton}>
-                    <Text style={[styles.actionButtonText, { color: theme.primary }]}>Save</Text>
-                </TouchableOpacity>
+            <View className="px-4 pt-4 pb-2 border-b border-slate-200 flex-row justify-between items-center bg-white z-10">
+                <View>
+                    <Text className="text-2xl font-black text-slate-900 tracking-tight">
+                        {existingAsset ? 'Edit Gear' : 'New Gear'}
+                    </Text>
+                    <Text className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                        Inventory Details
+                    </Text>
+                </View>
+
+                <View className="flex-row gap-2">
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        className="bg-slate-100 px-4 py-2 rounded-full flex-row items-center"
+                    >
+                        <Ionicons name="close-circle" size={18} color="#475569" />
+                        <Text className="text-slate-600 font-bold text-xs uppercase tracking-wide ml-2">Cancel</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
-            <ScrollView style={styles.form}>
+            <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 24 }}>
                 {/* Basic Info */}
                 <Section title="Basic Information">
                     <Input label="Name" value={name} onChangeText={setName} placeholder="e.g. Fender Stratocaster" />
 
-                    <Text style={[styles.label, { color: theme.mutedText }]}>Category</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                        {CATEGORIES.map(cat => (
-                            <TouchableOpacity
-                                key={cat}
-                                onPress={() => setCategory(cat)}
-                                style={[
-                                    styles.chip,
-                                    { backgroundColor: category === cat ? theme.primary : theme.card, borderColor: theme.border }
-                                ]}
-                            >
-                                <Text style={[styles.chipText, { color: category === cat ? '#fff' : theme.text }]}>{cat}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
+                    <View className="mb-6">
+                        <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Category</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+                            {CATEGORIES.map(cat => (
+                                <TouchableOpacity
+                                    key={cat}
+                                    onPress={() => setCategory(cat)}
+                                    className={`px-4 py-2 rounded-full border mr-2 ${category === cat ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'}`}
+                                >
+                                    <Text className={`font-bold text-xs ${category === cat ? 'text-white' : 'text-slate-600'}`}>{cat}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
 
                     <Input label="Brand" value={brand} onChangeText={setBrand} placeholder="e.g. Fender" />
                     <Input label="Model" value={model} onChangeText={setModel} placeholder="e.g. American Professional II" />
                     <Input label="Serial Number" value={serialNumber} onChangeText={setSerialNumber} placeholder="SN-12345678" />
-                    <Input label="Approx. Year Manufactured" value={manufactureYear} onChangeText={setManufactureYear} placeholder="e.g. 1974" keyboardType="numeric" />
+                    <Input label="Year" value={manufactureYear} onChangeText={setManufactureYear} placeholder="e.g. 1974" keyboardType="numeric" />
                 </Section>
 
                 {/* Status & Wishlist */}
                 <Section title="Status & Visibility">
-                    <Text style={[styles.label, { color: theme.mutedText }]}>Current Status</Text>
-                    <View style={styles.statusRow}>
-                        {STATUSES.map(s => (
-                            <TouchableOpacity
-                                key={s}
-                                onPress={() => setStatus(s)}
-                                style={[
-                                    styles.statusChip,
-                                    {
-                                        backgroundColor: status === s ? getStatusColor(s) : theme.card,
-                                        borderColor: theme.border
-                                    }
-                                ]}
-                            >
-                                <Text style={[styles.statusChipText, { color: status === s ? '#fff' : theme.text }]}>{s}</Text>
-                            </TouchableOpacity>
-                        ))}
+                    <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Current Status</Text>
+                    <View className="flex-row flex-wrap gap-2 mb-6">
+                        {STATUSES.map(s => {
+                            const isSelected = status === s;
+                            // Just simplified logic for selection: 
+                            // If selected: Solid Slate-900
+                            // If not: Light variant
+                            return (
+                                <TouchableOpacity
+                                    key={s}
+                                    onPress={() => setStatus(s)}
+                                    className={`px-3 py-1.5 rounded-lg border ${isSelected ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'}`}
+                                >
+                                    <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-600'}`}>{s}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
 
-                    <View style={styles.switchRow}>
+                    <View className="flex-row justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <View>
-                            <Text style={[styles.switchLabel, { color: theme.text }]}>Wishlist Item</Text>
-                            <Text style={[styles.switchSubtitle, { color: theme.mutedText }]}>Don't own this yet, but want it</Text>
+                            <Text className="font-bold text-slate-900 text-base">Wishlist Item</Text>
+                            <Text className="text-xs text-slate-500 font-medium mt-1">Don't own this yet, but want it</Text>
                         </View>
                         <Switch
                             value={isWishlist}
                             onValueChange={setIsWishlist}
-                            trackColor={{ false: theme.border, true: theme.primary }}
+                            trackColor={{ false: '#e2e8f0', true: '#bae6fd' }}
+                            thumbColor={isWishlist ? '#0ea5e9' : '#94a3b8'}
                         />
                     </View>
                 </Section>
 
                 {/* Financials (Tax/Insurance) */}
                 <Section title="Financial Records">
-                    <View style={styles.row}>
-                        <View style={{ flex: 1, marginRight: 8 }}>
+                    <View className="flex-row gap-4">
+                        <View className="flex-1">
                             <Input label="Purchase Price ($)" value={purchasePrice} onChangeText={setPurchasePrice} keyboardType="numeric" placeholder="0.00" />
                         </View>
-                        <View style={{ flex: 1, marginLeft: 8 }}>
+                        <View className="flex-1">
                             <Input label="Current Value ($)" value={currentValue} onChangeText={setCurrentValue} keyboardType="numeric" placeholder="0.00" />
                         </View>
                     </View>
@@ -222,13 +235,15 @@ export default function AssetEditor() {
                 {/* Loan Details */}
                 {(status === 'On Loan (To)' || status === 'On Loan (From)') && (
                     <Section title="Loan Tracking">
-                        <Input
-                            label={status === 'On Loan (To)' ? "On Loan To" : "Borrowed From"}
-                            value={loanPerson}
-                            onChangeText={setLoanPerson}
-                            placeholder="Full Name"
-                        />
-                        <Input label="Loan Notes" value={loanNotes} onChangeText={setLoanNotes} placeholder="Due dates, accessories lent, etc." multiline />
+                        <View className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4">
+                            <Input
+                                label={status === 'On Loan (To)' ? "On Loan To" : "Borrowed From"}
+                                value={loanPerson}
+                                onChangeText={setLoanPerson}
+                                placeholder="Full Name"
+                            />
+                            <Input label="Loan Notes" value={loanNotes} onChangeText={setLoanNotes} placeholder="Due dates, accessories lent, etc." multiline />
+                        </View>
                     </Section>
                 )}
 
@@ -236,129 +251,19 @@ export default function AssetEditor() {
                     <Input label="General Notes" value={notes} onChangeText={setNotes} placeholder="Any other details..." multiline />
                 </Section>
 
-                <View style={{ height: 100 }} />
+                <View className="h-[120px]" />
             </ScrollView>
+
+            {/* Sticky Footer Save Button */}
+            <View className="absolute bottom-6 left-6 right-6 border-t border-slate-100 pt-4 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 20 : 0 }}>
+                <TouchableOpacity
+                    onPress={handleSave}
+                    className="bg-slate-900 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-slate-900/20"
+                >
+                    <Ionicons name="checkmark-circle" size={20} color="white" />
+                    <Text className="text-white font-black text-lg uppercase tracking-wider ml-2">Save Gear</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
-
-function getStatusColor(status: GearStatus): string {
-    switch (status) {
-        case 'Ready': return '#16a34a';
-        case 'In Repair': return '#ef4444';
-        case 'On Loan (To)': return '#2563eb';
-        case 'On Loan (From)': return '#9333ea';
-        case 'Retired': return '#64748b';
-        default: return '#64748b';
-    }
-}
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 60,
-        paddingBottom: 20,
-        borderBottomWidth: 1,
-    },
-    closeButton: {
-        padding: 4,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '800',
-    },
-    actionButton: {
-        padding: 4,
-    },
-    actionButtonText: {
-        fontSize: 18,
-        fontWeight: '800',
-    },
-    form: {
-        flex: 1,
-        paddingTop: 20,
-    },
-    section: {
-        paddingHorizontal: 20,
-        marginBottom: 32,
-    },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: '800',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-        marginBottom: 16,
-    },
-    inputGroup: {
-        marginBottom: 16,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        marginBottom: 8,
-    },
-    input: {
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        fontSize: 16,
-    },
-    row: {
-        flexDirection: 'row',
-    },
-    chipRow: {
-        flexDirection: 'row',
-        marginBottom: 16,
-    },
-    chip: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        marginRight: 8,
-        borderWidth: 1,
-    },
-    chipText: {
-        fontWeight: '600',
-    },
-    statusRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginBottom: 16,
-    },
-    statusChip: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 10,
-        marginRight: 8,
-        marginBottom: 8,
-        borderWidth: 1,
-    },
-    statusChipText: {
-        fontSize: 12,
-        fontWeight: '700',
-    },
-    switchRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.02)',
-        padding: 16,
-        borderRadius: 12,
-        marginTop: 8,
-    },
-    switchLabel: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    switchSubtitle: {
-        fontSize: 13,
-        marginTop: 2,
-    }
-});

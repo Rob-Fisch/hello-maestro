@@ -132,16 +132,16 @@ export default function PersonEditor() {
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-white">
-            <View className="px-6 pt-12 pb-4 border-b border-gray-100 flex-row justify-between items-center">
-                <Text className="text-2xl font-bold">{isEditing ? 'Edit Contact' : 'New Contact'}</Text>
-                <TouchableOpacity onPress={() => router.back()} className="bg-gray-100 px-4 py-2 rounded-full">
-                    <Text className="text-gray-600 font-bold">Cancel</Text>
+            <View className="px-6 pt-12 pb-4 border-b border-gray-100 flex-row justify-between items-center bg-white">
+                <Text className="text-2xl font-black text-slate-900">{isEditing ? 'Edit Contact' : 'New Contact'}</Text>
+                <TouchableOpacity onPress={() => router.back()} className="bg-slate-100 p-2 rounded-full">
+                    <Ionicons name="close" size={24} color="#0f172a" />
                 </TouchableOpacity>
             </View>
 
             <ScrollView className="flex-1 p-6" keyboardShouldPersistTaps="handled">
                 {!isEditing && Platform.OS !== 'web' && (
-                    <TouchableOpacity onPress={pickContact} className="bg-blue-50 p-4 rounded-2xl flex-row items-center justify-center mb-8 border border-blue-100">
+                    <TouchableOpacity onPress={pickContact} className="bg-blue-50 p-4 rounded-2xl flex-row items-center justify-center mb-8 border border-blue-100 shadow-sm">
                         <Ionicons name="person-add" size={20} color="#2563eb" />
                         <Text className="text-blue-600 font-bold ml-2">Import from Contacts</Text>
                     </TouchableOpacity>
@@ -152,10 +152,10 @@ export default function PersonEditor() {
                         <TouchableOpacity
                             key={t.key}
                             onPress={() => setType(t.key)}
-                            className={`flex-row items-center px-4 py-3 rounded-2xl border ${type === t.key ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-200'}`}
+                            className={`flex-row items-center px-4 py-3 rounded-2xl border ${type === t.key ? 'bg-slate-900 border-slate-900' : 'bg-white border-gray-200'}`}
                         >
-                            <Ionicons name={t.icon as any} size={16} color={type === t.key ? 'white' : '#6b7280'} />
-                            <Text className={`ml-2 text-xs font-bold ${type === t.key ? 'text-white' : 'text-gray-500'}`}>{t.label}</Text>
+                            <Ionicons name={t.icon as any} size={16} color={type === t.key ? 'white' : '#64748b'} />
+                            <Text className={`ml-2 text-xs font-bold ${type === t.key ? 'text-white' : 'text-slate-500'}`}>{t.label}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -163,20 +163,47 @@ export default function PersonEditor() {
                 <View className="bg-gray-50 p-6 rounded-[32px] border border-gray-100 mb-6">
                     <View className="flex-row gap-4 mb-6">
                         <View className="flex-1">
-                            <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">First Name</Text>
-                            <TextInput className="text-xl font-bold py-1 border-b border-gray-200" value={firstName} onChangeText={setFirstName} />
+                            <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">First Name</Text>
+                            <TextInput
+                                className="text-xl font-bold py-1 border-b border-gray-200 text-slate-900"
+                                value={firstName}
+                                onChangeText={setFirstName}
+                                placeholder="Jane"
+                                placeholderTextColor="#cbd5e1"
+                            />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Last Name</Text>
-                            <TextInput className="text-xl font-bold py-1 border-b border-gray-200" value={lastName} onChangeText={setLastName} />
+                            <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">Last Name</Text>
+                            <TextInput
+                                className="text-xl font-bold py-1 border-b border-gray-200 text-slate-900"
+                                value={lastName}
+                                onChangeText={setLastName}
+                                placeholder="Doe"
+                                placeholderTextColor="#cbd5e1"
+                            />
                         </View>
                     </View>
 
-                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Email</Text>
-                    <TextInput className="text-lg font-semibold py-1 mb-4 border-b border-gray-100" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+                    <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">Email</Text>
+                    <TextInput
+                        className="text-lg font-semibold py-1 mb-4 border-b border-gray-100 text-slate-900"
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholder="jane@example.com"
+                        placeholderTextColor="#cbd5e1"
+                    />
 
-                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">General Phone</Text>
-                    <TextInput className="text-lg font-semibold py-1 mb-4 border-b border-gray-100" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+                    <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">General Phone</Text>
+                    <TextInput
+                        className="text-lg font-semibold py-1 mb-4 border-b border-gray-100 text-slate-900"
+                        value={phone}
+                        onChangeText={setPhone}
+                        keyboardType="phone-pad"
+                        placeholder="(555) 123-4567"
+                        placeholderTextColor="#cbd5e1"
+                    />
 
                     <View className="mb-4">
                         <View className="flex-row items-center mb-1">
@@ -189,17 +216,19 @@ export default function PersonEditor() {
                             value={verifiedPhone}
                             onChangeText={setVerifiedPhone}
                             keyboardType="phone-pad"
+                            placeholderTextColor="#93c5fd"
                         />
                     </View>
 
                     {type !== 'venue_manager' && (
                         <>
-                            <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Instruments (Comma Separated)</Text>
+                            <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">Instruments</Text>
                             <TextInput
-                                className="text-lg font-semibold py-1 mb-4 border-b border-gray-100"
+                                className="text-lg font-semibold py-1 mb-4 border-b border-gray-100 text-slate-900"
                                 placeholder="Piano, Guitar, Vocals..."
                                 value={instruments.join(', ')}
                                 onChangeText={(text) => setInstruments(text.split(',').map(s => s.trim()).filter(s => s !== ''))}
+                                placeholderTextColor="#cbd5e1"
                             />
                         </>
                     )}
@@ -220,31 +249,34 @@ export default function PersonEditor() {
                             )}
                         </View>
 
-                        <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Venue Name</Text>
+                        <Text className="text-[10px] uppercase font-bold text-orange-400/70 mb-1">Venue Name</Text>
                         <TextInput
                             className="text-lg font-bold py-1 mb-4 border-b border-orange-200 text-orange-900"
                             placeholder="e.g. The Blue Note"
                             value={venueName}
                             onChangeText={setVenueName}
+                            placeholderTextColor="#fdba74"
                         />
 
                         <View className="flex-row gap-4">
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Type / Vibe</Text>
+                                <Text className="text-[10px] uppercase font-bold text-orange-400/70 mb-1">Type / Vibe</Text>
                                 <TextInput
                                     className="text-base font-semibold py-1 border-b border-orange-200 text-orange-900"
                                     placeholder="Jazz Club"
                                     value={venueType}
                                     onChangeText={setVenueType}
+                                    placeholderTextColor="#fdba74"
                                 />
                             </View>
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase font-black text-gray-400 mb-1">Location</Text>
+                                <Text className="text-[10px] uppercase font-bold text-orange-400/70 mb-1">Location</Text>
                                 <TextInput
                                     className="text-base font-semibold py-1 border-b border-orange-200 text-orange-900"
                                     placeholder="City, State"
                                     value={venueLocation}
                                     onChangeText={setVenueLocation}
+                                    placeholderTextColor="#fdba74"
                                 />
                             </View>
                         </View>
@@ -253,20 +285,22 @@ export default function PersonEditor() {
 
                 {/* Notes Section */}
                 <View className="bg-gray-50 p-6 rounded-[32px] border border-gray-100 mb-8">
-                    <Text className="text-[10px] uppercase font-black text-gray-400 mb-2">Private Notes</Text>
+                    <Text className="text-[10px] uppercase font-bold text-slate-400 mb-2">Private Notes</Text>
                     <TextInput
-                        className="text-base text-gray-800 min-h-[100px]"
+                        className="text-base text-slate-800 min-h-[100px]"
                         placeholder="Booking preferences, travel info, etc..."
                         value={notes}
                         onChangeText={setNotes}
                         multiline
                         textAlignVertical="top"
+                        placeholderTextColor="#cbd5e1"
                     />
                 </View>
 
 
-                <TouchableOpacity onPress={handleSave} className="bg-blue-600 p-6 rounded-[32px] items-center mb-20 shadow-lg shadow-blue-300">
-                    <Text className="text-white font-black text-xl">{isEditing ? 'Update' : 'Save'} Contact</Text>
+                <TouchableOpacity onPress={handleSave} className="bg-slate-900 p-5 rounded-[24px] items-center mb-20 shadow-lg shadow-slate-900/20 flex-row justify-center">
+                    <Ionicons name="save-outline" size={20} color="white" />
+                    <Text className="text-white font-black text-lg ml-2">{isEditing ? 'Update' : 'Save'} Contact</Text>
                 </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>

@@ -282,20 +282,20 @@ export default function ContentScreen() {
           </View>
 
           <Link href="/modal/block-editor" asChild>
-            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-blue-400" style={{ backgroundColor: theme.primary }}>
-              <Ionicons name="add" size={28} color="white" />
+            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20" style={{ backgroundColor: theme.primary }}>
+              <Ionicons name="add" size={28} color="black" />
             </TouchableOpacity>
           </Link>
         </View>
 
         {/* ROW 2: Title */}
         <View className="mb-2">
-          <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2" style={{ color: theme.primary }}>Level 1 Bank</Text>
-          <Text className="text-4xl font-black tracking-tight leading-tight" style={{ color: theme.text }}>Nodes</Text>
+          <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2" style={{ color: theme.primary }}>Level 1</Text>
+          <Text className="text-4xl font-black tracking-tight leading-tight" style={{ color: theme.text }}>Activities</Text>
         </View>
 
         <View className="flex-row items-center mt-4">
-          <Text className="text-sm font-bold" style={{ color: theme.mutedText }}>{blocks.length} Assets Registered</Text>
+          <Text className="text-sm font-bold" style={{ color: theme.mutedText }}>{blocks.length} Activities Registered</Text>
           <View className="mx-3 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: theme.mutedText }} />
           <TouchableOpacity onPress={toggleAll} className="active:opacity-60">
             <Text className="text-[10px] font-black uppercase tracking-[1.5px]" style={{ color: theme.primary }}>

@@ -196,20 +196,20 @@ export default function RoutineEditor() {
             <TouchableOpacity
                 onLongPress={drag}
                 disabled={isActive}
-                className={`mb-2 p-3 rounded-lg border flex-row items-center justify-between ${isActive ? 'bg-blue-100 border-blue-400' : 'bg-blue-50 border-blue-200'}`}
+                className={`mb-2 p-3 rounded-xl border flex-row items-center justify-between ${isActive ? 'bg-blue-50 border-blue-400 shadow-md transform scale-105' : 'bg-white border-slate-200 shadow-sm'}`}
             >
                 <View className="flex-row items-center flex-1">
-                    <Text className="text-gray-400 mr-3 text-lg">☰</Text>
+                    <Text className="text-slate-300 mr-3 text-lg font-bold">☰</Text>
                     {item.mediaUri && !item.mediaUri.endsWith('.pdf') && (
-                        <Image source={{ uri: item.mediaUri }} className="w-10 h-10 rounded mr-3 bg-gray-200" />
+                        <Image source={{ uri: item.mediaUri }} className="w-10 h-10 rounded mr-3 bg-slate-100" />
                     )}
                     <View className="flex-1">
-                        <Text className="font-semibold text-foreground text-base" numberOfLines={1}>{item.title}</Text>
-                        <Text className="text-xs text-muted-foreground capitalize">{item.type.replace('_', ' ')}</Text>
+                        <Text className="font-bold text-slate-900 text-base" numberOfLines={1}>{item.title}</Text>
+                        <Text className="text-xs text-slate-500 font-bold uppercase tracking-wide">{item.type.replace('_', ' ')}</Text>
                     </View>
                 </View>
-                <TouchableOpacity onPress={() => removeBlockFromRoutine(item.id)} className="p-2 ml-2">
-                    <Text className="text-red-500 font-bold text-lg">✕</Text>
+                <TouchableOpacity onPress={() => removeBlockFromRoutine(item.id)} className="p-2 ml-2 bg-red-50 rounded-lg">
+                    <Ionicons name="trash-outline" size={16} color="#ef4444" />
                 </TouchableOpacity>
             </TouchableOpacity>
         </ScaleDecorator>
@@ -218,70 +218,77 @@ export default function RoutineEditor() {
     const renderAvailableBlockItem = ({ item }: { item: ContentBlock }) => (
         <TouchableOpacity
             onPress={() => addBlockToRoutine(item)}
-            className="p-3 mb-2 rounded-xl border bg-card border-border flex-row justify-between items-center shadow-sm"
+            className="p-3 mb-2 rounded-xl border bg-white border-slate-200 flex-row justify-between items-center shadow-sm active:bg-slate-50"
         >
             <View className="flex-row items-center flex-1">
                 <View className={`w-10 h-10 rounded-lg items-center justify-center mr-3 ${item.type === 'sheet_music' ? 'bg-amber-100' : 'bg-blue-100'}`}>
-                    <Text className="text-lg">{item.type === 'sheet_music' ? '🎼' : '📝'}</Text>
+                    <Ionicons
+                        name={item.type === 'sheet_music' ? 'musical-notes' : 'document-text'}
+                        size={20}
+                        color={item.type === 'sheet_music' ? '#b45309' : '#2563eb'}
+                    />
                 </View>
                 <View className="flex-1">
-                    <Text className="font-semibold text-foreground" numberOfLines={1}>{item.title}</Text>
-                    {item.tags && <Text className="text-[10px] text-blue-500 font-medium" numberOfLines={1}>{item.tags}</Text>}
+                    <Text className="font-bold text-slate-900" numberOfLines={1}>{item.title}</Text>
+                    {item.tags && <Text className="text-[10px] text-blue-600 font-bold uppercase tracking-wide mt-0.5" numberOfLines={1}>{item.tags}</Text>}
                 </View>
             </View>
-            <View className="bg-green-50 w-8 h-8 rounded-full items-center justify-center">
-                <Text className="text-green-600 font-bold text-lg">+</Text>
+            <View className="bg-slate-900 w-8 h-8 rounded-full items-center justify-center shadow-sm">
+                <Ionicons name="add" size={20} color="white" />
             </View>
         </TouchableOpacity>
     );
 
     return (
-        <View className="flex-1 bg-background">
+        <View className="flex-1 bg-white">
             {/* Header */}
-            <View className="px-4 pt-4 pb-2 border-b border-border flex-row justify-between items-center bg-background">
+            <View className="px-4 pt-4 pb-2 border-b border-slate-200 flex-row justify-between items-center bg-white">
                 <View>
-                    <Text className="text-2xl font-bold">{isEditing ? 'Edit Routine' : 'New Routine'}</Text>
-                    <Text className="text-xs text-muted-foreground">{selectedBlocks.length} items in sequence</Text>
+                    <Text className="text-2xl font-black text-slate-900 tracking-tight">{isEditing ? 'Edit Routine' : 'New Routine'}</Text>
+                    <Text className="text-xs text-slate-500 font-bold uppercase tracking-widest">{selectedBlocks.length} items in sequence</Text>
                 </View>
                 <View className="flex-row gap-1 w-full max-w-[380px]">
 
-                    <TouchableOpacity onPress={() => router.back()} className="bg-gray-100 px-4 py-2 rounded-full">
-                        <Text className="text-gray-600 font-semibold text-xs">Cancel</Text>
+                    <TouchableOpacity onPress={() => router.back()} className="bg-slate-100 px-4 py-2 rounded-full">
+                        <Text className="text-slate-600 font-bold text-xs uppercase tracking-wide">Cancel</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
             <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-                <View className="p-4">
+                <View className="p-6">
                     {/* Basic Info */}
-                    <View className="bg-card p-4 rounded-2xl border border-border shadow-sm mb-6">
-                        <View className="mb-4">
-                            <Text className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Title</Text>
+                    <View className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-8">
+                        <View className="mb-6">
+                            <Text className="text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">Title</Text>
                             <TextInput
-                                className="text-xl font-semibold text-foreground"
+                                className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-2"
                                 placeholder="Morning Warmup..."
+                                placeholderTextColor="#94a3b8"
                                 value={title}
                                 onChangeText={setTitle}
                             />
                         </View>
                         <View>
-                            <Text className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Description</Text>
+                            <Text className="text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">Description</Text>
                             <TextInput
-                                className="text-sm text-foreground"
+                                className="text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100 min-h-[80px]"
                                 placeholder="What is this routine for?"
+                                placeholderTextColor="#94a3b8"
                                 value={description}
                                 onChangeText={setDescription}
                                 multiline
+                                textAlignVertical="top"
                             />
                         </View>
 
                         {/* Visibility Toggle */}
-                        <View className="flex-row items-center justify-between pt-2 border-t border-border mt-2">
+                        <View className="flex-row items-center justify-between pt-4 mt-2">
                             <View>
-                                <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Visibility</Text>
+                                <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Visibility</Text>
                                 <View className="flex-row items-center">
-                                    <Ionicons name={isPublic ? "earth" : "lock-closed"} size={12} color={isPublic ? "#2563eb" : "#64748b"} />
-                                    <Text className={`text-xs font-bold ml-1.5 ${isPublic ? 'text-blue-600' : 'text-gray-600'}`}>
+                                    <Ionicons name={isPublic ? "earth" : "lock-closed"} size={14} color={isPublic ? "#2563eb" : "#64748b"} />
+                                    <Text className={`text-sm font-bold ml-2 ${isPublic ? 'text-blue-600' : 'text-slate-600'}`}>
                                         {isPublic ? 'Public' : 'Private'}
                                     </Text>
                                 </View>
@@ -297,16 +304,16 @@ export default function RoutineEditor() {
                     </View>
 
                     {/* Schedule */}
-                    <Text className="text-lg font-bold mb-3 px-1">Schedule</Text>
-                    <View className="bg-card p-4 rounded-2xl border border-border shadow-sm mb-6">
-                        <View className="flex-row gap-2 mb-4">
+                    <Text className="text-lg font-black text-slate-900 mb-4 px-1">Schedule</Text>
+                    <View className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-8">
+                        <View className="flex-row gap-2 mb-6">
                             {(['none', 'recurring', 'date'] as const).map((t) => (
                                 <TouchableOpacity
                                     key={t}
                                     onPress={() => setSchedule({ ...schedule, type: t })}
-                                    className={`px-4 py-2 rounded-full border ${schedule.type === t ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 border-gray-200'}`}
+                                    className={`px-4 py-2 rounded-full border ${schedule.type === t ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'}`}
                                 >
-                                    <Text className={`capitalize text-xs font-bold ${schedule.type === t ? 'text-white' : 'text-gray-500'}`}>
+                                    <Text className={`capitalize text-xs font-bold ${schedule.type === t ? 'text-white' : 'text-slate-500'}`}>
                                         {t}
                                     </Text>
                                 </TouchableOpacity>
@@ -315,7 +322,7 @@ export default function RoutineEditor() {
 
                         {schedule.type === 'recurring' && (
                             <View>
-                                <View className="flex-row justify-between mb-5">
+                                <View className="flex-row justify-between mb-6">
                                     {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => {
                                         const isSelected = schedule.daysOfWeek?.includes(i);
                                         return (
@@ -328,9 +335,9 @@ export default function RoutineEditor() {
                                                         : [...currentDays, i];
                                                     setSchedule({ ...schedule, daysOfWeek: nextDays });
                                                 }}
-                                                className={`w-9 h-9 rounded-full items-center justify-center border ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 border-gray-200'}`}
+                                                className={`w-9 h-9 rounded-full items-center justify-center border ${isSelected ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}
                                             >
-                                                <Text className={`${isSelected ? 'text-white' : 'text-gray-500'} font-bold`}>{day}</Text>
+                                                <Text className={`${isSelected ? 'text-white' : 'text-slate-400'} font-bold`}>{day}</Text>
                                             </TouchableOpacity>
                                         );
                                     })}
@@ -338,16 +345,16 @@ export default function RoutineEditor() {
 
                                 <View className="flex-row gap-3">
                                     <View className="flex-1">
-                                        <Text className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Start Date</Text>
+                                        <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Start Date</Text>
                                         {Platform.OS === 'web' ? (
                                             <WebDatePicker date={schedule.startDate} onChange={(d) => setSchedule({ ...schedule, startDate: d })} />
                                         ) : (
                                             <>
                                                 <TouchableOpacity
                                                     onPress={() => setShowStartDatePicker(true)}
-                                                    className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex-row justify-between items-center"
+                                                    className="bg-white p-3 rounded-xl border border-slate-200 flex-row justify-between items-center"
                                                 >
-                                                    <Text className="text-xs font-semibold text-foreground">
+                                                    <Text className="text-xs font-bold text-slate-900">
                                                         {schedule.startDate ? new Date(schedule.startDate).toLocaleDateString() : 'Set Start'}
                                                     </Text>
                                                     <Text className="text-xs">📅</Text>
@@ -364,16 +371,16 @@ export default function RoutineEditor() {
                                         )}
                                     </View>
                                     <View className="flex-1">
-                                        <Text className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">End Date</Text>
+                                        <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">End Date</Text>
                                         {Platform.OS === 'web' ? (
                                             <WebDatePicker date={schedule.endDate} onChange={(d) => setSchedule({ ...schedule, endDate: d })} />
                                         ) : (
                                             <>
                                                 <TouchableOpacity
                                                     onPress={() => setShowEndDatePicker(true)}
-                                                    className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex-row justify-between items-center"
+                                                    className="bg-white p-3 rounded-xl border border-slate-200 flex-row justify-between items-center"
                                                 >
-                                                    <Text className="text-xs font-semibold text-foreground">
+                                                    <Text className="text-xs font-bold text-slate-900">
                                                         {schedule.endDate ? new Date(schedule.endDate).toLocaleDateString() : 'Set End'}
                                                     </Text>
                                                     <Text className="text-xs">📅</Text>
@@ -399,9 +406,9 @@ export default function RoutineEditor() {
                             ) : (
                                 <TouchableOpacity
                                     onPress={() => setShowDatePicker(true)}
-                                    className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex-row justify-between items-center"
+                                    className="bg-white p-3 rounded-xl border border-slate-200 flex-row justify-between items-center"
                                 >
-                                    <Text className="font-semibold text-foreground">
+                                    <Text className="font-bold text-slate-900">
                                         {schedule.date ? new Date(schedule.date).toLocaleDateString() : 'Select Date'}
                                     </Text>
                                     <Text>📅</Text>
@@ -419,11 +426,11 @@ export default function RoutineEditor() {
                     </View>
 
                     {/* Sequence */}
-                    <View className="flex-row justify-between items-center mb-3 px-1">
-                        <Text className="text-lg font-bold">Sequence</Text>
-                        <Text className="text-xs text-muted-foreground italic">Long press to drag</Text>
+                    <View className="flex-row justify-between items-center mb-4 px-1">
+                        <Text className="text-lg font-black text-slate-900">Sequence</Text>
+                        <Text className="text-xs text-slate-400 font-semibold italic">Long press to drag</Text>
                     </View>
-                    <View className="min-h-[100px] mb-6">
+                    <View className="min-h-[100px] mb-8">
                         <DraggableFlatList
                             data={selectedBlocks}
                             onDragEnd={({ data }) => setSelectedBlocks(data)}
@@ -431,36 +438,37 @@ export default function RoutineEditor() {
                             renderItem={renderSelectedBlockItem}
                             scrollEnabled={false} // Let the main scrollview handle it for now or adjust height
                             ListEmptyComponent={
-                                <View className="border-2 border-dashed border-gray-200 rounded-2xl p-8 items-center">
-                                    <Text className="text-gray-400 font-medium">Add blocks from the library below</Text>
+                                <View className="border-2 border-dashed border-slate-200 rounded-2xl p-8 items-center bg-slate-50">
+                                    <Text className="text-slate-400 font-bold">Add blocks from the library below</Text>
                                 </View>
                             }
                         />
                     </View>
 
                     {/* Library */}
-                    <Text className="text-lg font-bold mb-3 px-1">Add from Library</Text>
-                    <View className="flex-row items-center bg-card border border-border rounded-xl px-3 py-2 mb-4 shadow-sm">
-                        <Text className="mr-2">🔍</Text>
+                    <Text className="text-lg font-black text-slate-900 mb-4 px-1">Add from Library</Text>
+                    <View className="flex-row items-center bg-white border border-slate-200 rounded-xl px-4 py-3 mb-6 shadow-sm">
+                        <Ionicons name="search" size={20} color="#94a3b8" />
                         <TextInput
-                            className="flex-1 text-foreground py-1"
+                            className="flex-1 text-slate-900 font-semibold ml-3"
                             placeholder="Search by title or tags..."
+                            placeholderTextColor="#cbd5e1"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
                         {searchQuery.length > 0 && (
                             <TouchableOpacity onPress={() => setSearchQuery('')}>
-                                <Text className="text-gray-400 font-bold ml-2">✕</Text>
+                                <Ionicons name="close-circle" size={20} color="#94a3b8" />
                             </TouchableOpacity>
                         )}
                     </View>
 
-                    <View className="mb-24">
+                    <View className="mb-32">
                         {groupedAvailableBlocks.length > 0 ? (
                             groupedAvailableBlocks.map(group => (
-                                <View key={group.category.id} className="mb-4">
+                                <View key={group.category.id} className="mb-6">
                                     <View className="px-1 mb-2">
-                                        <Text className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">
+                                        <Text className="text-[10px] uppercase font-black text-slate-400 tracking-widest">
                                             {group.category.name}
                                         </Text>
                                     </View>
@@ -473,7 +481,7 @@ export default function RoutineEditor() {
                             ))
                         ) : (
                             <View className="p-8 items-center justify-center">
-                                <Text className="text-center text-muted-foreground font-medium">No matching blocks found.</Text>
+                                <Text className="text-center text-slate-400 font-bold">No matching blocks found.</Text>
                             </View>
                         )}
                     </View>
@@ -481,12 +489,12 @@ export default function RoutineEditor() {
             </ScrollView>
 
             {/* Floating Action Button */}
-            <View className="absolute bottom-6 left-6 right-6">
+            <View className="absolute bottom-6 left-6 right-6 border-t border-slate-100 pt-4 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 20 : 0 }}>
                 <TouchableOpacity
                     onPress={handleSave}
-                    className="bg-blue-600 p-4 rounded-2xl shadow-lg flex-row justify-center items-center"
+                    className="bg-slate-900 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-slate-900/20"
                 >
-                    <Text className="text-white font-bold text-lg">Save Routine</Text>
+                    <Text className="text-white font-black text-lg uppercase tracking-wider">Save Routine</Text>
                 </TouchableOpacity>
             </View>
         </View>

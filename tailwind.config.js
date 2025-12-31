@@ -6,11 +6,12 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                primary: "#2563eb",
-                background: "#f8fafc",
-                card: "#ffffff",
-                border: "#f1f5f9",
-                "muted-foreground": "#64748b",
+                primary: "#ffffff", // White for high contrast
+                secondary: "#7c3aed", // Violet 600
+                background: "#020617", // Slate 950
+                card: "rgba(255, 255, 255, 0.05)", // Glass
+                border: "rgba(255, 255, 255, 0.1)", // White/10
+                "muted-foreground": "#94a3b8", // Slate 400
             },
             borderRadius: {
                 'card': '40px',

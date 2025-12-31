@@ -215,12 +215,12 @@ export default function EventEditor() {
 
 
     return (
-        <View className="flex-1 bg-background" style={Platform.OS === 'web' ? { height: '100vh' } as any : undefined}>
+        <View className="flex-1 bg-white" style={Platform.OS === 'web' ? { height: '100vh' } as any : undefined}>
             {/* Header */}
-            <View className="px-6 pt-4 pb-4 border-b border-border flex-row justify-between items-center bg-background">
+            <View className="px-6 pt-4 pb-4 border-b border-slate-200 flex-row justify-between items-center bg-white z-10">
                 <View>
-                    <Text className="text-2xl font-bold tracking-tight">{isEditing ? 'Edit Event' : 'New Event'}</Text>
-                    <Text className="text-xs text-muted-foreground">{selectedRoutineIds.length} Sets Scheduled</Text>
+                    <Text className="text-2xl font-black text-slate-900 tracking-tight">{isEditing ? 'Edit Event' : 'New Event'}</Text>
+                    <Text className="text-xs text-slate-500 font-bold uppercase tracking-widest">{selectedRoutineIds.length} Sets Scheduled</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => {
@@ -231,9 +231,10 @@ export default function EventEditor() {
                             router.replace('/(drawer)/(tabs)/schedule' as any);
                         }
                     }}
-                    className="bg-gray-100 px-4 py-2 rounded-full"
+                    className="bg-slate-100 px-4 py-2 rounded-full flex-row items-center"
                 >
-                    <Text className="text-gray-600 font-bold">Cancel</Text>
+                    <Ionicons name="close-circle" size={18} color="#475569" />
+                    <Text className="text-slate-600 font-bold text-xs uppercase tracking-wide ml-2">Cancel</Text>
                 </TouchableOpacity>
             </View>
 
@@ -281,17 +282,19 @@ export default function EventEditor() {
                             <TouchableOpacity
                                 onLongPress={drag}
                                 disabled={isActive}
-                                className={`mb-2 p-4 rounded-2xl border flex-row items-center justify-between ${isActive ? 'bg-amber-100 border-amber-400' : 'bg-amber-50 border-amber-200 shadow-sm'}`}
+                                className={`mb-2 p-4 rounded-2xl border flex-row items-center justify-between ${isActive ? 'bg-slate-100 border-slate-300' : 'bg-white border-slate-200 shadow-sm'}`}
                             >
                                 <View className="flex-row items-center flex-1">
-                                    <Text className="text-amber-400 mr-3 text-lg">☰</Text>
+                                    <View className="w-10 h-10 rounded-xl bg-slate-100 items-center justify-center mr-3">
+                                        <Text className="text-lg">🎼</Text>
+                                    </View>
                                     <View className="flex-1">
-                                        <Text className="font-bold text-foreground text-base" numberOfLines={1}>{item.title}</Text>
-                                        <Text className="text-xs text-amber-600 font-medium">{item.blocks.length} Blocks</Text>
+                                        <Text className="font-bold text-slate-900 text-base" numberOfLines={1}>{item.title}</Text>
+                                        <Text className="text-xs text-slate-500 font-medium">{item.blocks.length} Blocks</Text>
                                     </View>
                                 </View>
-                                <TouchableOpacity onPress={() => removeRoutineFromEvent(item.id)} className="p-2 ml-2">
-                                    <Text className="text-red-500 font-bold text-lg">✕</Text>
+                                <TouchableOpacity onPress={() => removeRoutineFromEvent(item.id)} className="p-2 ml-2 bg-slate-50 rounded-full">
+                                    <Ionicons name="trash-outline" size={16} color="#ef4444" />
                                 </TouchableOpacity>
                             </TouchableOpacity>
                         </ScaleDecorator>
@@ -299,20 +302,21 @@ export default function EventEditor() {
                 )}
                 ListEmptyComponent={
                     <View className="px-6">
-                        <View className="border-2 border-dashed border-amber-200 bg-amber-50/30 rounded-3xl p-8 items-center">
-                            <Text className="text-amber-400 font-bold text-center">No routines added. Add a routine below to build your {type === 'lesson' ? 'lesson' : 'setlist'}.</Text>
+                        <View className="border-2 border-dashed border-slate-200 bg-slate-50 rounded-3xl p-8 items-center">
+                            <Text className="text-slate-400 font-bold text-center">No routines added. Add a routine below to build your {type === 'lesson' ? 'lesson' : 'setlist'}.</Text>
                         </View>
                     </View>
                 }
             />
 
             {/* Save Button */}
-            <View className="absolute bottom-8 left-8 right-8 shadow-2xl shadow-blue-500/50">
+            <View className="absolute bottom-6 left-6 right-6 border-t border-slate-100 pt-4 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 20 : 0 }}>
                 <TouchableOpacity
                     onPress={handleSave}
-                    className="bg-blue-600 p-5 rounded-3xl flex-row justify-center items-center"
+                    className="bg-slate-900 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-slate-900/20"
                 >
-                    <Text className="text-white font-black text-xl tracking-tight">
+                    <Ionicons name="checkmark-circle" size={20} color="white" />
+                    <Text className="text-white font-black text-lg uppercase tracking-wider ml-2">
                         {isEditing ? 'Update' : 'Save'} {type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
                 </TouchableOpacity>
@@ -332,8 +336,8 @@ const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClas
 
     return (
         <>
-            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 ${labelClassName}`}>
-                <Text className="font-bold text-foreground flex-1" numberOfLines={1}>{displayLabel}</Text>
+            <TouchableOpacity onPress={() => setVisible(true)} className={`flex-row items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 ${labelClassName}`}>
+                <Text className="font-bold text-slate-900 flex-1" numberOfLines={1}>{displayLabel}</Text>
                 <Ionicons name={icon || "chevron-down"} size={icon ? 20 : 12} color={icon ? "#64748b" : "#94a3b8"} />
             </TouchableOpacity>
             <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
@@ -346,7 +350,7 @@ const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClas
                                     onPress={() => { onChange(opt.value); setVisible(false); }}
                                     className={`p-3 rounded-xl mb-1 ${opt.value == value ? 'bg-blue-50' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`text-center font-bold ${opt.value == value ? 'text-blue-600' : 'text-gray-700'}`}>{opt.label}</Text>
+                                    <Text className={`text-center font-bold ${opt.value == value ? 'text-blue-600' : 'text-slate-700'}`}>{opt.label}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -359,7 +363,7 @@ const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClas
 
 const WebDatePicker = ({ date, onChange }: { date: string, onChange: (d: string) => void }) => {
     return (
-        <View className="bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-sm w-full h-[50px] justify-center relative">
+        <View className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm w-full h-[50px] justify-center relative">
             {/* Native Input: Visible, Transparent Background, fills container */}
             <input
                 type="date"
@@ -421,7 +425,7 @@ const WebTimePicker = ({ value, onChange }: { value: string, onChange: (t: strin
     return (
         <View className="flex-row gap-2 w-full">
             {/* Hour Picker */}
-            <View className="flex-1 relative bg-gray-50 border border-gray-100 rounded-xl overflow-hidden h-[50px]">
+            <View className="flex-1 relative bg-slate-50 border border-slate-200 rounded-xl overflow-hidden h-[50px]">
                 <select
                     value={h12}
                     onChange={(e) => updateTime(parseInt(e.target.value), m, isPM)}
@@ -442,7 +446,7 @@ const WebTimePicker = ({ value, onChange }: { value: string, onChange: (t: strin
             <Text className="self-center font-black text-slate-300">:</Text>
 
             {/* Minute Picker */}
-            <View className="flex-1 relative bg-gray-50 border border-gray-100 rounded-xl overflow-hidden h-[50px]">
+            <View className="flex-1 relative bg-slate-50 border border-slate-200 rounded-xl overflow-hidden h-[50px]">
                 <select
                     value={m}
                     onChange={(e) => updateTime(h12, parseInt(e.target.value), isPM)}
@@ -461,7 +465,7 @@ const WebTimePicker = ({ value, onChange }: { value: string, onChange: (t: strin
             </View>
 
             {/* AM/PM Picker */}
-            <View className="w-20 relative bg-gray-50 border border-gray-100 rounded-xl overflow-hidden h-[50px]">
+            <View className="w-20 relative bg-slate-50 border border-slate-200 rounded-xl overflow-hidden h-[50px]">
                 <select
                     value={isPM ? 'PM' : 'AM'}
                     onChange={(e) => updateTime(h12, m, e.target.value === 'PM')}
@@ -581,21 +585,22 @@ const EditorHeader = ({
                     <TouchableOpacity
                         key={t}
                         onPress={() => setType(t)}
-                        className={`flex-1 py-3 items-center rounded-2xl border ${type === t ? 'bg-blue-600 border-blue-600' : 'bg-card border-border'}`}
+                        className={`flex-1 py-3 items-center rounded-2xl border ${type === t ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'}`}
                     >
-                        <Text className={`text-[10px] uppercase font-black tracking-widest ${type === t ? 'text-white' : 'text-gray-500'}`}>
+                        <Text className={`text-[10px] uppercase font-black tracking-widest ${type === t ? 'text-white' : 'text-slate-400'}`}>
                             {t}
                         </Text>
                     </TouchableOpacity>
                 ))}
             </View>
 
-            <View className="bg-card p-5 rounded-3xl border border-border shadow-sm mb-6">
+            <View className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-6">
                 <View className="mb-5">
-                    <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Event Title</Text>
+                    <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Event Title</Text>
                     <TextInput
-                        className="text-2xl font-bold text-foreground"
+                        className="text-2xl font-bold text-slate-900"
                         placeholder={type === 'lesson' ? 'Weekly Sax Lesson' : 'Summer Festival...'}
+                        placeholderTextColor="#cbd5e1"
                         value={title}
                         onChangeText={setTitle}
                     />
@@ -605,8 +610,9 @@ const EditorHeader = ({
                     <View className="mb-5">
                         <Text className="text-[10px] uppercase font-black text-purple-600 mb-1 tracking-widest">Student Name</Text>
                         <TextInput
-                            className="text-lg font-semibold text-foreground"
+                            className="text-lg font-semibold text-slate-900"
                             placeholder="John Doe"
+                            placeholderTextColor="#cbd5e1"
                             value={studentName}
                             onChangeText={setStudentName}
                         />
@@ -615,15 +621,16 @@ const EditorHeader = ({
 
                 <View className="mb-5">
                     <View className="flex-row justify-between items-center mb-1">
-                        <Text className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Venue / Location</Text>
+                        <Text className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Venue / Location</Text>
                         <TouchableOpacity onPress={() => setShowVenuePicker(true)} className="flex-row items-center">
                             <Ionicons name="people-circle-outline" size={16} color="#2563eb" />
                             <Text className="text-10px font-bold text-blue-600 ml-1">Select from Contacts</Text>
                         </TouchableOpacity>
                     </View>
                     <TextInput
-                        className="text-lg font-semibold text-foreground"
+                        className="text-lg font-semibold text-slate-900"
                         placeholder={type === 'lesson' ? 'Studio / Zoom' : 'The Jazz Corner'}
+                        placeholderTextColor="#cbd5e1"
                         value={venue}
                         onChangeText={setVenue}
                     />
@@ -633,9 +640,9 @@ const EditorHeader = ({
                         <View className="flex-1 justify-end bg-black/50">
                             <View className="bg-white rounded-t-3xl p-6 h-[70%]">
                                 <View className="flex-row justify-between items-center mb-4">
-                                    <Text className="text-xl font-black">Select Venue Contact</Text>
-                                    <TouchableOpacity onPress={() => setShowVenuePicker(false)} className="bg-gray-100 p-2 rounded-full">
-                                        <Ionicons name="close" size={24} />
+                                    <Text className="text-xl font-black text-slate-900">Select Venue Contact</Text>
+                                    <TouchableOpacity onPress={() => setShowVenuePicker(false)} className="bg-slate-100 p-2 rounded-full">
+                                        <Ionicons name="close" size={24} color="#0f172a" />
                                     </TouchableOpacity>
                                 </View>
                                 {venueManagers.length > 0 ? (
@@ -651,15 +658,15 @@ const EditorHeader = ({
                                             >
                                                 <Ionicons name="business" size={20} color="#b45309" style={{ marginRight: 12 }} />
                                                 <View>
-                                                    <Text className="font-bold text-base">{vm.venueName || 'Unknown Venue'}</Text>
-                                                    <Text className="text-sm text-gray-500">{vm.firstName} {vm.lastName} • {vm.venueLocation || 'No Loc'}</Text>
+                                                    <Text className="font-bold text-base text-slate-900">{vm.venueName || 'Unknown Venue'}</Text>
+                                                    <Text className="text-sm text-slate-500">{vm.firstName} {vm.lastName} • {vm.venueLocation || 'No Loc'}</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>
                                 ) : (
                                     <View className="flex-1 items-center justify-center">
-                                        <Text className="text-gray-400 font-medium">No contacts marked as 'Venue Manager' found.</Text>
+                                        <Text className="text-slate-400 font-medium">No contacts marked as 'Venue Manager' found.</Text>
                                         <TouchableOpacity onPress={() => setShowVenuePicker(false)} className="mt-4"><Text className="text-blue-500 font-bold">Close</Text></TouchableOpacity>
                                     </View>
                                 )}
@@ -668,14 +675,14 @@ const EditorHeader = ({
                     </Modal>
                 </View>
 
-                <View className="mb-5 flex-row items-center justify-between border-t border-gray-50 pt-5">
+                <View className="mb-5 flex-row items-center justify-between border-t border-slate-100 pt-5">
                     <View>
-                        <Text className="text-sm font-bold text-foreground">Recurring Event?</Text>
-                        <Text className="text-[10px] text-muted-foreground uppercase font-black">Repeats weekly</Text>
+                        <Text className="text-sm font-bold text-slate-900">Recurring Event?</Text>
+                        <Text className="text-[10px] text-slate-400 uppercase font-black">Repeats weekly</Text>
                     </View>
                     <TouchableOpacity
                         onPress={() => setIsRecurring(!isRecurring)}
-                        className={`w-14 h-8 rounded-full items-center justify-center ${isRecurring ? 'bg-blue-600' : 'bg-gray-200'}`}
+                        className={`w-14 h-8 rounded-full items-center justify-center ${isRecurring ? 'bg-blue-600' : 'bg-slate-200'}`}
                     >
                         <View className={`w-6 h-6 bg-white rounded-full shadow-sm ${isRecurring ? 'ml-6' : 'mr-6'}`} />
                     </TouchableOpacity>
@@ -683,15 +690,15 @@ const EditorHeader = ({
 
                 {isRecurring ? (
                     <View className="mb-5">
-                        <Text className="text-[10px] uppercase font-black text-muted-foreground mb-3 tracking-widest">Repeat On</Text>
+                        <Text className="text-[10px] uppercase font-black text-slate-400 mb-3 tracking-widest">Repeat On</Text>
                         <View className="flex-row justify-between mb-6">
                             {days.map((day, index) => (
                                 <TouchableOpacity
                                     key={day}
                                     onPress={() => toggleDay(index)}
-                                    className={`w-10 h-10 rounded-full items-center justify-center border ${daysOfWeek.includes(index) ? 'bg-blue-600 border-blue-600 shadow-md shadow-blue-200' : 'bg-gray-50 border-gray-100'}`}
+                                    className={`w-10 h-10 rounded-full items-center justify-center border ${daysOfWeek.includes(index) ? 'bg-blue-600 border-blue-600 shadow-md shadow-blue-200' : 'bg-slate-50 border-slate-200'}`}
                                 >
-                                    <Text className={`text-[10px] font-black ${daysOfWeek.includes(index) ? 'text-white' : 'text-gray-400'}`}>
+                                    <Text className={`text-[10px] font-black ${daysOfWeek.includes(index) ? 'text-white' : 'text-slate-400'}`}>
                                         {day.charAt(0)}
                                     </Text>
                                 </TouchableOpacity>
@@ -700,13 +707,13 @@ const EditorHeader = ({
 
                         <View className="flex-row gap-4">
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Start Date</Text>
+                                <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Start Date</Text>
                                 {Platform.OS === 'web' ? (
                                     <WebDatePicker date={startDate} onChange={setStartDate} />
                                 ) : (
                                     <>
-                                        <TouchableOpacity onPress={() => setShowStartDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                                            <Text className="font-bold text-foreground text-xs">{new Date(startDate).toLocaleDateString()}</Text>
+                                        <TouchableOpacity onPress={() => setShowStartDatePicker(true)} className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex-row justify-between items-center">
+                                            <Text className="font-bold text-slate-900 text-xs">{new Date(startDate).toLocaleDateString()}</Text>
                                             <Text className="text-xs">📅</Text>
                                         </TouchableOpacity>
                                         {showStartDatePicker && <DateTimePicker value={new Date(startDate)} mode="date" display="default" onChange={onStartDateChange} />}
@@ -714,13 +721,13 @@ const EditorHeader = ({
                                 )}
                             </View>
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">End Date</Text>
+                                <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">End Date</Text>
                                 {Platform.OS === 'web' ? (
                                     <WebDatePicker date={endDate} onChange={setEndDate} />
                                 ) : (
                                     <>
-                                        <TouchableOpacity onPress={() => setShowEndDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                                            <Text className="font-bold text-foreground text-xs">{new Date(endDate).toLocaleDateString()}</Text>
+                                        <TouchableOpacity onPress={() => setShowEndDatePicker(true)} className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex-row justify-between items-center">
+                                            <Text className="font-bold text-slate-900 text-xs">{new Date(endDate).toLocaleDateString()}</Text>
                                             <Text className="text-xs">📅</Text>
                                         </TouchableOpacity>
                                         {showEndDatePicker && <DateTimePicker value={new Date(endDate)} mode="date" display="default" onChange={onEndDateChange} />}
@@ -732,13 +739,13 @@ const EditorHeader = ({
                 ) : (
                     <View className="flex-row gap-4 mb-5">
                         <View className="flex-1">
-                            <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Date</Text>
+                            <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Date</Text>
                             {Platform.OS === 'web' ? (
                                 <WebDatePicker date={date} onChange={setDate} />
                             ) : (
                                 <>
-                                    <TouchableOpacity onPress={() => setShowDatePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                                        <Text className="font-bold text-foreground">{new Date(date).toLocaleDateString()}</Text>
+                                    <TouchableOpacity onPress={() => setShowDatePicker(true)} className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex-row justify-between items-center">
+                                        <Text className="font-bold text-slate-900">{new Date(date).toLocaleDateString()}</Text>
                                         <Text>📅</Text>
                                     </TouchableOpacity>
                                     {showDatePicker && <DateTimePicker value={new Date(date)} mode="date" display="default" onChange={onDateChange} />}
@@ -749,7 +756,7 @@ const EditorHeader = ({
                 )}
 
                 <View className="mb-2">
-                    <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Time</Text>
+                    <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Time</Text>
                     {Platform.OS === 'web' ? (
                         <WebSelect
                             value={time}
@@ -758,32 +765,32 @@ const EditorHeader = ({
                             icon="time-outline"
                         />
                     ) : (
-                        <TouchableOpacity onPress={() => setShowTimePicker(true)} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex-row justify-between items-center">
-                            <Text className="font-bold text-foreground text-center flex-1">{formatDisplayTime(time)}</Text>
+                        <TouchableOpacity onPress={() => setShowTimePicker(true)} className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex-row justify-between items-center">
+                            <Text className="font-bold text-slate-900 text-center flex-1">{formatDisplayTime(time)}</Text>
                             <Text>🕒</Text>
                         </TouchableOpacity>
                     )}
 
-                    <View className="flex-row gap-4 mt-6 border-t border-gray-50 pt-5">
+                    <View className="flex-row gap-4 mt-6 border-t border-slate-100 pt-5">
                         <View className="flex-[2]">
-                            <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Duration</Text>
-                            <View className="flex-row items-center bg-gray-50 rounded-2xl border border-gray-100 p-1">
+                            <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Duration</Text>
+                            <View className="flex-row items-center bg-slate-50 rounded-2xl border border-slate-200 p-1">
                                 <TouchableOpacity onPress={() => setDuration(prev => Math.max(15, prev - 15))} className="w-10 h-10 items-center justify-center rounded-xl bg-white shadow-sm">
-                                    <Text className="text-foreground font-black text-xl">−</Text>
+                                    <Text className="text-slate-900 font-black text-xl">−</Text>
                                 </TouchableOpacity>
                                 <View className="flex-1 items-center">
-                                    <Text className="font-bold text-foreground">
+                                    <Text className="font-bold text-slate-900">
                                         {duration < 60 ? `${duration}m` : `${Math.floor(duration / 60)}h${duration % 60 > 0 ? ` ${duration % 60}m` : ''}`}
                                     </Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setDuration(prev => prev + 15)} className="w-10 h-10 items-center justify-center rounded-xl bg-white shadow-sm">
-                                    <Text className="text-foreground font-black text-xl">+</Text>
+                                    <Text className="text-slate-900 font-black text-xl">+</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                         <View className="flex-1 items-center justify-center">
                             <View className="items-center">
-                                <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">End Time</Text>
+                                <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">End Time</Text>
                                 <Text className="font-bold text-blue-600 text-sm">{getEndTime()}</Text>
                             </View>
                         </View>
@@ -793,8 +800,8 @@ const EditorHeader = ({
                         <Modal transparent animationType="fade" visible={showTimePicker} onRequestClose={() => setShowTimePicker(false)}>
                             <View className="flex-1 bg-black/40 justify-center items-center p-6">
                                 <View className="bg-white rounded-[40px] p-8 w-full shadow-2xl items-center">
-                                    <Text className="text-center font-black text-2xl mb-2 text-foreground">Set Event Time</Text>
-                                    <Text className="text-muted-foreground font-medium mb-6">Scroll to select the start time</Text>
+                                    <Text className="text-center font-black text-2xl mb-2 text-slate-900">Set Event Time</Text>
+                                    <Text className="text-slate-500 font-medium mb-6">Scroll to select the start time</Text>
                                     <DateTimePicker value={getTimeDate()} mode="time" display="spinner" is24Hour={false} onChange={onTimeChange} style={{ width: '100%', height: 200 }} />
                                     <TouchableOpacity onPress={() => setShowTimePicker(false)} className="mt-8 bg-blue-600 w-full p-5 rounded-3xl items-center shadow-lg shadow-blue-400">
                                         <Text className="text-white font-black text-xl">Done</Text>
@@ -808,20 +815,20 @@ const EditorHeader = ({
             </View>
 
             <View className="flex-row gap-4 mb-6">
-                <View className="flex-1 bg-card p-4 rounded-3xl border border-border shadow-sm">
-                    <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">{type === 'lesson' ? 'Rate / Fee' : 'Total Event Fee'}</Text>
+                <View className="flex-1 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+                    <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">{type === 'lesson' ? 'Rate / Fee' : 'Total Event Fee'}</Text>
                     <TextInput className="text-lg font-bold text-green-600" placeholder="$" value={totalFee} onChangeText={setTotalFee} />
                 </View>
                 {type !== 'lesson' && (
-                    <View className="flex-1 bg-card p-4 rounded-3xl border border-border shadow-sm">
-                        <Text className="text-[10px] uppercase font-black text-muted-foreground mb-1 tracking-widest">Default Pay/Musician</Text>
+                    <View className="flex-1 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+                        <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Default Pay/Musician</Text>
                         <TextInput className="text-lg font-bold text-blue-600" placeholder="$" value={musicianFee} onChangeText={setMusicianFee} />
                     </View>
                 )}
             </View>
 
             <View className="flex-row justify-between items-center mb-4 px-1">
-                <Text className="text-xl font-bold tracking-tight">{type === 'lesson' ? 'Lesson Material' : 'Setlist'}</Text>
+                <Text className="text-xl font-bold tracking-tight text-slate-900">{type === 'lesson' ? 'Lesson Material' : 'Setlist'}</Text>
                 <TouchableOpacity
                     onPress={() => addToNativeCalendar({
                         id: 'temp',
@@ -836,10 +843,10 @@ const EditorHeader = ({
                         slots: [],
                         createdAt: new Date().toISOString()
                     })}
-                    className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100"
+                    className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200"
                 >
                     <Ionicons name="calendar-outline" size={14} color="#64748b" />
-                    <Text className="text-gray-500 font-bold text-[10px] uppercase ml-1.5 tracking-wider">Sync to Calendar</Text>
+                    <Text className="text-slate-500 font-bold text-[10px] uppercase ml-1.5 tracking-wider">Sync to Calendar</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -894,14 +901,14 @@ const EditorFooter = ({
             onUpdateCheckedItems={setCheckedGearIds}
         />
 
-        <View className="bg-card p-5 rounded-3xl border border-border shadow-sm mb-8">
-            <Text className="text-[10px] uppercase font-black text-muted-foreground mb-2 tracking-widest">Detailed Event Notes</Text>
-            <TextInput className="text-base text-foreground min-h-[120px]" placeholder="Add setup notes, directions, or student goals here..." value={notes} onChangeText={setNotes} multiline textAlignVertical="top" />
+        <View className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-8">
+            <Text className="text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">Detailed Event Notes</Text>
+            <TextInput className="text-base text-slate-900 min-h-[120px]" placeholder="Add setup notes, directions, or student goals here..." placeholderTextColor="#94a3b8" value={notes} onChangeText={setNotes} multiline textAlignVertical="top" />
         </View>
-        <Text className="text-xl font-bold tracking-tight mb-4 px-1">Add Personnel</Text>
-        <View className="flex-row items-center bg-card border border-border rounded-2xl px-4 py-3 mb-5 shadow-sm">
-            <Text className="mr-3 text-lg">🔍</Text>
-            <TextInput className="flex-1 text-foreground font-medium py-1" placeholder="Search people..." value={personSearchQuery} onChangeText={setPersonSearchQuery} />
+        <Text className="text-xl font-bold tracking-tight mb-4 px-1 text-slate-900">Add Personnel</Text>
+        <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-3 mb-5 shadow-sm">
+            <Ionicons name="search" size={24} color="#3b82f6" style={{ marginRight: 12 }} />
+            <TextInput className="flex-1 text-slate-900 font-medium py-1" placeholder="Search people..." placeholderTextColor="#94a3b8" value={personSearchQuery} onChangeText={setPersonSearchQuery} />
         </View>
         <View className="mb-8">
             {availablePersonnel.length > 0 ? (
@@ -919,34 +926,34 @@ const EditorFooter = ({
                             };
                             setSlots([...slots, newSlot]);
                         }}
-                        className="p-4 mb-3 rounded-2xl border bg-card border-border flex-row justify-between items-center shadow-sm"
+                        className="p-4 mb-3 rounded-2xl border bg-white border-slate-200 flex-row justify-between items-center shadow-sm"
                     >
                         <View className="flex-row items-center flex-1">
                             <View className="w-10 h-10 rounded-xl bg-blue-50 items-center justify-center mr-3">
-                                <Text className="text-lg">👤</Text>
+                                <Ionicons name="person" size={20} color="#3b82f6" />
                             </View>
                             <View className="flex-1">
-                                <Text className="font-bold text-foreground text-base" numberOfLines={1}>{person.firstName} {person.lastName}</Text>
-                                <Text className="text-xs text-muted-foreground" numberOfLines={1}>{person.instruments.join(', ') || person.type}</Text>
+                                <Text className="font-bold text-slate-900 text-base" numberOfLines={1}>{person.firstName} {person.lastName}</Text>
+                                <Text className="text-xs text-slate-500" numberOfLines={1}>{person.instruments.join(', ') || person.type}</Text>
                             </View>
                         </View>
-                        <View className="bg-green-50 w-8 h-8 rounded-full items-center justify-center">
-                            <Text className="text-green-600 font-bold text-xl">+</Text>
+                        <View className="bg-emerald-50 w-8 h-8 rounded-full items-center justify-center border border-emerald-100">
+                            <Ionicons name="add" size={20} color="#059669" />
                         </View>
                     </TouchableOpacity>
                 ))
             ) : (
-                <View className="p-4 items-center border border-dashed border-border rounded-2xl">
-                    <Text className="text-center text-muted-foreground font-medium">
+                <View className="p-4 items-center border border-dashed border-slate-200 rounded-2xl">
+                    <Text className="text-center text-slate-400 font-medium">
                         {people.length === 0 ? "No people in library. Add contacts in 'People' tab." : "No matching contacts found."}
                     </Text>
                 </View>
             )}
         </View>
-        <Text className="text-xl font-bold tracking-tight mb-4 px-1">Add from Routines</Text>
-        <View className="flex-row items-center bg-card border border-border rounded-2xl px-4 py-3 mb-5 shadow-sm">
-            <Text className="mr-3 text-lg">🔍</Text>
-            <TextInput className="flex-1 text-foreground font-medium py-1" placeholder="Search your routines..." value={searchQuery} onChangeText={setSearchQuery} />
+        <Text className="text-xl font-bold tracking-tight mb-4 px-1 text-slate-900">Add from Routines</Text>
+        <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-3 mb-5 shadow-sm">
+            <Ionicons name="search" size={24} color="#3b82f6" style={{ marginRight: 12 }} />
+            <TextInput className="flex-1 text-slate-900 font-medium py-1" placeholder="Search your routines..." placeholderTextColor="#94a3b8" value={searchQuery} onChangeText={setSearchQuery} />
         </View>
         <View className="mb-24">
             {availableRoutines.length > 0 ? (
@@ -954,25 +961,25 @@ const EditorFooter = ({
                     <TouchableOpacity
                         key={routine.id}
                         onPress={() => addRoutineToEvent(routine.id)}
-                        className="p-4 mb-3 rounded-2xl border bg-card border-border flex-row justify-between items-center shadow-sm"
+                        className="p-4 mb-3 rounded-2xl border bg-white border-slate-200 flex-row justify-between items-center shadow-sm"
                     >
                         <View className="flex-row items-center flex-1">
                             <View className="w-10 h-10 rounded-xl bg-amber-100 items-center justify-center mr-3">
-                                <Text className="text-lg">🎼</Text>
+                                <Ionicons name="musical-notes" size={20} color="#f59e0b" />
                             </View>
                             <View className="flex-1">
-                                <Text className="font-bold text-foreground text-base" numberOfLines={1}>{routine.title}</Text>
-                                <Text className="text-xs text-muted-foreground" numberOfLines={1}>{routine.blocks.length} Items</Text>
+                                <Text className="font-bold text-slate-900 text-base" numberOfLines={1}>{routine.title}</Text>
+                                <Text className="text-xs text-slate-500" numberOfLines={1}>{routine.blocks.length} Items</Text>
                             </View>
                         </View>
-                        <View className="bg-green-50 w-8 h-8 rounded-full items-center justify-center">
-                            <Text className="text-green-600 font-bold text-xl">+</Text>
+                        <View className="bg-emerald-50 w-8 h-8 rounded-full items-center justify-center border border-emerald-100">
+                            <Ionicons name="add" size={20} color="#059669" />
                         </View>
                     </TouchableOpacity>
                 ))
             ) : (
                 <View className="p-4 items-center">
-                    <Text className="text-center text-muted-foreground font-medium">No routines found.</Text>
+                    <Text className="text-center text-slate-400 font-medium">No routines found.</Text>
                 </View>
             )}
         </View>

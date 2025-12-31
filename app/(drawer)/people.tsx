@@ -84,7 +84,7 @@ export default function PeopleScreen() {
     const renderRosterItem = ({ item }: { item: Person }) => {
         const badge = getBadge(item.type);
         return (
-            <View className="mb-4 border rounded-[32px] overflow-hidden shadow-sm mx-1" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+            <View className="mb-4 border rounded-[24px] overflow-hidden shadow-sm mx-1" style={{ backgroundColor: 'rgba(30, 41, 59, 0.7)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                 <TouchableOpacity className="p-6" onPress={() => router.push(`/people/${item.id}`)}>
                     <View className="flex-row justify-between items-start mb-4">
                         <View className="flex-1 mr-4">
@@ -92,22 +92,25 @@ export default function PeopleScreen() {
                                 <Ionicons name={badge.icon as any} size={12} color={badge.text} />
                                 <Text className="text-[10px] uppercase font-black tracking-widest ml-1.5" style={{ color: badge.text }}>{badge.label}</Text>
                             </View>
-                            <Text className="text-2xl font-black leading-tight" style={{ color: theme.text }}>{item.firstName} {item.lastName}</Text>
+                            <Text className="text-2xl font-black leading-tight text-white">{item.firstName} {item.lastName}</Text>
                             {item.type === 'venue_manager' ? (
                                 <View className="mt-1">
-                                    <Text className="text-base font-bold text-amber-700">{item.venueName || 'Unknown Venue'}</Text>
+                                    <View className="flex-row items-center mt-1">
+                                        <Ionicons name="business" size={14} color="#fbbf24" style={{ marginRight: 6 }} />
+                                        <Text className="text-base font-bold text-amber-400">{item.venueName || 'Unknown Venue'}</Text>
+                                    </View>
                                     {(item.venueType || item.venueLocation) && (
-                                        <Text className="text-xs font-semibold opacity-60" style={{ color: theme.text }}>
+                                        <Text className="text-xs font-semibold text-slate-400 mt-1 pl-5">
                                             {[item.venueType, item.venueLocation].filter(Boolean).join(' • ')}
                                         </Text>
                                     )}
                                 </View>
                             ) : (
-                                <Text className="text-sm font-bold text-blue-600 mt-1">{item.instruments?.join(', ') || item.instrument}</Text>
+                                <Text className="text-sm font-bold text-blue-400 mt-1">{item.instruments?.join(', ') || item.instrument}</Text>
                             )}
                         </View>
-                        <TouchableOpacity onPress={() => handleDelete(item.id, item.firstName, item.lastName)} className="p-2">
-                            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                        <TouchableOpacity onPress={() => handleDelete(item.id, item.firstName, item.lastName)} className="p-2 bg-white/5 rounded-full">
+                            <Ionicons name="trash-outline" size={18} color="#ef4444" />
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
@@ -117,57 +120,66 @@ export default function PeopleScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: theme.background }}>
-            <View className="px-8 pb-3" style={{ paddingTop: Math.max(insets.top, 20) }}>
-                {/* Header with Home Button */}
-                <View className="flex-row justify-between items-center mb-6">
-                    <View className="flex-row items-center flex-1 mr-4">
-                        {source === 'gigs' ? (
-                            <TouchableOpacity onPress={() => router.push('/(drawer)/gigs')} className="mr-4 p-2 -ml-2 rounded-full">
-                                <Ionicons name="arrow-back" size={26} color="white" />
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity onPress={() => router.push('/')} className="mr-4 p-2 -ml-2 rounded-full">
-                                <Ionicons name="home-outline" size={26} color="white" />
-                            </TouchableOpacity>
-                        )}
-                        <View className="flex-1">
-                            <Text className="text-4xl font-black tracking-tight text-white">Contacts</Text>
-                            <Text className="font-bold text-xs uppercase tracking-widest text-teal-100">People & Relationships</Text>
-                        </View>
+            {/* Header with Home Button - Top of Page */}
+            <View className="px-6 flex-row items-start pt-8 mb-2" style={{ paddingTop: insets.top }}>
+                <View className="mr-5">
+                    {source === 'gigs' ? (
+                        <TouchableOpacity onPress={() => router.push('/(drawer)/gigs')} className="p-2 -ml-2 rounded-full bg-white/5 border border-white/10">
+                            <Ionicons name="arrow-back" size={24} color="white" />
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity onPress={() => router.push('/')} className="p-2 -ml-2 rounded-full bg-white/5 border border-white/10">
+                            <Ionicons name="home-outline" size={24} color="white" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+                <View className="flex-1 flex-row justify-between items-start">
+                    <View>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] text-teal-400 mb-1">
+                            People
+                        </Text>
+                        <Text className="text-4xl font-black tracking-tight text-white">
+                            Roster
+                        </Text>
                     </View>
+                    <TouchableOpacity
+                        onPress={() => router.push('/modal/person-editor')}
+                        className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white"
+                    >
+                        <Ionicons name="add" size={28} color="black" />
+                    </TouchableOpacity>
                 </View>
             </View>
 
             <View className="flex-1">
                 {/* Filter & Search */}
-                <View className="px-8 pb-4">
-                    <View className="flex-row items-center border rounded-2xl px-4 py-3 mb-6 shadow-sm" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                <View className="px-6 pb-4">
+                    <View className="flex-row items-center border rounded-2xl px-4 py-3 mb-6 shadow-sm" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
                         <Ionicons name="search-outline" size={20} color={theme.mutedText} />
                         <TextInput
-                            className="flex-1 ml-3 font-medium py-1"
+                            className="flex-1 ml-3 font-medium py-1 text-white"
                             placeholder="Search contacts..."
                             placeholderTextColor={theme.mutedText}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
-                            style={{ color: theme.text }}
                         />
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-2">
                         {[
-                            { key: 'all', label: 'All', color: 'bg-teal-700', border: 'border-teal-500', text: 'text-teal-100' },
-                            { key: 'venue_manager', label: 'Venue Managers', color: 'bg-amber-600', border: 'border-amber-400', text: 'text-amber-50' },
-                            { key: 'musician', label: 'Musicians', color: 'bg-blue-600', border: 'border-blue-400', text: 'text-blue-50' },
-                            { key: 'student', label: 'Students', color: 'bg-purple-600', border: 'border-purple-400', text: 'text-purple-50' },
-                            { key: 'other', label: 'Other', color: 'bg-zinc-600', border: 'border-zinc-500', text: 'text-zinc-100' }
+                            { key: 'all', label: 'All', color: 'bg-teal-500', text: 'white' },
+                            { key: 'venue_manager', label: 'Venue Managers', color: 'bg-amber-500', text: 'white' },
+                            { key: 'musician', label: 'Musicians', color: 'bg-blue-500', text: 'white' },
+                            { key: 'student', label: 'Students', color: 'bg-purple-500', text: 'white' },
+                            { key: 'other', label: 'Other', color: 'bg-slate-500', text: 'white' }
                         ].map(opt => {
                             const isActive = activeFilter === opt.key;
                             return (
                                 <TouchableOpacity
                                     key={opt.key}
                                     onPress={() => setActiveFilter(opt.key as any)}
-                                    className={`mr-3 px-5 py-2.5 rounded-full border-2 ${isActive ? `${opt.color} ${opt.border}` : 'bg-transparent border-white/20'}`}
+                                    className={`mr-3 px-5 py-2.5 rounded-full border ${isActive ? `${opt.color} border-transparent` : 'bg-transparent border-white/20'}`}
                                 >
-                                    <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-white' : 'text-teal-100/70'}`}>
+                                    <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? opt.text : 'text-slate-400'}`}>
                                         {opt.label}
                                     </Text>
                                 </TouchableOpacity>
@@ -183,24 +195,14 @@ export default function PeopleScreen() {
                     contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
                     ListEmptyComponent={
                         <View className="flex-1 items-center justify-center pt-20">
-                            <Text className="text-xl font-black text-gray-400">No Contacts Found</Text>
-                            <TouchableOpacity onPress={() => router.push('/modal/person-editor')} className="mt-4">
-                                <Text className="text-blue-500 font-bold">Add New Person</Text>
+                            <Ionicons name="people-outline" size={64} color="#475569" />
+                            <Text className="text-xl font-black text-slate-500 mt-4">No Contacts Found</Text>
+                            <TouchableOpacity onPress={() => router.push('/modal/person-editor')} className="mt-4 px-6 py-3 bg-white/10 rounded-full border border-white/20">
+                                <Text className="text-white font-bold">Add New Person</Text>
                             </TouchableOpacity>
                         </View>
                     }
                 />
-
-                {/* Floating Add Button for Roster */}
-                <View className="absolute bottom-8 right-8 shadow-2xl">
-                    <TouchableOpacity
-                        onPress={() => router.push('/modal/person-editor')}
-                        className="w-14 h-14 rounded-full items-center justify-center shadow-lg shadow-blue-400"
-                        style={{ backgroundColor: theme.primary }}
-                    >
-                        <Ionicons name="add" size={32} color="white" />
-                    </TouchableOpacity>
-                </View>
             </View>
         </View>
     );

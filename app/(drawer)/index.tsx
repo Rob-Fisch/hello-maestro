@@ -41,28 +41,26 @@ export default function HomeScreen() {
     });
 
     // Calculate Date Ranges
-    const startOfWeek = new Date(today);
-    const endOfWeek = new Date(today);
-    endOfWeek.setDate(today.getDate() + 7);
+    const startOfWeek = new Date();
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    endOfWeek.setHours(23, 59, 59, 999);
 
     // Filter Logic
     const countEventsInRange = (start: Date, end: Date) => {
         return (events || []).filter(e => {
             if (e.schedule?.type === 'recurring') {
-                // Simplified recurring logic for stats (checking if it happens at least once in range)
-                // Ideally we'd expand occurrences, but for specific counts we might just check active status
-                // For "Today", we use exact match logic
-                return true; // Simplified: Assuming recurring events "exist" this week
+                return true;
             }
-            const eDate = new Date(e.date);
+            // Force local time parsing to match 'start' which is local
+            const eDate = new Date(e.date + 'T00:00:00');
             return eDate >= start && eDate <= end;
         }).length;
     };
 
-    const upcomingEventsCount = countEventsInRange(today, endOfWeek);
-    const todaysEventsCount = todaysEvents.length;
-    // todaysEvents logic assumed from existing code (lines 32-41 of original file, which count as 'todaysEvents')
-    // We can reuse the existing `todaysEvents` variable defined above this replacement block.
+    const upcomingEventsCount = countEventsInRange(startOfWeek, endOfWeek);
     const isMock = profile?.id.startsWith('mock-');
 
 
@@ -72,23 +70,26 @@ export default function HomeScreen() {
             subtitle: 'Creative Hub',
             icon: 'layers-outline',
             path: '/studio',
-            color: 'bg-indigo-500',
+            color: 'text-indigo-400',
+            bg: 'bg-indigo-500/20',
             description: 'Levels 1 & 2'
         },
         {
-            title: 'Performance',
-            subtitle: 'Gigs & Tours',
+            title: 'Performance Management',
+            subtitle: 'Contracts & Sets',
             icon: 'musical-notes-outline',
             path: '/gigs',
-            color: 'bg-rose-500',
-            description: 'Contracts & Sets'
+            color: 'text-rose-400',
+            bg: 'bg-rose-500/20',
+            description: 'Bookings & Logistics'
         },
         {
             title: 'Schedule',
             subtitle: 'Calendar',
             icon: 'calendar-outline',
             path: '/events',
-            color: 'bg-blue-500',
+            color: 'text-blue-400',
+            bg: 'bg-blue-500/20',
             description: 'Gigs, Rehearsals'
         },
         {
@@ -96,7 +97,8 @@ export default function HomeScreen() {
             subtitle: 'People & Roster',
             icon: 'people-outline',
             path: '/people',
-            color: 'bg-purple-500',
+            color: 'text-purple-400',
+            bg: 'bg-purple-500/20',
             description: 'Bandmates, Venues'
         },
 
@@ -105,7 +107,8 @@ export default function HomeScreen() {
             subtitle: 'AI Intel',
             icon: 'telescope-outline',
             path: '/scout',
-            color: 'bg-orange-500',
+            color: 'text-orange-400',
+            bg: 'bg-orange-500/20',
             description: 'Lead Gen & Prompts'
         },
         {
@@ -113,7 +116,8 @@ export default function HomeScreen() {
             subtitle: 'Config & Help',
             icon: 'settings-outline',
             path: '/settings',
-            color: 'bg-gray-500',
+            color: 'text-slate-400',
+            bg: 'bg-slate-500/20',
             description: 'Preferences, FAQ'
         },
     ];
@@ -124,7 +128,7 @@ export default function HomeScreen() {
                 {/* Header Profile Section */}
                 <View className="flex-row justify-between items-start mb-6">
                     <View className="flex-1 mr-4">
-                        <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2 px-1 text-teal-100">Maestro Hub</Text>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2 px-1 text-slate-400">Maestro Hub</Text>
                         <Text className="text-4xl font-black tracking-tighter leading-tight text-white">
                             {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
                         </Text>
@@ -138,18 +142,18 @@ export default function HomeScreen() {
                                 fullSync();
                             }
                         }}
-                        className={`flex-row items-center px-4 py-2 rounded-2xl border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-white/20 border-white/30' :
-                            syncStatus === 'syncing' ? 'bg-blue-500/20 border-blue-400/30' :
-                                'bg-white/10 border-white/10'
+                        className={`flex-row items-center px-4 py-2 rounded-full border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                            syncStatus === 'syncing' ? 'bg-blue-500/10 border-blue-500/20' :
+                                'bg-white/5 border-white/10'
                             }`}
                     >
-                        <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-green-400' :
-                            syncStatus === 'syncing' ? 'bg-blue-300' :
-                                'bg-gray-400'
+                        <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-emerald-400' :
+                            syncStatus === 'syncing' ? 'bg-blue-400' :
+                                'bg-slate-400'
                             }`} />
-                        <Text className={`text-[10px] font-black uppercase tracking-normal ${syncStatus === 'synced' ? 'text-green-100' :
+                        <Text className={`text-[10px] font-black uppercase tracking-normal ${syncStatus === 'synced' ? 'text-emerald-100' :
                             syncStatus === 'syncing' ? 'text-blue-100' :
-                                'text-gray-300'
+                                'text-slate-400'
                             }`}>
                             {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
                         </Text>
@@ -164,22 +168,18 @@ export default function HomeScreen() {
                 >
                     <View className="flex-row justify-between items-end mb-3 px-1">
                         <View>
-                            <Text className="text-xs font-black uppercase text-teal-100 tracking-widest mb-1 shadow-sm">Practice Momentum</Text>
+                            <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-1 shadow-sm">Practice Momentum</Text>
                             <Text className="text-2xl font-black text-white shadow-sm">
-                                {(() => {
-                                    // Calculate simple streak
-                                    // This is a naive implementation; a real one would traverse backwards day by day
-                                    return "Keep it up!";
-                                })()}
+                                Keep it up!
                             </Text>
                         </View>
-                        <View className="flex-row items-center bg-white/10 px-3 py-1.5 rounded-full">
-                            <Text className="text-xs font-bold text-white mr-1">View History</Text>
+                        <View className="flex-row items-center bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                            <Text className="text-xs font-bold text-slate-300 mr-1">View History</Text>
                             <Ionicons name="chevron-forward" size={12} color="white" />
                         </View>
                     </View>
 
-                    <View className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100/50">
+                    <View className="p-4 rounded-[24px] bg-white/5 border border-white/5">
                         <View className="flex-row flex-wrap justify-between" style={{ gap: 4 }}>
                             {Array.from({ length: 35 }).map((_, i) => {
                                 const date = new Date();
@@ -191,28 +191,27 @@ export default function HomeScreen() {
                                 const progressCount = (progress || []).filter(p => p.completedAt?.startsWith(dateStr)).length;
                                 const score = (logsCount * 3) + progressCount;
 
-                                let bgClass = 'bg-gray-200'; // Default (0)
-                                if (score >= 4) bgClass = 'bg-green-600'; // High
-                                else if (score >= 2) bgClass = 'bg-green-400'; // Medium
-                                else if (score >= 1) bgClass = 'bg-green-300'; // Low
+                                let bgClass = 'bg-white/5'; // Default (0) - Subtle glass
+                                if (score >= 4) bgClass = 'bg-emerald-400'; // High
+                                else if (score >= 2) bgClass = 'bg-emerald-500/60'; // Medium
+                                else if (score >= 1) bgClass = 'bg-emerald-900/40'; // Low
 
                                 return (
                                     <View
                                         key={i}
                                         className={`h-4 w-[11%] rounded-sm ${bgClass}`}
                                         style={{
-                                            opacity: 0.9,
                                             // Highlight today
-                                            borderColor: i === 34 ? theme.text : 'transparent',
+                                            borderColor: i === 34 ? 'white' : 'transparent',
                                             borderWidth: i === 34 ? 1 : 0
                                         }}
                                     />
                                 );
                             })}
                         </View>
-                        <View className="flex-row justify-between mt-2">
-                            <Text className="text-[9px] font-bold text-gray-400">30 Days Ago</Text>
-                            <Text className="text-[9px] font-bold text-gray-400">Today</Text>
+                        <View className="flex-row justify-between mt-3">
+                            <Text className="text-[9px] font-bold text-slate-600">30 Days Ago</Text>
+                            <Text className="text-[9px] font-bold text-slate-600">Today</Text>
                         </View>
                     </View>
                 </TouchableOpacity>
@@ -223,66 +222,67 @@ export default function HomeScreen() {
                     className="p-6 rounded-[32px] mb-8 border shadow-sm relative overflow-hidden"
                     style={{ backgroundColor: theme.card, borderColor: theme.border }}
                 >
-                    <View className="absolute top-0 right-0 p-6 opacity-10">
+                    <View className="absolute top-0 right-0 p-6 opacity-20">
                         <Ionicons name="calendar" size={120} color={theme.text} />
                     </View>
 
                     <View className="flex-row items-baseline mb-2 relative z-10">
-                        <Text className="text-6xl font-black tracking-tighter" style={{ color: theme.primary }}>
+                        <Text className="text-6xl font-black tracking-tighter text-white">
                             {todaysEvents.length}
                         </Text>
-                        <Text className="text-xl font-bold ml-2" style={{ color: theme.text }}>
+                        <Text className="text-xl font-bold ml-2 text-slate-200">
                             Events Today
                         </Text>
                     </View>
 
                     <View className="w-[70%] relative z-10">
-                        <Text className="font-medium text-base mb-4" style={{ color: theme.mutedText }}>
-                            You also have <Text style={{ color: theme.text, fontWeight: 'bold' }}>{upcomingEventsCount}</Text> items on the schedule for the next 7 days.
+                        <Text className="font-medium text-base mb-4 text-slate-400">
+                            You also have <Text className="text-white font-bold">{upcomingEventsCount}</Text> items on the schedule for the next 7 days.
                         </Text>
                     </View>
 
                     <View className="flex-row items-center relative z-10">
-                        <Text className="font-bold text-sm uppercase tracking-wider mr-2" style={{ color: theme.primary }}>View Schedule</Text>
-                        <Ionicons name="arrow-forward" size={16} color={theme.primary} />
+                        <Text className="font-bold text-sm uppercase tracking-wider mr-2 text-white">View Schedule</Text>
+                        <Ionicons name="arrow-forward" size={16} color="white" />
                     </View>
                 </TouchableOpacity>
 
 
-                {/* VENUE MANAGEMENT PROMO */}
+                {/* VENUE MANAGEMENT PROMO - Updated to Dark Glass Orange */}
                 <TouchableOpacity
                     onPress={() => router.push({ pathname: '/people', params: { filter: 'venue_manager' } })}
-                    className="p-6 rounded-[32px] mb-8 border shadow-sm relative overflow-hidden"
-                    style={{ backgroundColor: '#fff7ed', borderColor: '#fed7aa' }}
+                    className="p-6 rounded-[32px] mb-8 border border-orange-500/20 bg-orange-500/10 shadow-sm relative overflow-hidden"
                 >
                     <View className="absolute -right-4 -bottom-4 opacity-10">
-                        <Ionicons name="business" size={140} color="#ea580c" />
+                        <Ionicons name="business" size={140} color="#f97316" />
                     </View>
 
-                    <View className="relative z-10 mb-2">
-                        <Text className="font-black text-[10px] uppercase tracking-widest text-amber-600 mb-1">Feature Spotlight</Text>
-                        <Text className="text-2xl font-black text-amber-950 leading-tight">Venue Manager</Text>
+                    <View className="relative z-10 mb-2 flex-row items-center">
+                        <View className="w-2 h-2 rounded-full bg-orange-500 mr-2" />
+                        <Text className="font-black text-[10px] uppercase tracking-widest text-orange-400 mb-0">Feature Spotlight</Text>
                     </View>
 
-                    <Text className="text-amber-800/80 font-medium mb-4 relative z-10 w-[85%] leading-snug">
+                    <Text className="text-2xl font-black text-white leading-tight mb-2 relative z-10">Venue Manager</Text>
+
+                    <Text className="text-orange-200/60 font-medium mb-4 relative z-10 w-[85%] leading-snug">
                         Track booking history and manage relationships with venue owners.
                     </Text>
 
                     <View className="flex-row items-center relative z-10">
-                        <Text className="font-bold text-xs uppercase tracking-wider mr-2 text-amber-700">Open Venues</Text>
-                        <Ionicons name="arrow-forward" size={14} color="#b45309" />
+                        <Text className="font-bold text-xs uppercase tracking-wider mr-2 text-orange-400">Open Venues</Text>
+                        <Ionicons name="arrow-forward" size={14} color="#f97316" />
                     </View>
                 </TouchableOpacity>
 
                 {/* FREE TIER SYNC WARNING */}
                 {profile && !profile.isPremium && !isMock && syncStatus === 'synced' && (
-                    <View className="mb-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex-row items-start">
-                        <View className="mr-3 mt-1 bg-blue-100 p-1.5 rounded-full">
-                            <Ionicons name="cloud-offline-outline" size={16} color="#2563eb" />
+                    <View className="mb-8 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 flex-row items-start">
+                        <View className="mr-3 mt-1 bg-blue-500/20 p-1.5 rounded-full">
+                            <Ionicons name="cloud-offline-outline" size={16} color="#60a5fa" />
                         </View>
                         <View className="flex-1">
-                            <Text className="font-bold text-blue-900 text-sm mb-1">Backup Active (Free Tier)</Text>
-                            <Text className="text-blue-800/70 text-xs leading-relaxed">
+                            <Text className="font-bold text-blue-100 text-sm mb-1">Backup Active (Free Tier)</Text>
+                            <Text className="text-blue-200/50 text-xs leading-relaxed">
                                 Your data is safely backed up ("Puddle Proof"), but will not sync to your other devices until you upgrade.
                             </Text>
                         </View>
@@ -290,11 +290,11 @@ export default function HomeScreen() {
                 )}
 
                 {/* DIVIDER */}
-                <View className="h-[1px] w-full mb-8 opacity-20" style={{ backgroundColor: theme.border }} />
+                <View className="h-[1px] w-full mb-8 opacity-10 bg-white" />
 
 
                 {/* SECTION 2: STUDIO & TOOLS (Switchboard Grid) */}
-                <Text className="text-2xl font-black tracking-tight mb-6" style={{ color: theme.text }}>
+                <Text className="text-2xl font-black tracking-tight mb-6 text-white">
                     Studio & Tools
                 </Text>
 
@@ -303,22 +303,24 @@ export default function HomeScreen() {
                         <TouchableOpacity
                             key={item.title}
                             onPress={() => router.push(item.path as any)}
-                            className="w-[48%] mb-4 p-4 rounded-3xl border shadow-sm relative overflow-hidden h-[160px] justify-between"
+                            activeOpacity={0.7}
+                            className="w-[48%] mb-4 p-4 rounded-[28px] border shadow-sm relative overflow-hidden h-[160px] justify-between"
                             style={{ backgroundColor: theme.card, borderColor: theme.border }}
                         >
                             <View>
-                                <View className={`w-10 h-10 rounded-full items-center justify-center mb-4 ${item.color}`}>
+                                {/* Icon Box */}
+                                <View className={`w-10 h-10 rounded-xl items-center justify-center mb-4 bg-white/5 border border-white/5`}>
                                     <Ionicons name={item.icon as any} size={20} color="white" />
                                 </View>
-                                <Text className="text-lg font-black tracking-tight leading-none mb-1" style={{ color: theme.text }}>
+                                <Text className="text-lg font-black tracking-tight leading-none mb-1 text-white">
                                     {item.title}
                                 </Text>
-                                <Text className="text-[10px] font-bold uppercase tracking-wider opacity-70" style={{ color: theme.text }}>
+                                <Text className={`text-[10px] font-bold uppercase tracking-wider ${item.color}`}>
                                     {item.subtitle}
                                 </Text>
                             </View>
 
-                            <Text className="text-xs mt-3 leading-tight opacity-50 font-medium" style={{ color: theme.text }}>
+                            <Text className="text-xs mt-3 leading-tight opacity-40 font-medium text-white">
                                 {item.description}
                             </Text>
                         </TouchableOpacity>

@@ -1,36 +1,29 @@
+# Next Session Plan: Native Polish & Simulator Testing
 
-# Next Session Plan: MVP Strategy & Design Refinement
+**Date:** 2025-12-30
+**Status:** UI Architecture Refactor Complete (Dark Main / Light Modals). Xcode Installed.
 
-**Date:** 2025-12-26
-**Status:** PWA Deployed & Fixed (Icons + Loading bypass). Pivoting to Product Strategy & Polish.
+## 🎯 Primary Objectives
+1.  **Activate iOS Simulator**
+    *   Since Xcode is now installed, the priority is to get the app running on the iOS Simulator.
+    *   **Goal:** Validate "Dark Glass" blur effects, Safe Area insets (notches), and Keyboard avoidance on a "real" device.
+    *   *Note:* Blur views often behave differently on Web vs Native.
 
-## 🧠 Strategic Decisions (Confirmed)
-1.  **Business Model:** **Annual Membership** ($19.99/year).
-    *   **Philosophy:** "Fair & Sustainable." Covers server costs, supports dev. Renewal notices sent early.
-    *   **Cost Analysis:** Since AI is "Client-Side Prompt Gen" (User's own LLM) and Sync is low-bandwidth, this price point is sustainable and profitable.
-    
-2.  **MVP Feature Scope ("The Cut Line")**
-    *   **Scout (AI):** No API Integration. "Prompt Engineer" tool only. Locked behind Pro.
-    *   **Sync:** Locked behind Pro. Free tier is strictly **Local First**.
-    *   **Vault:** Text & Basic details only for MVP. No drag-and-drop gig bags yet.
+2.  **Visual QA & "Legacy" Cleanup**
+    *   Review remaining pages that weren't explicitly refactored in the last batch to ensure they match the new themes.
+        *   `app/(drawer)/history.tsx` (Check if this needs Dark Glass).
+        *   `app/(drawer)/content/index.tsx` (Level 1 Library - likely needs Dark Glass).
+        *   `app/(drawer)/scout.tsx` (Verify styling).
+    *   **Consistency Check:** Verify header font sizes and margins are identical across Studio, Performance, and Schedule.
 
-3.  **Deploy Strategy**
-    *   **Beta:** Manual "Drag and Drop" to Netlify (Beta Site).
-    *   **Production:** Manual "Drag and Drop" to Netlify (Main Site) when stable.
-    *   **PWA:** Infrastructure is FIXED. Icons, Loading, and Sync are operational.
+3.  **Data Entry Polish**
+    *   Verify the "Light Mode" modals (Routine, Block, Event Editors) feel consistent.
+    *   Check keyboard handling on mobile (KeyboardAvoidingView behavior).
 
-## 🛠️ Technical Tasks for Next Session
-1.  **Implement 'The Gate'**:
-    *   Add `is_premium` boolean to Supabase `profiles` table.
-    *   Create a reusable `<PremiumGate>` component to wrap features like Scout and Sync Settings.
-    *   Build a mock "Upgrade" screen (Paywall UI) to test the flow.
+## ⏸️ On Hold / Backlog
+*   **Gear Vault (`gear-vault.tsx`):** Explicitly paused. Will revisit post-MVP or when directed.
+*   **Production Build:** Focus is on Simulator testing first.
 
-2.  **Scout Prompt UI**:
-    *   Build the interface where users select their instrument/genre, and we generate the complex prompt text for them to copy.
-
-3.  **Sync Polish**:
-    *   Test the "Pull-to-Refresh" mechanism now that the PWA is live.
-
-## 📝 Notes
-- **Scout**: Confirmed as a "Huge" value add. Keep polishing.
-- **Golden User**: Still needed for testing the MVP flow once defined.
+## 🛠️ Technical Context
+*   **Theme Engine:** Explicit NativeWind classes are currently preferred over `useTheme()` for the complex Glass/Light split.
+*   **Icons:** "Icon + Label" pattern is the standard for buttons. Vibrant colors are the standard for data-rich lists.

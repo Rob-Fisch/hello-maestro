@@ -117,7 +117,7 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="modal/block-editor"
-            options={{ presentation: 'modal', title: 'Block Editor' }}
+            options={{ presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen
             name="modal/path-editor"
