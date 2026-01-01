@@ -57,6 +57,14 @@ export default function RootLayout() {
   useEffect(() => {
     if (isHydrated && fontsLoaded) {
       SplashScreen.hideAsync();
+
+      // AUTO-SYNC ON START
+      // Forces cloud truth to overwrite stale local cache immediately
+      const { profile, fullSync } = useContentStore.getState();
+      if (profile && !profile.id.startsWith('mock-')) {
+        console.log('🚀 [RootLayout] Triggering Auto-Sync...');
+        fullSync();
+      }
     }
   }, [isHydrated, fontsLoaded]);
 

@@ -105,6 +105,7 @@ export default function AuthScreen() {
                     email: email.toLowerCase().includes('@') ? email.toLowerCase() : 'rob@maestro.com',
                     displayName: 'Rob',
                 });
+                Alert.alert('Offline Sandbox', 'You are entering in Offline Mode. Data will NOT sync to other devices and will be lost on sign out.');
                 setLoading(false);
                 router.replace('/(drawer)');
                 return;
@@ -140,7 +141,11 @@ export default function AuthScreen() {
 
                 if (data.user) {
                     const profileData = data.user.user_metadata || {};
+                    console.log('🔍 [AUTH DEBUG] Full Metadata:', JSON.stringify(profileData, null, 2));
+                    console.log('🔍 [AUTH DEBUG] is_premium raw:', profileData.is_premium);
+
                     const isPremium = !!profileData.is_premium;
+                    console.log('🔍 [AUTH DEBUG] Final isPremium:', isPremium);
 
                     setProfile({
                         id: data.user.id,
@@ -268,16 +273,9 @@ export default function AuthScreen() {
                                 } else if (isSignUp) {
                                     setIsSignUp(false);
                                 } else {
-                                    Alert.alert('Invite Only', 'OpusMode is currently in private beta. Please contact Rob or an administrator for an invitation.');
+                                    setIsSignUp(true);
                                 }
                             }}
-                            onLongPress={() => {
-                                if (!isForgotPassword) {
-                                    setIsSignUp(!isSignUp);
-                                    if (!isSignUp) Alert.alert('Admin Mode', 'Sign Up enabled for testing.');
-                                }
-                            }}
-                            delayLongPress={2000}
                             className="mt-6 p-4 items-center"
                         >
                             <Text className="text-zinc-300 font-bold">

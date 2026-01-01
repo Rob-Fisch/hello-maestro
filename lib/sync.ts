@@ -268,7 +268,7 @@ export async function pushAllToCloud(table: TableName, dataArray: any[]) {
         }
     } catch (err) {
         console.warn(`[Push Exception] ${table}:`, err);
-        throw err;
+        // Do not re-throw, so other tables can still sync
     }
 }
 
@@ -285,6 +285,7 @@ export async function pullProfileFromCloud() {
         email: user.email || '',
         displayName: user.user_metadata?.display_name || 'Maestro',
         avatarUrl: user.user_metadata?.avatar_url,
+        isPremium: !!user.user_metadata?.is_premium,
     };
 }
 

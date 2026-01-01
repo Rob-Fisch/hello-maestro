@@ -3,10 +3,12 @@ import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Category } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 export default function SettingsScreen() {
     const { categories, addCategory, updateCategory, deleteCategory, settings, updateSettings, profile, setProfile, trackModuleUsage, setTheme } = useContentStore();
@@ -553,6 +555,41 @@ export default function SettingsScreen() {
                         </Text>
 
                         <TouchableOpacity
+                            onPress={() => {
+                                if (Platform.OS === 'web') {
+                                    if (confirm('Factory Reset: This will wipe all data on this device and the cloud but keep your account. Are you sure?')) {
+                                        const { wipeAllData } = useContentStore.getState();
+                                        wipeAllData()
+                                            .then(() => {
+                                                alert('Reset Complete: App has been clean slate reset.');
+                                                router.replace('/');
+                                            })
+                                            .catch((e) => alert('Error: ' + e.message));
+                                    }
+                                } else {
+                                    Alert.alert('Factory Reset', 'This will wipe all data on this device and the cloud but keep your account.', [
+                                        { text: 'Cancel', style: 'cancel' },
+                                        {
+                                            text: 'Reset', style: 'destructive', onPress: async () => {
+                                                try {
+                                                    const { wipeAllData } = useContentStore.getState();
+                                                    await wipeAllData();
+                                                    Alert.alert('Reset Complete', 'App has been clean slate reset.');
+                                                    router.replace('/');
+                                                } catch (e: any) {
+                                                    Alert.alert('Error', e.message);
+                                                }
+                                            }
+                                        }
+                                    ]);
+                                }
+                            }}
+                            className="bg-orange-600/10 border border-orange-600/50 p-6 rounded-[24px] items-center mb-4"
+                        >
+                            <Text className="text-orange-500 font-black text-lg">Factory Reset App</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
                             onPress={handleDeleteAccount}
                             disabled={updating}
                             className="bg-red-600/10 border border-red-600/50 p-6 rounded-[24px] items-center"
@@ -570,7 +607,9 @@ export default function SettingsScreen() {
                     <Text className="text-xs font-bold uppercase tracking-widest text-slate-500">
                         {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
                     </Text>
-                    <Text className="text-[10px] mt-1 text-slate-600">Version 1.2.0 • {profile?.id.startsWith('mock-') ? 'Local Mode' : 'Cloud Sync Enabled'}</Text>
+                    <Text className="text-[10px] mt-1 text-slate-600">
+                        Version {Constants.expoConfig?.version ?? '1.2.2'} (Build {Constants.expoConfig?.extra?.buildNumber ?? '1'}) • {profile?.id.startsWith('mock-') ? 'Local Mode' : 'Cloud Sync Enabled'}
+                    </Text>
                 </View>
 
             </View>

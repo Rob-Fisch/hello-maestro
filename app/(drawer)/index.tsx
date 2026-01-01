@@ -144,7 +144,7 @@ export default function HomeScreen() {
                         }}
                         className={`flex-row items-center px-4 py-2 rounded-full border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
                             syncStatus === 'syncing' ? 'bg-blue-500/10 border-blue-500/20' :
-                                'bg-white/5 border-white/10'
+                                'bg-red-500/10 border-red-500/20' // Offline / Error
                             }`}
                     >
                         <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-emerald-400' :
@@ -159,6 +159,19 @@ export default function HomeScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* Offline / Conflict Warning Banner */}
+                {syncStatus === 'offline' && (
+                    <View className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex-row items-start">
+                        <Ionicons name="warning-outline" size={20} color="#fb923c" style={{ marginRight: 12, marginTop: 2 }} />
+                        <View className="flex-1">
+                            <Text className="font-bold text-orange-200 mb-1">Working Offline</Text>
+                            <Text className="text-xs text-orange-200/60 leading-relaxed">
+                                Changes are saved locally. Please ensure you tap <Text className="font-bold text-orange-200">Sync</Text> when back online and before using another device.
+                            </Text>
+                        </View>
+                    </View>
+                )}
 
                 {/* Consistency Graph (Heatmap) */}
                 <TouchableOpacity

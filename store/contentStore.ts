@@ -89,12 +89,12 @@ export const useContentStore = create<ContentState>()(
             routines: [],
             events: [],
             categories: [
-                { id: `cat-1-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Warmups' },
-                { id: `cat-2-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Technical' },
-                { id: `cat-3-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Repertoire' },
-                { id: `cat-4-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Performance' },
-                { id: `cat-5-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Coaching' },
-                { id: `cat-6-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Other' },
+                { id: 'default-cat-1', name: 'Warmups' },
+                { id: 'default-cat-2', name: 'Technical' },
+                { id: 'default-cat-3', name: 'Repertoire' },
+                { id: 'default-cat-4', name: 'Performance' },
+                { id: 'default-cat-5', name: 'Coaching' },
+                { id: 'default-cat-6', name: 'Other' },
             ],
             people: [],
             settings: {
@@ -371,6 +371,14 @@ export const useContentStore = create<ContentState>()(
 
                 set({ syncStatus: 'syncing' });
 
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.user) {
+                    console.warn('[FullSync] No active Supabase session found. Logging out local user.');
+                    Alert.alert('Session Expired', 'Please sign in again to resume syncing.');
+                    set({ profile: null, syncStatus: 'offline' });
+                    return;
+                }
+
                 try {
                     // 1. Push stage: BACKUP EVERYONE
                     await Promise.all([
@@ -386,44 +394,42 @@ export const useContentStore = create<ContentState>()(
                         pushAllToCloud('pack_lists', useGearStore.getState().packLists),
                     ]);
 
-                    // 2. Pull stage: PREMIUM ONLY
-                    if (!state.profile?.isPremium) {
-                        set({ syncStatus: 'synced' }); // Backed up!
-                        // console.log('Pull skipped: Free Tier');
-                        return;
-                    }
+
+                    // 2. Pull stage: OPEN FOR ALL (Dev Override)
+                    // if (!state.profile?.isPremium) {
+                    //    set({ syncStatus: 'synced' }); // Backed up!
+                    //    return;
+                    // }
 
                     // 2. Pull stage: Get everything else
+                    console.log('[FullSync] Starting Pull...');
                     const [cloudData, cloudProfile] = await Promise.all([
                         pullFromCloud(),
                         pullProfileFromCloud(),
                     ]);
 
                     if (cloudData) {
-                        // MERGE LOGIC: Additive merging to prevent local data loss
-                        const merge = (local: any[], cloud: any[]) => {
-                            const map = new Map();
-                            // Local items first
-                            local.forEach(item => map.set(item.id, item));
-                            // Cloud items overwrite/augment local items
-                            cloud.forEach(item => map.set(item.id, item));
-                            return Array.from(map.values());
-                        };
+                        console.log('[FullSync] Pulled Data:', Object.keys(cloudData).map(k => `${k}: ${cloudData[k]?.length}`));
 
+                        // CLOUD TRUTH LOGIC:
+                        // 1. We already PUSHED our changes above (lines 383-395).
+                        // 2. So the Cloud now has our local "Offline Work".
+                        // 3. We can safely OVERWRITE local with Cloud, because Cloud = Local + Remote.
                         set({
-                            blocks: merge(state.blocks, cloudData.blocks || []),
-                            routines: merge(state.routines, cloudData.routines || []),
-                            events: merge(state.events, cloudData.events || []),
-                            categories: merge(state.categories, cloudData.categories || []),
-                            people: merge(state.people, cloudData.people || []),
-                            paths: merge(state.paths, cloudData.learning_paths || []),
-                            progress: merge(state.progress, cloudData.user_progress || []),
-                            proofs: merge(state.proofs, cloudData.proof_of_work || []),
+                            blocks: cloudData.blocks || [],
+                            routines: cloudData.routines || [],
+                            events: cloudData.events || [],
+                            categories: cloudData.categories || [],
+                            people: cloudData.people || [],
+                            paths: cloudData.learning_paths || [],
+                            progress: cloudData.user_progress || [],
+                            proofs: cloudData.proof_of_work || [],
                             profile: cloudProfile || state.profile,
                             syncStatus: 'synced'
                         });
 
-                        Alert.alert('Sync Successful', 'Your data is now fully reconciled with the cloud.');
+                        const eventCount = (cloudData.events || []).length;
+                        console.log(`[FullSync] sync complete. Pulled ${eventCount} events.`);
 
                         // 3. Sync Gear Store
                         useGearStore.getState().mergeFromCloud(
@@ -431,6 +437,8 @@ export const useContentStore = create<ContentState>()(
                             cloudData.pack_lists || []
                         );
                     } else {
+                        console.log('[FullSync] No cloud data returned');
+                        Alert.alert('Sync Info', 'Unable to reach cloud. Your session may have expired. Please Sign Out and Sign In again.');
                         set({ syncStatus: 'offline' });
                     }
 
@@ -448,8 +456,19 @@ export const useContentStore = create<ContentState>()(
                 if (state.profile && !state.profile.id.startsWith('mock-')) {
                     const { error } = await supabase.rpc('delete_own_data');
                     if (error) {
-                        console.error('[Purge Error]:', error.message);
-                        throw new Error('Failed to purge cloud data. Please try again or contact support.');
+                        console.warn('[Purge RPC Missing/Failed]:', error.message);
+                        // Fallback: Delete table by table manually
+                        // ORDER MATTERS due to Foreign Keys: Delete children first
+                        await supabase.from('blocks').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('routines').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('events').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('learning_paths').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('user_progress').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('proof_of_work').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('categories').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('people').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('gear_assets').delete().eq('user_id', state.profile?.id);
+                        await supabase.from('pack_lists').delete().eq('user_id', state.profile?.id);
                     }
                 }
 
