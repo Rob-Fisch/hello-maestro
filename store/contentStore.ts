@@ -477,6 +477,14 @@ export const useContentStore = create<ContentState>()(
                     blocks: [],
                     routines: [],
                     events: [],
+                    categories: [
+                        { id: 'default-cat-1', name: 'Warmups' },
+                        { id: 'default-cat-2', name: 'Technical' },
+                        { id: 'default-cat-3', name: 'Repertoire' },
+                        { id: 'default-cat-4', name: 'Performance' },
+                        { id: 'default-cat-5', name: 'Coaching' },
+                        { id: 'default-cat-6', name: 'Other' },
+                    ],
                     people: [],
                     paths: [],
                     progress: [],
@@ -562,7 +570,6 @@ export const useContentStore = create<ContentState>()(
                 Alert.alert('Saved to Library', `"${newRoutine.title}" has been added to your collection.`);
             },
 
-
         }),
         {
             name: 'maestro-content-storage',
@@ -582,13 +589,19 @@ export const useContentStore = create<ContentState>()(
                     }
                 }
                 if (version <= 3) {
-                    // Migrate default categories (cat-1..6) to unique IDs
-                    const idMap: Record<string, string> = {};
+                    // Migrate legacy categories (cat-1..6) to STATIC unique IDs
+                    const idMap: Record<string, string> = {
+                        'cat-1': 'default-cat-1',
+                        'cat-2': 'default-cat-2',
+                        'cat-3': 'default-cat-3',
+                        'cat-4': 'default-cat-4',
+                        'cat-5': 'default-cat-5',
+                        'cat-6': 'default-cat-6',
+                    };
+
                     state.categories = (state.categories || []).map((c: Category) => {
-                        if (c.id.startsWith('cat-')) {
-                            const newId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5) + '-' + c.id;
-                            idMap[c.id] = newId;
-                            return { ...c, id: newId };
+                        if (idMap[c.id]) {
+                            return { ...c, id: idMap[c.id] };
                         }
                         return c;
                     });
