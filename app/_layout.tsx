@@ -4,11 +4,14 @@ import { useGearStore } from '@/store/gearStore';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, router, useRootNavigationState, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import '../global.css';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   console.log('🚀 [RootLayout] Render started');
@@ -50,6 +53,12 @@ export default function RootLayout() {
 
   // Combined Readiness State
   const isHydrated = (contentHydrated && gearHydrated) || forceReady;
+
+  useEffect(() => {
+    if (isHydrated && fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [isHydrated, fontsLoaded]);
 
   useEffect(() => {
     if (!isHydrated || !isNavigationReady) return;
@@ -100,28 +109,28 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={DefaultTheme}>
-        <Stack>
+        <Stack screenOptions={{ animation: 'slide_from_right' }}>
           <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
           <Stack.Screen
             name="modal/person-editor"
-            options={{ presentation: 'modal', title: 'Contact Editor' }}
+            options={{ title: 'Contact Editor' }}
           />
           <Stack.Screen
             name="modal/event-editor"
-            options={{ presentation: 'modal', title: 'Event Editor' }}
+            options={{ title: 'Event Editor' }}
           />
           <Stack.Screen
             name="modal/routine-editor"
-            options={{ presentation: 'modal', title: 'Routine Editor' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="modal/block-editor"
-            options={{ presentation: 'modal', headerShown: false }}
+            options={{ headerShown: false, presentation: 'fullScreenModal' }}
           />
           <Stack.Screen
             name="modal/path-editor"
-            options={{ presentation: 'modal', title: 'Path Editor' }}
+            options={{ title: 'Path Editor' }}
           />
           <Stack.Screen
             name="modal/help"
@@ -129,11 +138,11 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="modal/node-editor"
-            options={{ presentation: 'modal', title: 'Node Editor' }}
+            options={{ title: 'Node Editor' }}
           />
           <Stack.Screen
             name="modal/asset-editor"
-            options={{ presentation: 'modal', title: 'Asset Editor' }}
+            options={{ title: 'Asset Editor' }}
           />
           <Stack.Screen
             name="modal/upgrade"

@@ -51,3 +51,15 @@ export const THEMES: Record<AppTheme, ThemeTokens> = {
 export const useTheme = () => {
     return THEMES.vibrant;
 };
+
+export const PAPER_THEME = {
+    background: '#f5f5f4', // stone-100
+    card: '#ffffff',
+    text: '#1c1917', // stone-900
+    label: '#78716c', // stone-500
+    inputBorder: '#e7e5e4', // stone-200
+    saveBtnBg: '#c2410c', // orange-700
+    saveBtnText: '#ffffff',
+    cancelBtnBg: '#e7e5e4', // stone-200
+    cancelBtnText: '#57534e', // stone-600
+};

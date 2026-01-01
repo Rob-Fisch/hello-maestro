@@ -138,7 +138,7 @@ export default function GigsScreen() {
 
                 {/* Block 2: Schedule Management */}
                 <TouchableOpacity
-                    onPress={() => router.push('/(drawer)/events?filter=performance')}
+                    onPress={() => router.push('/(drawer)/events?filter=performance&source=gigs')}
                     className="mb-6 p-6 rounded-[32px] border shadow-sm flex-row items-center justify-between"
                     style={{ backgroundColor: theme.card, borderColor: theme.border }}
                 >

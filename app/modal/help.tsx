@@ -223,6 +223,28 @@ export default function HelpScreen() {
                     />
                 </AccordionItem>
 
+                <AccordionItem title="Contact Sync & Import" icon="person-add-outline">
+                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                        You can quickly build your roster by importing contacts from your phone.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Mobile App Only"
+                        description="This feature is available on the iOS/Android app. It is not available on the web version due to browser privacy restrictions."
+                    />
+                    <Step
+                        number={2}
+                        title="One-Tap Import"
+                        description="On the People screen, tap the 'Person' icon (next to the Plus button). This opens your phone's contact list."
+                    />
+                    <Step
+                        number={3}
+                        title="Select & Save"
+                        description="Choose a contact to automatically fill in their First Name, Last Name, Email, and Phone. Then simply tap 'Save' to add them to your OpusMode roster."
+                    />
+                </AccordionItem>
+
                 <AccordionItem title="Privacy & Security" icon="lock-closed-outline">
                     <Text className="text-muted-foreground leading-relaxed text-sm">
                         OpusMode stores your data locally on your device. We never sell your personal information or the details of your gigs. Your financial notes and roster details are private to you.

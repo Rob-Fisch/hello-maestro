@@ -1,9 +1,9 @@
 import { GearPackManager } from '@/components/GearPackManager';
 import { RosterManager } from '@/components/RosterManager';
+import { PAPER_THEME } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { useGearStore } from '@/store/gearStore';
 import { AppEvent, AppEventType, BookingSlot, Person, Routine } from '@/store/types';
-import { addToNativeCalendar } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
@@ -215,50 +215,33 @@ export default function EventEditor() {
 
 
     return (
-        <View className="flex-1 bg-white" style={Platform.OS === 'web' ? { height: '100vh' } as any : undefined}>
-            {/* Header */}
-            <View className="px-6 pt-4 pb-4 border-b border-slate-200 flex-row justify-between items-center bg-white z-10">
-                <View>
-                    <Text className="text-2xl font-black text-slate-900 tracking-tight">{isEditing ? 'Edit Event' : 'New Event'}</Text>
-                    <Text className="text-xs text-slate-500 font-bold uppercase tracking-widest">{selectedRoutineIds.length} Sets Scheduled</Text>
-                </View>
-                <TouchableOpacity
-                    onPress={() => {
-                        if (navigation.canGoBack()) {
-                            router.back();
-                        } else {
-                            // Fallback for web PWA if opened directly or refreshed
-                            router.replace('/(drawer)/(tabs)/schedule' as any);
-                        }
-                    }}
-                    className="bg-slate-100 px-4 py-2 rounded-full flex-row items-center"
-                >
-                    <Ionicons name="close-circle" size={18} color="#475569" />
-                    <Text className="text-slate-600 font-bold text-xs uppercase tracking-wide ml-2">Cancel</Text>
-                </TouchableOpacity>
-            </View>
-
+        <View className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
             <DraggableFlatList
                 data={selectedRoutines}
                 onDragEnd={({ data }) => setSelectedRoutineIds(data.map(r => r.id))}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={true}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 100, paddingTop: 24 }}
                 containerStyle={{ flex: 1 }}
                 ListHeaderComponent={
-                    <EditorHeader
-                        type={type} setType={setType} title={title} setTitle={setTitle}
-                        studentName={studentName} setStudentName={setStudentName}
-                        venue={venue} setVenue={setVenue} isRecurring={isRecurring}
-                        setIsRecurring={setIsRecurring} daysOfWeek={daysOfWeek}
-                        toggleDay={toggleDay} startDate={startDate} setStartDate={setStartDate}
-                        endDate={endDate} setEndDate={setEndDate} date={date} setDate={setDate}
-                        time={time} setTime={setTime} duration={duration} setDuration={setDuration}
-                        totalFee={totalFee} setTotalFee={setTotalFee} musicianFee={musicianFee}
-                        setMusicianFee={setMusicianFee} formatDisplayTime={formatDisplayTime}
-                        getTimeDate={getTimeDate} notes={notes}
-                        people={people}
-                    />
+                    <>
+                        <View className="px-6 mb-4">
+                            <Text className="text-3xl font-black text-stone-900 tracking-tight">{isEditing ? 'Edit Event' : 'New Event'}</Text>
+                        </View>
+                        <EditorHeader
+                            type={type} setType={setType} title={title} setTitle={setTitle}
+                            studentName={studentName} setStudentName={setStudentName}
+                            venue={venue} setVenue={setVenue} isRecurring={isRecurring}
+                            setIsRecurring={setIsRecurring} daysOfWeek={daysOfWeek}
+                            toggleDay={toggleDay} startDate={startDate} setStartDate={setStartDate}
+                            endDate={endDate} setEndDate={setEndDate} date={date} setDate={setDate}
+                            time={time} setTime={setTime} duration={duration} setDuration={setDuration}
+                            totalFee={totalFee} setTotalFee={setTotalFee} musicianFee={musicianFee}
+                            setMusicianFee={setMusicianFee} formatDisplayTime={formatDisplayTime}
+                            getTimeDate={getTimeDate} notes={notes}
+                            people={people}
+                        />
+                    </>
                 }
                 ListFooterComponent={
                     <EditorFooter
@@ -310,14 +293,22 @@ export default function EventEditor() {
             />
 
             {/* Save Button */}
-            <View className="absolute bottom-6 left-6 right-6 border-t border-slate-100 pt-4 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 20 : 0 }}>
+            <View className="flex-row gap-4 p-6 border-t border-stone-200 absolute bottom-0 left-0 right-0 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 40 : 24 }}>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="flex-1 p-4 rounded-2xl border border-stone-300 items-center justify-center"
+                    style={{ backgroundColor: PAPER_THEME.cancelBtnBg }}
+                >
+                    <Text className="text-center font-bold uppercase tracking-wide" style={{ color: PAPER_THEME.cancelBtnText }}>Cancel</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={handleSave}
-                    className="bg-slate-900 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-slate-900/20"
+                    className="flex-1 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-orange-900/20"
+                    style={{ backgroundColor: PAPER_THEME.saveBtnBg }}
                 >
-                    <Ionicons name="checkmark-circle" size={20} color="white" />
-                    <Text className="text-white font-black text-lg uppercase tracking-wider ml-2">
-                        {isEditing ? 'Update' : 'Save'} {type.charAt(0).toUpperCase() + type.slice(1)}
+                    <Ionicons name="checkmark-circle" size={20} color={PAPER_THEME.saveBtnText} />
+                    <Text className="font-black text-lg uppercase tracking-wider ml-2" style={{ color: PAPER_THEME.saveBtnText }}>
+                        {isEditing ? 'Update' : 'Save'}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -810,178 +801,127 @@ const EditorHeader = ({
                             </View>
                         </Modal>
                     )}
-                    {showTimePicker && Platform.OS !== 'ios' && <DateTimePicker value={getTimeDate()} mode="time" display="default" is24Hour={false} onChange={onTimeChange} />}
                 </View>
             </View>
 
-            <View className="flex-row gap-4 mb-6">
-                <View className="flex-1 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-                    <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">{type === 'lesson' ? 'Rate / Fee' : 'Total Event Fee'}</Text>
-                    <TextInput className="text-lg font-bold text-green-600" placeholder="$" value={totalFee} onChangeText={setTotalFee} />
-                </View>
-                {type !== 'lesson' && (
-                    <View className="flex-1 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-                        <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Default Pay/Musician</Text>
-                        <TextInput className="text-lg font-bold text-blue-600" placeholder="$" value={musicianFee} onChangeText={setMusicianFee} />
-                    </View>
-                )}
-            </View>
-
-            <View className="flex-row justify-between items-center mb-4 px-1">
-                <Text className="text-xl font-bold tracking-tight text-slate-900">{type === 'lesson' ? 'Lesson Material' : 'Setlist'}</Text>
-                <TouchableOpacity
-                    onPress={() => addToNativeCalendar({
-                        id: 'temp',
-                        type,
-                        title,
-                        venue,
-                        date: isRecurring ? startDate : date,
-                        time,
-                        duration,
-                        notes,
-                        routines: [],
-                        slots: [],
-                        createdAt: new Date().toISOString()
-                    })}
-                    className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200"
-                >
-                    <Ionicons name="calendar-outline" size={14} color="#64748b" />
-                    <Text className="text-slate-500 font-bold text-[10px] uppercase ml-1.5 tracking-wider">Sync to Calendar</Text>
-                </TouchableOpacity>
-            </View>
+            {/* List Footer is rendered by the parent DraggableFlatList */}
         </View>
     );
 };
 
-interface FooterProps {
-    slots: BookingSlot[];
-    setSlots: (s: BookingSlot[]) => void;
-    people: Person[];
-    type: AppEventType;
-    title: string;
-    venue: string;
-    isRecurring: boolean;
-    startDate: string;
-    date: string;
-    time: string;
-    notes: string;
-    setNotes: (n: string) => void;
-    totalFee: string;
-    musicianFee: string;
-    personSearchQuery: string;
-    setPersonSearchQuery: (q: string) => void;
-    availablePersonnel: Person[];
-    searchQuery: string;
-    setSearchQuery: (q: string) => void;
-    availableRoutines: Routine[];
-    addRoutineToEvent: (id: string) => void;
-    selectedGearIds: string[];
-    setSelectedGearIds: (ids: string[]) => void;
-    checkedGearIds: string[];
-    setCheckedGearIds: (ids: string[]) => void;
+
+// EditorFooter Component
+const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring, startDate, date, time, notes, setNotes, totalFee, setTotalFee, musicianFee, setMusicianFee, personSearchQuery, setPersonSearchQuery, availablePersonnel, searchQuery, setSearchQuery, availableRoutines, addRoutineToEvent, selectedGearIds, setSelectedGearIds, checkedGearIds, setCheckedGearIds }: any) => {
+    // ... Simplified prop passing for now, normally we'd separate this out
+
+    // We can define the roster/gear managers here if they were self-contained, but they are components.
+    // For now, let's just render the bottom part of the list
+
+    return (
+        <View className="p-6 pt-0">
+            {/* Roster Section */}
+            <View className="mb-8">
+                <Text className="text-xl font-black text-slate-900 mb-4">Personnel & Roster</Text>
+                <RosterManager
+                    slots={slots}
+                    onUpdateSlots={setSlots}
+                    availablePeople={people}
+                    event={{ title, date, time, type, venue }}
+                />
+            </View>
+
+            {/* Gear Section */}
+            <View className="mb-8">
+                <Text className="text-xl font-black text-slate-900 mb-4">Pack List & Gear</Text>
+                <GearPackManager
+                    selectedItemIds={selectedGearIds}
+                    onUpdateItems={setSelectedGearIds}
+                    checkedItemIds={checkedGearIds}
+                    onUpdateCheckedItems={setCheckedGearIds}
+                />
+            </View>
+
+            {/* Routine Picker */}
+            <View className="mb-8">
+                <Text className="text-xl font-black text-slate-900 mb-4">Add {type === 'lesson' ? 'Lesson Plan' : 'Setlist'} Content</Text>
+                <View className="flex-row items-center bg-slate-100 rounded-2xl px-4 py-3 mb-4">
+                    <Ionicons name="search" size={20} color="#94a3b8" />
+                    <TextInput
+                        className="flex-1 ml-2 font-bold text-slate-900"
+                        placeholder="Search routines..."
+                        placeholderTextColor="#94a3b8"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-4">
+                    {availableRoutines.map((routine: any) => (
+                        <TouchableOpacity
+                            key={routine.id}
+                            onPress={() => addRoutineToEvent(routine.id)}
+                            className="w-[160px] h-[100px] bg-white border border-slate-200 rounded-2xl p-4 justify-between shadow-sm mr-4"
+                        >
+                            <View>
+                                <Text className="font-bold text-slate-900" numberOfLines={1}>{routine.title}</Text>
+                                <Text className="text-xs text-slate-500">{routine.blocks.length} items</Text>
+                            </View>
+                            <View className="flex-row justify-end">
+                                <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+                                    <Ionicons name="add" size={20} color="#0f172a" />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                    {availableRoutines.length === 0 && (
+                        <View className="w-full p-4 items-center justify-center bg-slate-50 rounded-2xl border-dashed border border-slate-200">
+                            <Text className="text-slate-400 font-bold">No matching routines found.</Text>
+                        </View>
+                    )}
+                </ScrollView>
+            </View>
+
+            {/* Financials & Notes */}
+            <View className="mb-8">
+                <Text className="text-xl font-black text-slate-900 mb-4">Notes & Financials</Text>
+                <View className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm">
+                    <Text className="text-[10px] uppercase font-bold text-slate-400 mb-2">Private Notes</Text>
+                    <TextInput
+                        className="text-base text-slate-800 min-h-[100px] mb-6"
+                        placeholder="Load-in details, parking info, setlist notes..."
+                        value={notes}
+                        onChangeText={setNotes}
+                        multiline
+                        textAlignVertical="top"
+                        placeholderTextColor="#cbd5e1"
+                    />
+
+                    <View className="flex-row gap-4">
+                        <View className="flex-1">
+                            <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">Total Fee ($)</Text>
+                            <TextInput
+                                className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-green-700"
+                                value={totalFee}
+                                onChangeText={setTotalFee}
+                                keyboardType="numeric"
+                                placeholder="0.00"
+                                placeholderTextColor="#cbd5e1"
+                            />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">Per-Musician ($)</Text>
+                            <TextInput
+                                className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-slate-700"
+                                value={musicianFee}
+                                onChangeText={setMusicianFee}
+                                keyboardType="numeric"
+                                placeholder="0.00"
+                                placeholderTextColor="#cbd5e1"
+                            />
+                        </View>
+                    </View>
+                </View>
+            </View>
+        </View>
+    );
 }
 
-const EditorFooter = ({
-    slots, setSlots, people, type, title, venue, isRecurring, startDate, date, time, notes, setNotes, totalFee, musicianFee,
-    personSearchQuery, setPersonSearchQuery, availablePersonnel, searchQuery, setSearchQuery, availableRoutines, addRoutineToEvent,
-    selectedGearIds, setSelectedGearIds, checkedGearIds, setCheckedGearIds
-}: FooterProps) => (
-    <View className="p-6">
-        <RosterManager
-            slots={slots}
-            onUpdateSlots={setSlots}
-            availablePeople={people}
-            event={{ type, title, venue, date: isRecurring ? startDate : date, time, notes, totalFee, fee: totalFee, musicianFee }}
-        />
-
-        <GearPackManager
-            selectedItemIds={selectedGearIds}
-            onUpdateItems={setSelectedGearIds}
-            checkedItemIds={checkedGearIds}
-            onUpdateCheckedItems={setCheckedGearIds}
-        />
-
-        <View className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-8">
-            <Text className="text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">Detailed Event Notes</Text>
-            <TextInput className="text-base text-slate-900 min-h-[120px]" placeholder="Add setup notes, directions, or student goals here..." placeholderTextColor="#94a3b8" value={notes} onChangeText={setNotes} multiline textAlignVertical="top" />
-        </View>
-        <Text className="text-xl font-bold tracking-tight mb-4 px-1 text-slate-900">Add Personnel</Text>
-        <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-3 mb-5 shadow-sm">
-            <Ionicons name="search" size={24} color="#3b82f6" style={{ marginRight: 12 }} />
-            <TextInput className="flex-1 text-slate-900 font-medium py-1" placeholder="Search people..." placeholderTextColor="#94a3b8" value={personSearchQuery} onChangeText={setPersonSearchQuery} />
-        </View>
-        <View className="mb-8">
-            {availablePersonnel.length > 0 ? (
-                availablePersonnel.map(person => (
-                    <TouchableOpacity
-                        key={person.id}
-                        onPress={() => {
-                            const newSlot: BookingSlot = {
-                                id: Date.now().toString() + person.id,
-                                role: person.instruments[0] || 'Musician',
-                                instruments: person.instruments,
-                                status: 'invited',
-                                musicianId: person.id,
-                                invitedAt: new Date().toISOString()
-                            };
-                            setSlots([...slots, newSlot]);
-                        }}
-                        className="p-4 mb-3 rounded-2xl border bg-white border-slate-200 flex-row justify-between items-center shadow-sm"
-                    >
-                        <View className="flex-row items-center flex-1">
-                            <View className="w-10 h-10 rounded-xl bg-blue-50 items-center justify-center mr-3">
-                                <Ionicons name="person" size={20} color="#3b82f6" />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-bold text-slate-900 text-base" numberOfLines={1}>{person.firstName} {person.lastName}</Text>
-                                <Text className="text-xs text-slate-500" numberOfLines={1}>{person.instruments.join(', ') || person.type}</Text>
-                            </View>
-                        </View>
-                        <View className="bg-emerald-50 w-8 h-8 rounded-full items-center justify-center border border-emerald-100">
-                            <Ionicons name="add" size={20} color="#059669" />
-                        </View>
-                    </TouchableOpacity>
-                ))
-            ) : (
-                <View className="p-4 items-center border border-dashed border-slate-200 rounded-2xl">
-                    <Text className="text-center text-slate-400 font-medium">
-                        {people.length === 0 ? "No people in library. Add contacts in 'People' tab." : "No matching contacts found."}
-                    </Text>
-                </View>
-            )}
-        </View>
-        <Text className="text-xl font-bold tracking-tight mb-4 px-1 text-slate-900">Add from Routines</Text>
-        <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-3 mb-5 shadow-sm">
-            <Ionicons name="search" size={24} color="#3b82f6" style={{ marginRight: 12 }} />
-            <TextInput className="flex-1 text-slate-900 font-medium py-1" placeholder="Search your routines..." placeholderTextColor="#94a3b8" value={searchQuery} onChangeText={setSearchQuery} />
-        </View>
-        <View className="mb-24">
-            {availableRoutines.length > 0 ? (
-                availableRoutines.map(routine => (
-                    <TouchableOpacity
-                        key={routine.id}
-                        onPress={() => addRoutineToEvent(routine.id)}
-                        className="p-4 mb-3 rounded-2xl border bg-white border-slate-200 flex-row justify-between items-center shadow-sm"
-                    >
-                        <View className="flex-row items-center flex-1">
-                            <View className="w-10 h-10 rounded-xl bg-amber-100 items-center justify-center mr-3">
-                                <Ionicons name="musical-notes" size={20} color="#f59e0b" />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-bold text-slate-900 text-base" numberOfLines={1}>{routine.title}</Text>
-                                <Text className="text-xs text-slate-500" numberOfLines={1}>{routine.blocks.length} Items</Text>
-                            </View>
-                        </View>
-                        <View className="bg-emerald-50 w-8 h-8 rounded-full items-center justify-center border border-emerald-100">
-                            <Ionicons name="add" size={20} color="#059669" />
-                        </View>
-                    </TouchableOpacity>
-                ))
-            ) : (
-                <View className="p-4 items-center">
-                    <Text className="text-center text-slate-400 font-medium">No routines found.</Text>
-                </View>
-            )}
-        </View>
-    </View>
-);

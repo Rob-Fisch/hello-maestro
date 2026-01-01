@@ -1,11 +1,10 @@
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { ContentBlock } from '@/store/types';
-import { resolveFileUri } from '@/utils/pdfExport';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Platform, SectionList, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, SectionList, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
@@ -26,89 +25,74 @@ const ContentListItem = ({
   onConfirmDelete: () => void;
   onRename: () => void;
 }) => {
-  const [displayUri, setDisplayUri] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadUri() {
-      if (item.mediaUri) {
-        const resolved = await resolveFileUri(item.mediaUri);
-        if (resolved) setDisplayUri(resolved);
-      }
-    }
-    loadUri();
-  }, [item.mediaUri]);
-
   const theme = useTheme();
 
   return (
-    <View className="flex-row items-center justify-between p-6 border mx-4 my-2 rounded-card shadow-lg shadow-gray-200/50" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+    <View
+      className="flex-row items-center p-2 border-b mx-4"
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+        borderBottomWidth: 1,
+        borderTopWidth: 0,
+        borderLeftWidth: 0,
+        borderRightWidth: 0,
+        marginHorizontal: 16,
+        marginBottom: 0,
+        borderRadius: 0
+      }}
+    >
       <TouchableOpacity
         className="flex-1 flex-row items-center"
         onPress={onPress}
       >
-        {/* Media Preview Thumbnail */}
-        <View className="w-16 h-16 rounded-2xl mr-5 items-center justify-center overflow-hidden border shadow-inner" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-          {item.mediaUri ? (
-            item.mediaUri.endsWith('.pdf') ? (
-              <View className="items-center">
-                <Ionicons name="document-text" size={32} color={theme.primary} />
-                <Text className="text-[10px] font-black mt-1 uppercase tracking-tighter" style={{ color: theme.primary }}>PDF</Text>
-              </View>
-            ) : (
-              <Image
-                source={{ uri: displayUri || item.mediaUri }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            )
-          ) : (
-            <Ionicons
-              name={item.type === 'sheet_music' ? 'musical-notes' : 'document-text'}
-              size={28}
-              color="#cbd5e1"
-            />
-          )}
+        {/* Minimal Icon Indicator */}
+        <View className="mr-3 ml-1 opacity-70">
+          <Ionicons
+            name={item.mediaUri?.endsWith('.pdf') ? "document-text" : (item.type === 'sheet_music' ? 'musical-notes' : 'images')}
+            size={18}
+            color={theme.primary}
+          />
         </View>
 
-        <View className="flex-1">
-          <Text className="text-xl font-black tracking-tight" numberOfLines={1} style={{ color: theme.text }}>{item.title}</Text>
-          <View className="flex-row items-center mt-1.5 font-bold">
-            <View className="px-2 py-0.5 rounded-lg mr-2" style={{ backgroundColor: `${theme.primary}15` }}>
-              <Text className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.primary }}>{item.type.replace('_', ' ')}</Text>
-            </View>
-            <Text className="text-xs font-bold" numberOfLines={1} style={{ color: theme.mutedText }}>
-              {item.tags.length > 0 ? item.tags.join(' • ') : 'No Tags'}
+        <View className="flex-1 mr-2 py-1">
+          <Text
+            className="text-sm font-semibold tracking-tight leading-4"
+            numberOfLines={2}
+            style={{ color: theme.text }}
+          >
+            {item.title}
+          </Text>
+          {(item.tags.length > 0 || item.type) && (
+            <Text className="text-[10px] mt-0.5 opacity-60" numberOfLines={1} style={{ color: theme.mutedText }}>
+              {item.type.replace('_', ' ')} • {item.tags.join(', ')}
             </Text>
-          </View>
+          )}
         </View>
       </TouchableOpacity>
 
-      {isDeleting ? (
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={onCancelDelete} className="px-4 py-2 bg-gray-100 rounded-full mr-2">
-            <Text className="text-gray-600 font-bold text-xs">NO</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onConfirmDelete} className="px-4 py-2 bg-red-600 rounded-full">
-            <Text className="text-white font-bold text-xs">DEL</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={onRename}
-            className="bg-blue-50 p-2.5 rounded-full border border-blue-100 mr-2"
-          >
-            <Ionicons name="pencil-outline" size={18} color="#3b82f6" />
-          </TouchableOpacity>
+      {/* Actions */}
+      <View className="flex-row items-center pl-2">
+        {isDeleting ? (
+          <View className="flex-row items-center animate-in fade-in slide-in-from-right-4 duration-200">
+            <TouchableOpacity onPress={onCancelDelete} className="mr-3">
+              <Text className="text-[10px] font-bold" style={{ color: theme.mutedText }}>CANCEL</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onConfirmDelete}>
+              <Text className="text-[10px] font-bold text-red-500">CONFIRM</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
           <TouchableOpacity
             onPress={onDelete}
-            className="bg-red-50 p-2.5 rounded-full border border-red-100"
+            className="p-2 opacity-40 hover:opacity-100 active:opacity-60"
+            hitSlop={10}
           >
-            <Ionicons name="trash-outline" size={18} color="#ef4444" />
+            <Ionicons name="trash-outline" size={16} color={theme.text} />
           </TouchableOpacity>
-        </View >
-      )}
-    </View >
+        )}
+      </View>
+    </View>
   );
 };
 
@@ -157,24 +141,12 @@ export default function ContentScreen() {
   const groupedData = useMemo(() => {
     const sections: { title: string; data: ContentBlock[]; id: string; type: 'category' | 'mru' }[] = [];
 
-    // MRU Section
-    if (recentBlockIds.length > 0) {
-      const mruBlocks = recentBlockIds
-        .map(id => blocks.find(b => b.id === id))
-        .filter((b): b is ContentBlock => !!b);
-
-      if (mruBlocks.length > 0) {
-        sections.push({
-          title: 'Most Recently Used',
-          data: mruBlocks,
-          id: 'mru',
-          type: 'mru'
-        });
-      }
-    }
-
     categories
-      .sort((a, b) => a.name.localeCompare(b.name)) // ALPHABETICAL SORT
+      .sort((a, b) => {
+        if (a.name === 'Other') return 1;
+        if (b.name === 'Other') return -1;
+        return a.name.localeCompare(b.name);
+      })
       .forEach(cat => {
         const catBlocks = blocks.filter(b => b.categoryId === cat.id);
         if (catBlocks.length > 0) {
@@ -198,7 +170,7 @@ export default function ContentScreen() {
     }
 
     return sections;
-  }, [blocks, categories, recentBlockIds, collapsedCategories]);
+  }, [blocks, categories, collapsedCategories]);
 
 
 

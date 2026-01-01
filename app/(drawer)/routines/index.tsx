@@ -120,7 +120,7 @@ export default function RoutinesScreen() {
                     <View className="flex-row items-center mb-6">
                         <View className="bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 flex-row items-center">
                             <Ionicons name="calendar" size={12} color="#2563eb" />
-                            <Text className="text-[10px] text-primary font-black ml-1.5 uppercase tracking-wide">
+                            <Text className="text-[10px] text-blue-600 font-black ml-1.5 uppercase tracking-wide">
                                 {item.schedule.type === 'recurring'
                                     ? `Every ${item.schedule.daysOfWeek?.map(d => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(', ')}`
                                     : item.schedule.date}
@@ -228,20 +228,13 @@ export default function RoutinesScreen() {
                     </View>
                 </View>
 
-                {/* Tabs */}
+                {/* Tabs Removed for MVP */}
                 <View className="flex-row gap-4 mt-4 pb-2 border-b border-white/10">
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('mine')}
-                        className={`pb-2 border-b-2 ${activeTab === 'mine' ? 'border-teal-400' : 'border-transparent'}`}
+                    <View
+                        className={`pb-2 border-b-2 border-teal-400`}
                     >
-                        <Text className={`font-black uppercase tracking-wider text-xs ${activeTab === 'mine' ? 'text-white' : 'text-slate-500'}`}>My Collections</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('public')}
-                        className={`pb-2 border-b-2 ${activeTab === 'public' ? 'border-amber-400' : 'border-transparent'}`}
-                    >
-                        <Text className={`font-black uppercase tracking-wider text-xs ${activeTab === 'public' ? 'text-white' : 'text-slate-500'}`}>Community ({publicRoutines.length})</Text>
-                    </TouchableOpacity>
+                        <Text className={`font-black uppercase tracking-wider text-xs text-white`}>My Collections</Text>
+                    </View>
                 </View>
             </View>
 

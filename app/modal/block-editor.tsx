@@ -1,5 +1,5 @@
 import { uploadMediaToCloud } from '@/lib/sync';
-import { useTheme } from '@/lib/theme';
+import { PAPER_THEME, useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { ContentBlock } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -191,32 +191,21 @@ export default function BlockEditor() {
     };
 
     const startInputStyle = {
-        backgroundColor: '#ffffff', // White
-        borderColor: '#e2e8f0',     // Slate 200
-        color: '#0f172a'            // Slate 900
+        backgroundColor: PAPER_THEME.card,
+        borderColor: PAPER_THEME.inputBorder,
+        color: PAPER_THEME.text
     };
 
-    const labelStyle = "text-sm font-bold mb-2 text-slate-500 uppercase tracking-wider";
+    const labelStyle = "text-sm font-bold mb-2 text-stone-500 uppercase tracking-wider";
 
     return (
-        <View className="flex-1" style={{ backgroundColor: '#ffffff' }}>
+        <View className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
             <ScrollView
                 className="flex-1 px-6 pt-6"
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 40 }}
             >
-                {/* Custom Header */}
-                <View className="flex-row items-center mb-6">
-                    <TouchableOpacity
-                        onPress={() => router.back()}
-                        className="mr-4 p-2 -ml-2 rounded-full"
-                    >
-                        <Ionicons name="arrow-back" size={28} color="#0f172a" />
-                    </TouchableOpacity>
-                    <Text className="text-lg font-bold text-slate-500 uppercase tracking-widest">Back to Activities</Text>
-                </View>
-
-                <Text className="text-3xl font-black mb-8 text-slate-900 tracking-tight">
+                <Text className="text-3xl font-black mb-8 mt-6 tracking-tight" style={{ color: PAPER_THEME.text }}>
                     {isEditing ? 'Edit Activity' : 'Add Activity'}
                 </Text>
 
@@ -227,9 +216,10 @@ export default function BlockEditor() {
                         className="p-4 rounded-xl border text-lg font-bold"
                         style={startInputStyle}
                         placeholder="e.g., C Major Scale"
-                        placeholderTextColor="#94a3b8"
+                        placeholderTextColor="#a8a29e"
                         value={title}
                         onChangeText={setTitle}
+                        multiline
                     />
                 </View>
 
@@ -245,8 +235,8 @@ export default function BlockEditor() {
                                     onPress={() => setType(t)}
                                     style={({ pressed }) => ({
                                         opacity: pressed ? 0.8 : 1,
-                                        backgroundColor: isSelected ? '#0f172a' : '#f1f5f9', // Slate 900 vs Slate 100
-                                        borderColor: isSelected ? '#0f172a' : '#e2e8f0',
+                                        backgroundColor: isSelected ? PAPER_THEME.saveBtnBg : PAPER_THEME.background,
+                                        borderColor: isSelected ? PAPER_THEME.saveBtnBg : PAPER_THEME.inputBorder,
                                         borderWidth: 1,
                                         flex: 1,
                                         alignItems: 'center',
@@ -257,7 +247,7 @@ export default function BlockEditor() {
                                 >
                                     <Text
                                         style={{
-                                            color: isSelected ? 'white' : '#0f172a',
+                                            color: isSelected ? 'white' : PAPER_THEME.text,
                                             fontWeight: '900',
                                             textTransform: 'uppercase',
                                             letterSpacing: 2,
@@ -280,10 +270,10 @@ export default function BlockEditor() {
                         className="p-4 rounded-xl border flex-row justify-between items-center"
                         style={startInputStyle}
                     >
-                        <Text className="text-slate-900 font-bold text-base">
+                        <Text className="text-stone-900 font-bold text-base">
                             {categories.find(c => c.id === categoryId)?.name || 'Select Category'}
                         </Text>
-                        <Ionicons name="chevron-down" size={20} color="#94a3b8" />
+                        <Ionicons name="chevron-down" size={20} color="#a8a29e" />
                     </TouchableOpacity>
 
                     <Modal
@@ -293,16 +283,20 @@ export default function BlockEditor() {
                         onRequestClose={() => setShowCategoryPicker(false)}
                     >
                         <View className="flex-1 justify-end bg-black/50">
-                            <View className="rounded-t-[40px] p-6 pb-12 max-h-[80%] bg-white border border-slate-200">
+                            <View className="rounded-t-[40px] p-6 pb-12 max-h-[80%] bg-white border border-stone-200">
                                 <View className="flex-row justify-between items-center mb-6">
-                                    <Text className="text-xl font-black text-slate-900">Select Category</Text>
-                                    <TouchableOpacity onPress={() => setShowCategoryPicker(false)} className="bg-slate-100 p-2 rounded-full">
-                                        <Ionicons name="close" size={24} color="#0f172a" />
+                                    <Text className="text-xl font-black text-stone-900">Select Category</Text>
+                                    <TouchableOpacity onPress={() => setShowCategoryPicker(false)} className="bg-stone-100 p-2 rounded-full">
+                                        <Ionicons name="close" size={24} color="#1c1917" />
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false}>
                                     {categories
-                                        .sort((a, b) => a.name.localeCompare(b.name)) // ALPHABETICAL SORT
+                                        .sort((a, b) => {
+                                            if (a.name === 'Other') return 1;
+                                            if (b.name === 'Other') return -1;
+                                            return a.name.localeCompare(b.name);
+                                        })
                                         .map((cat) => (
                                             <TouchableOpacity
                                                 key={cat.id}
@@ -310,9 +304,9 @@ export default function BlockEditor() {
                                                     setCategoryId(cat.id);
                                                     setShowCategoryPicker(false);
                                                 }}
-                                                className={`p-5 mb-2 rounded-2xl flex-row justify-between items-center border ${categoryId === cat.id ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}
+                                                className={`p-5 mb-2 rounded-2xl flex-row justify-between items-center border ${categoryId === cat.id ? 'bg-stone-900 border-stone-900' : 'bg-white border-stone-100'}`}
                                             >
-                                                <Text className={`text-lg font-bold ${categoryId === cat.id ? 'text-white' : 'text-slate-500'}`}>
+                                                <Text className={`text-lg font-bold ${categoryId === cat.id ? 'text-white' : 'text-stone-500'}`}>
                                                     {cat.name}
                                                 </Text>
                                                 {categoryId === cat.id && <Ionicons name="checkmark" size={24} color="white" />}
@@ -331,7 +325,7 @@ export default function BlockEditor() {
                         className="p-4 rounded-xl border text-base"
                         style={startInputStyle}
                         placeholder="https://..."
-                        placeholderTextColor="#94a3b8"
+                        placeholderTextColor="#a8a29e"
                         value={linkUrl}
                         onChangeText={setLinkUrl}
                         autoCapitalize="none"
@@ -347,40 +341,40 @@ export default function BlockEditor() {
                             <Pressable
                                 onPress={takePhoto}
                                 style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                className="bg-pink-50 border border-pink-100 p-4 rounded-xl items-center flex-1"
+                                className="bg-orange-50 border border-orange-100 p-4 rounded-xl items-center flex-1"
                             >
-                                <Ionicons name="camera" size={24} color="#db2777" />
-                                <Text className="text-pink-600 font-bold text-xs mt-2 uppercase">Camera</Text>
+                                <Ionicons name="camera" size={24} color="#ea580c" />
+                                <Text className="text-orange-600 font-bold text-xs mt-2 uppercase">Camera</Text>
                             </Pressable>
                             <Pressable
                                 onPress={pickImage}
                                 style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                className="bg-blue-50 border border-blue-100 p-4 rounded-xl items-center flex-1"
+                                className="bg-stone-100 border border-stone-200 p-4 rounded-xl items-center flex-1"
                             >
-                                <Ionicons name="image" size={24} color="#2563eb" />
-                                <Text className="text-blue-600 font-bold text-xs mt-2 uppercase">Gallery</Text>
+                                <Ionicons name="image" size={24} color="#57534e" />
+                                <Text className="text-stone-600 font-bold text-xs mt-2 uppercase">Gallery</Text>
                             </Pressable>
                             <Pressable
                                 onPress={pickDocument}
                                 style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                className="bg-red-50 border border-red-100 p-4 rounded-xl items-center flex-1"
+                                className="bg-amber-50 border border-amber-100 p-4 rounded-xl items-center flex-1"
                             >
-                                <Ionicons name="document-text" size={24} color="#dc2626" />
-                                <Text className="text-red-600 font-bold text-xs mt-2 uppercase">PDF</Text>
+                                <Ionicons name="document-text" size={24} color="#d97706" />
+                                <Text className="text-amber-600 font-bold text-xs mt-2 uppercase">PDF</Text>
                             </Pressable>
                         </View>
 
                         {mediaUri && (
-                            <View className="bg-slate-50 border border-slate-200 p-3 rounded-2xl relative">
+                            <View className="bg-stone-50 border border-stone-200 p-3 rounded-2xl relative">
                                 {uploadingMedia ? (
-                                    <View className="w-full h-40 items-center justify-center rounded-xl bg-slate-100">
+                                    <View className="w-full h-40 items-center justify-center rounded-xl bg-stone-100">
                                         <View className="bg-white p-4 rounded-2xl items-center shadow-sm">
-                                            <Text className="text-blue-600 font-bold mb-2">Syncing...</Text>
+                                            <Text className="text-amber-600 font-bold mb-2">Syncing...</Text>
                                         </View>
                                     </View>
                                 ) : (
                                     <>
-                                        <Text className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider ml-1">Attached Media</Text>
+                                        <Text className="text-xs font-bold text-stone-400 mb-2 uppercase tracking-wider ml-1">Attached Media</Text>
                                         {mediaUri.endsWith('.pdf') ? (
                                             <TouchableOpacity
                                                 onPress={async () => {
@@ -406,23 +400,23 @@ export default function BlockEditor() {
                                                         Alert.alert('Preview Unavailable', 'Cannot preview this file.');
                                                     }
                                                 }}
-                                                className="flex-row items-center p-4 bg-white rounded-xl border border-slate-200"
+                                                className="flex-row items-center p-4 bg-white rounded-xl border border-stone-200"
                                             >
-                                                <Ionicons name="document-text" size={32} color="#0f172a" />
+                                                <Ionicons name="document-text" size={32} color="#1c1917" />
                                                 <View className="ml-3 flex-1">
-                                                    <Text className="font-bold text-slate-900 text-base" numberOfLines={1}>
+                                                    <Text className="font-bold text-stone-900 text-base" numberOfLines={1}>
                                                         {decodeURIComponent(mediaUri.split('/').pop()?.replace(/^\d+-/, '') || 'Document')}
                                                     </Text>
-                                                    <Text className="text-[10px] text-slate-400 font-black uppercase mt-1">Tap to Preview</Text>
+                                                    <Text className="text-[10px] text-stone-400 font-black uppercase mt-1">Tap to Preview</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         ) : (
-                                            <Image source={{ uri: mediaUri }} className="w-full h-48 rounded-xl bg-slate-200" resizeMode="cover" />
+                                            <Image source={{ uri: mediaUri }} className="w-full h-48 rounded-xl bg-stone-200" resizeMode="cover" />
                                         )}
                                         <Pressable
                                             onPress={() => setMediaUri(undefined)}
                                             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                            className="absolute top-4 right-4 bg-white w-8 h-8 rounded-full items-center justify-center shadow-lg shadow-black/10 border border-slate-100"
+                                            className="absolute top-4 right-4 bg-white w-8 h-8 rounded-full items-center justify-center shadow-lg shadow-black/10 border border-stone-100"
                                         >
                                             <Ionicons name="close" size={18} color="black" />
                                         </Pressable>
@@ -440,7 +434,7 @@ export default function BlockEditor() {
                         className="p-4 rounded-xl border text-base min-h-[120px]"
                         style={startInputStyle}
                         placeholder="Enter notes or instructions..."
-                        placeholderTextColor="#94a3b8"
+                        placeholderTextColor="#a8a29e"
                         multiline
                         textAlignVertical="top"
                         value={content}
@@ -455,7 +449,7 @@ export default function BlockEditor() {
                         className="p-4 rounded-xl border text-base"
                         style={startInputStyle}
                         placeholder="warmup, jazz (comma separated)"
-                        placeholderTextColor="#94a3b8"
+                        placeholderTextColor="#a8a29e"
                         value={tags}
                         onChangeText={setTags}
                     />
@@ -463,21 +457,23 @@ export default function BlockEditor() {
             </ScrollView>
 
             {/* Fixed Action Buttons at the bottom */}
-            <View className="flex-row gap-4 p-6 border-t border-slate-200" style={{ backgroundColor: '#ffffff' }}>
+            <View className="flex-row gap-4 p-6 border-t border-stone-200" style={{ backgroundColor: '#fafaf9' }}>
                 <Pressable
                     onPress={() => router.back()}
                     style={({ pressed }) => ({
-                        opacity: pressed ? 0.6 : 1
+                        opacity: pressed ? 0.6 : 1,
+                        backgroundColor: PAPER_THEME.cancelBtnBg
                     })}
-                    className="flex-1 p-4 rounded-2xl bg-slate-100 border border-slate-200"
+                    className="flex-1 p-4 rounded-2xl border border-stone-300"
                 >
-                    <Text className="text-center font-bold text-slate-500">Cancel</Text>
+                    <Text className="text-center font-bold" style={{ color: PAPER_THEME.cancelBtnText }}>Cancel</Text>
                 </Pressable>
                 <TouchableOpacity
                     onPress={handleSave}
-                    className="flex-1 p-4 rounded-2xl bg-slate-900 shadow-sm items-center justify-center"
+                    className="flex-1 p-4 rounded-2xl shadow-sm items-center justify-center shadow-orange-900/20"
+                    style={{ backgroundColor: PAPER_THEME.saveBtnBg }}
                 >
-                    <Text className="text-white font-black text-center text-base uppercase tracking-wider">Save Activity</Text>
+                    <Text className="font-black text-center text-base uppercase tracking-wider" style={{ color: PAPER_THEME.saveBtnText }}>Save Activity</Text>
                 </TouchableOpacity>
             </View>
         </View>

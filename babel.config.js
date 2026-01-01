@@ -7,6 +7,14 @@ module.exports = function (api) {
         ],
         plugins: [
             "babel-plugin-transform-import-meta",
+            [
+                "module-resolver",
+                {
+                    alias: {
+                        "react-native-worklets": "react-native-worklets-core"
+                    }
+                }
+            ],
             "react-native-reanimated/plugin"
         ],
     };

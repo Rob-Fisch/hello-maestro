@@ -38,10 +38,21 @@ const SLIDES = [
         color: '#fb7185', // Rose
         bg: 'bg-rose-950', // Deep Red
         blob: 'bg-rose-700'
+    },
+    {
+        id: 'scout',
+        title: 'THE SCOUT',
+        subtitle: 'AI AGENT',
+        image: require('../../assets/images/studio_order.png'), // Reusing image as placeholder
+        icon: 'telescope',
+        color: '#8b5cf6', // Violet
+        bg: 'bg-violet-950',
+        blob: 'bg-violet-700'
     }
 ];
 
 export default function UpgradeModal() {
+    console.log("Upgrade Modal Re-Rendered - Force Update");
     const { profile, setProfile } = useContentStore();
     const router = useRouter();
     const theme = useTheme();
@@ -54,10 +65,10 @@ export default function UpgradeModal() {
     const [layouts, setLayouts] = useState<Record<string, number>>({});
 
     const handleLayout = (featureId: string, event: LayoutChangeEvent) => {
-        setLayouts(prev => ({
-            ...prev,
-            [featureId]: event.nativeEvent.layout.y
-        }));
+        const y = event?.nativeEvent?.layout?.y;
+        if (typeof y === 'number') {
+            setLayouts(prev => ({ ...prev, [featureId]: y }));
+        }
     };
 
     // Auto-scroll logic (unchanged)
@@ -221,8 +232,10 @@ export default function UpgradeModal() {
                 <View
                     className="px-6 py-8"
                     onLayout={(event) => {
-                        const layout = event.nativeEvent.layout;
-                        setLayouts(prev => ({ ...prev, _container: layout.y }));
+                        const y = event?.nativeEvent?.layout?.y;
+                        if (typeof y === 'number') {
+                            setLayouts(prev => ({ ...prev, _container: y }));
+                        }
                     }}
                 >
                     <Text className="text-zinc-500 font-black text-xs uppercase tracking-widest mb-6 px-2">Where Art Meets Science</Text>

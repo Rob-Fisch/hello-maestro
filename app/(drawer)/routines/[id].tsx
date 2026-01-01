@@ -8,10 +8,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // --- WEB PICKER COMPONENTS ---
-const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '', icon }: any) => {
+const WebSelect = ({ value, options, onChange, placeholder = 'Select', labelClassName = '', icon, formatDisplay }: any) => {
     const [visible, setVisible] = useState(false);
     const selected = options.find((o: any) => o.value == value);
-    const displayLabel = selected ? selected.label : (value ? value : placeholder);
+    const displayLabel = selected ? selected.label : (value ? (formatDisplay ? formatDisplay(value) : value) : placeholder);
 
     return (
         <>
@@ -429,6 +429,7 @@ export default function CollectionDetail() {
                                             options={timeOptions}
                                             onChange={setSessionTime}
                                             icon="time-outline"
+                                            formatDisplay={formatDisplayTime}
                                         />
                                     ) : (
                                         <View>
@@ -572,6 +573,13 @@ export default function CollectionDetail() {
             </Modal>
 
             <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+                <View className="mb-6 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 max-w-md">
+                    <Text className="text-blue-200 font-bold text-xs mb-1">How to Track Progress</Text>
+                    <Text className="text-blue-100/60 text-xs leading-relaxed">
+                        Track your activities below. Each time you go through the routine, tap <Text className="text-white font-bold">Log Session</Text> above to save your history.
+                    </Text>
+                </View>
+
                 {routine.blocks.map((block, index) => {
                     const isComplete = progress.some(p => p.pathId === routine.id && p.nodeId === block.id);
                     return (

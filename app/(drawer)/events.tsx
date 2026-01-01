@@ -1,6 +1,6 @@
 import { useContentStore } from '@/store/contentStore';
 import { AppEvent, AppEventType, Person, Routine } from '@/store/types';
-import { addUnifiedToCalendar } from '@/utils/calendar';
+import { addUnifiedToCalendar, downloadIcs, openGoogleCalendar } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
@@ -33,7 +33,7 @@ export default function ScheduleScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
-    const { filter } = useLocalSearchParams();
+    const { filter, source } = useLocalSearchParams();
     const [activeFilters, setActiveFilters] = useState<ScheduleFilter[]>(() => {
         if (filter) {
             const filterParam = Array.isArray(filter) ? filter[0] : filter;
@@ -42,7 +42,7 @@ export default function ScheduleScreen() {
                 return [filterParam as ScheduleFilter];
             }
         }
-        return ['performance', 'lesson', 'rehearsal', 'practice'];
+        return ['performance', 'lesson', 'rehearsal'];
     });
 
 
@@ -226,7 +226,7 @@ export default function ScheduleScreen() {
     const getBadge = (type: ScheduleFilter) => {
         // Updated colors for Dark Theme - using specific text colors instead of bg colors
         switch (type) {
-            case 'performance': return { label: 'Gig', className: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30', icon: '🎸' };
+            case 'performance': return { label: 'Performance', className: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30', icon: '🎸' };
             case 'lesson': return { label: 'Lesson', className: 'bg-purple-500/20 text-purple-300 border border-purple-500/30', icon: '👨‍🏫' };
             case 'rehearsal': return { label: 'Rehearsal', className: 'bg-amber-500/20 text-amber-300 border border-amber-500/30', icon: '👥' };
             case 'practice': return { label: 'Practice', className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30', icon: '🎼' };
@@ -239,6 +239,14 @@ export default function ScheduleScreen() {
         const isRoutine = item.type === 'practice';
         const today = new Date().toLocaleDateString('en-CA');
         const isToday = item.date === today;
+        const calItem = {
+            title: item.title,
+            date: item.date,
+            time: item.time,
+            venue: !isRoutine ? (item.originalItem as AppEvent).venue : undefined,
+            notes: !isRoutine ? (item.originalItem as AppEvent).notes : (item.originalItem as Routine).description,
+            duration: !isRoutine ? (item.originalItem as AppEvent).duration : undefined,
+        };
 
         return (
             <View
@@ -350,20 +358,43 @@ export default function ScheduleScreen() {
                                 </TouchableOpacity>
                             )}
 
-                            <TouchableOpacity
-                                onPress={() => addUnifiedToCalendar({
-                                    title: item.title,
-                                    date: item.date,
-                                    time: item.time,
-                                    venue: !isRoutine ? (item.originalItem as AppEvent).venue : undefined,
-                                    notes: !isRoutine ? (item.originalItem as AppEvent).notes : (item.originalItem as Routine).description,
-                                    duration: !isRoutine ? (item.originalItem as AppEvent).duration : undefined,
-                                })}
-                                className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10"
-                            >
-                                <Ionicons name="calendar-outline" size={14} color="#94a3b8" />
-                                <Text className="text-slate-400 font-bold text-xs ml-1.5">Sync to Calendar</Text>
-                            </TouchableOpacity>
+                            {Platform.OS === 'web' ? (
+                                <View className="flex-row gap-2">
+                                    <TouchableOpacity
+                                        onPress={() => downloadIcs(calItem)}
+                                        className="flex-row items-center bg-white/5 px-3 py-2 rounded-full border border-white/10"
+                                    >
+                                        <Ionicons name="download-outline" size={14} color="#94a3b8" />
+                                        <Text className="text-slate-400 font-bold text-xs ml-1.5">ICS</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        onPress={() => openGoogleCalendar(calItem)}
+                                        className="flex-row items-center bg-blue-500/10 px-3 py-2 rounded-full border border-blue-500/20"
+                                    >
+                                        <Ionicons name="logo-google" size={14} color="#60a5fa" />
+                                        <Text className="text-blue-300 font-bold text-xs ml-1.5">Google</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        Alert.alert(
+                                            'Sync to Calendar',
+                                            'Choose destination:',
+                                            [
+                                                { text: 'Cancel', style: 'cancel' },
+                                                { text: 'Google Calendar (Web)', onPress: () => openGoogleCalendar(calItem) },
+                                                { text: 'Device Calendar', onPress: () => addUnifiedToCalendar(calItem) }
+                                            ]
+                                        );
+                                    }}
+                                    className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10"
+                                >
+                                    <Ionicons name="calendar-outline" size={14} color="#94a3b8" />
+                                    <Text className="text-slate-400 font-bold text-xs ml-1.5">Sync to Calendar</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
                 </TouchableOpacity>
@@ -381,22 +412,30 @@ export default function ScheduleScreen() {
     };
 
     const filterOptions: { key: ScheduleFilter; label: string; icon: string }[] = [
-        { key: 'performance', label: 'Gigs', icon: '🎸' },
+        { key: 'performance', label: 'Performance', icon: '🎸' },
         { key: 'lesson', label: 'Lessons', icon: '👨‍🏫' },
         { key: 'rehearsal', label: 'Rehearsals', icon: '👥' },
-        { key: 'practice', label: 'Practice', icon: '🎼' },
     ];
 
     return (
         <View className="flex-1" style={{ backgroundColor: theme.background }}>
             {/* Header with Home Button - Top of Page (Replicated from Studio) */}
             <View className="px-6 flex-row items-start pt-8 mb-2" style={{ paddingTop: insets.top }}>
-                <TouchableOpacity
-                    onPress={() => router.push('/')}
-                    className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
-                >
-                    <Ionicons name="home-outline" size={24} color="white" />
-                </TouchableOpacity>
+                {source === 'gigs' ? (
+                    <TouchableOpacity
+                        onPress={() => router.push('/gigs')}
+                        className="mr-5 p-2 rounded-full bg-rose-500/10 border border-rose-500/20"
+                    >
+                        <Ionicons name="arrow-back" size={24} color="#fb7185" />
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        onPress={() => router.push('/')}
+                        className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
+                    >
+                        <Ionicons name="home-outline" size={24} color="white" />
+                    </TouchableOpacity>
+                )}
                 <View className="flex-1 flex-row justify-between items-start">
                     <View>
                         <Text className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-1">
@@ -414,40 +453,43 @@ export default function ScheduleScreen() {
                 </View>
             </View>
 
-            {/* Hero Image Section - Dark & Moody */}
-            <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40 opacity-90">
-                <Image
-                    source={require('@/assets/images/schedule_header.png')}
-                    style={{ width: '100%', height: '100%', borderRadius: 32 }}
-                    resizeMode="contain"
-                />
-            </View>
-
-            <View className="px-6 pb-4">
-                <View className="flex-row flex-wrap gap-3 justify-center">
-                    {filterOptions.map(opt => {
-                        const isActive = activeFilters.includes(opt.key);
-                        return (
-                            <TouchableOpacity
-                                key={opt.key}
-                                onPress={() => toggleFilter(opt.key)}
-                                className={`flex-row items-center px-5 py-2.5 rounded-full border`}
-                                style={{
-                                    backgroundColor: isActive ? 'white' : 'transparent',
-                                    borderColor: isActive ? 'white' : 'rgba(255,255,255,0.1)'
-                                }}
-                            >
-                                <Text className="mr-2 text-sm">{opt.icon}</Text>
-                                <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-black' : 'text-slate-400'}`}>
-                                    {opt.label}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-            </View>
-
             <FlatList
+                ListHeaderComponent={
+                    <>
+                        {/* Hero Image Section - Dark & Moody */}
+                        <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40 opacity-90">
+                            <Image
+                                source={require('@/assets/images/schedule_header.png')}
+                                style={{ width: '100%', height: '100%', borderRadius: 32 }}
+                                resizeMode="contain"
+                            />
+                        </View>
+
+                        <View className="px-6 pb-4">
+                            <View className="flex-row flex-wrap gap-3 justify-center">
+                                {filterOptions.map(opt => {
+                                    const isActive = activeFilters.includes(opt.key);
+                                    return (
+                                        <TouchableOpacity
+                                            key={opt.key}
+                                            onPress={() => toggleFilter(opt.key)}
+                                            className={`flex-row items-center px-5 py-2.5 rounded-full border`}
+                                            style={{
+                                                backgroundColor: isActive ? 'white' : 'transparent',
+                                                borderColor: isActive ? 'white' : 'rgba(255,255,255,0.1)'
+                                            }}
+                                        >
+                                            <Text className="mr-2 text-sm">{opt.icon}</Text>
+                                            <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-black' : 'text-slate-400'}`}>
+                                                {opt.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    </>
+                }
                 data={unifiedData}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}

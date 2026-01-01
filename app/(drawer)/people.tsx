@@ -2,6 +2,7 @@ import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Person, PersonType } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
+import * as Contacts from 'expo-contacts';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -81,6 +82,33 @@ export default function PeopleScreen() {
         }
     };
 
+    const handleImport = async () => {
+        if (Platform.OS === 'web') return; // Not supported on web
+        try {
+            const { status } = await Contacts.requestPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'OpusMode needs permission to access your contacts.');
+                return;
+            }
+            const contact = await Contacts.presentContactPickerAsync();
+            if (contact) {
+                router.push({
+                    pathname: '/modal/person-editor',
+                    params: {
+                        importName: 'true',
+                        importFirstName: contact.firstName || contact.name || '',
+                        importLastName: contact.lastName || '',
+                        importEmail: contact.emails?.[0]?.email || '',
+                        importPhone: contact.phoneNumbers?.[0]?.number || '',
+                        importNativeId: contact.id
+                    }
+                });
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const renderRosterItem = ({ item }: { item: Person }) => {
         const badge = getBadge(item.type);
         return (
@@ -142,12 +170,22 @@ export default function PeopleScreen() {
                             Roster
                         </Text>
                     </View>
-                    <TouchableOpacity
-                        onPress={() => router.push('/modal/person-editor')}
-                        className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white"
-                    >
-                        <Ionicons name="add" size={28} color="black" />
-                    </TouchableOpacity>
+                    <View className="flex-row gap-3">
+                        {Platform.OS !== 'web' && (
+                            <TouchableOpacity
+                                onPress={handleImport}
+                                className="w-12 h-12 rounded-2xl items-center justify-center bg-white/10 border border-white/20"
+                            >
+                                <Ionicons name="person-add-outline" size={24} color="white" />
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                            onPress={() => router.push('/modal/person-editor')}
+                            className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white"
+                        >
+                            <Ionicons name="add" size={28} color="black" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
 

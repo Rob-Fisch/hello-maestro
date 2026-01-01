@@ -350,7 +350,11 @@ export default function SettingsScreen() {
                     </View>
 
                     {categories
-                        .sort((a, b) => a.name.localeCompare(b.name)) // ALPHABETICAL SORT
+                        .sort((a, b) => {
+                            if (a.name === 'Other') return 1;
+                            if (b.name === 'Other') return -1;
+                            return a.name.localeCompare(b.name);
+                        })
                         .map((cat) => (
                             <View key={cat.id} className="border rounded-2xl mb-2 p-4 flex-row items-center justify-between shadow-xs" style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.05)' }}>
                                 {editingId === cat.id ? (

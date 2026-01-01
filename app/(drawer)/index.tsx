@@ -312,15 +312,15 @@ export default function HomeScreen() {
                                 <View className={`w-10 h-10 rounded-xl items-center justify-center mb-4 bg-white/5 border border-white/5`}>
                                     <Ionicons name={item.icon as any} size={20} color="white" />
                                 </View>
-                                <Text className="text-lg font-black tracking-tight leading-none mb-1 text-white">
+                                <Text className="text-base font-black tracking-tight leading-none mb-1 text-white">
                                     {item.title}
                                 </Text>
-                                <Text className={`text-[10px] font-bold uppercase tracking-wider ${item.color}`}>
+                                <Text className={`text-[9px] font-bold uppercase tracking-wider ${item.color}`}>
                                     {item.subtitle}
                                 </Text>
                             </View>
 
-                            <Text className="text-xs mt-3 leading-tight opacity-40 font-medium text-white">
+                            <Text className="text-[11px] mt-3 leading-tight opacity-40 font-medium text-white">
                                 {item.description}
                             </Text>
                         </TouchableOpacity>

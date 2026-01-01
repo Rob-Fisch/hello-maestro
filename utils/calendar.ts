@@ -1,6 +1,6 @@
-import * as Calendar from 'expo-calendar';
-import { Platform, Alert, Linking } from 'react-native';
 import { AppEvent } from '@/store/types';
+import * as Calendar from 'expo-calendar';
+import { Alert, Linking, Platform } from 'react-native';
 
 /**
  * Requests calendar permissions with specific handling for iOS 17+ permission tiers.
@@ -61,40 +61,9 @@ export interface CalendarItem {
 }
 
 export async function addUnifiedToCalendar(item: CalendarItem) {
-    // Web Fallback: Generate .ics file download
+    // Web Fallback: Use synchronous helper
     if (Platform.OS === 'web') {
-        const [hours, minutes] = (item.time || '12:00').split(':').map(Number);
-        const startDate = new Date(item.date + 'T00:00:00');
-        startDate.setHours(hours, minutes, 0, 0);
-
-        const duration = item.duration || 60;
-        const endDate = new Date(startDate.getTime() + duration * 60000);
-
-        const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-
-        const icsContent = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'BEGIN:VEVENT',
-            `SUMMARY:${item.title}`,
-            `DTSTART:${formatDate(startDate)}`,
-            `DTEND:${formatDate(endDate)}`,
-            `LOCATION:${item.venue || ''}`,
-            `DESCRIPTION:${item.notes || ''}`,
-            'END:VEVENT',
-            'END:VCALENDAR'
-        ].join('\r\n');
-
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `${item.title.replace(/\s+/g, '_')}.ics`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        return true;
+        return downloadIcs(item);
     }
 
     try {
@@ -157,4 +126,63 @@ export async function addUnifiedToCalendar(item: CalendarItem) {
         Alert.alert('Calendar Error', `Could not add event: ${error.message}`);
         return false;
     }
+}
+
+export function openGoogleCalendar(item: CalendarItem) {
+    const [hours, minutes] = (item.time || '12:00').split(':').map(Number);
+    const startDate = new Date(item.date + 'T00:00:00');
+    startDate.setHours(hours, minutes, 0, 0);
+
+    const duration = item.duration || 60;
+    const endDate = new Date(startDate.getTime() + duration * 60000);
+
+    const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(item.title)}` +
+        `&dates=${formatDate(startDate)}/${formatDate(endDate)}` +
+        `&details=${encodeURIComponent(item.notes || '')}` +
+        `&location=${encodeURIComponent(item.venue || '')}`;
+
+    Linking.openURL(url);
+}
+
+export function downloadIcs(item: CalendarItem) {
+    const [hours, minutes] = (item.time || '12:00').split(':').map(Number);
+    const startDate = new Date(item.date + 'T00:00:00');
+    startDate.setHours(hours, minutes, 0, 0);
+
+    const duration = item.duration || 60;
+    const endDate = new Date(startDate.getTime() + duration * 60000);
+
+    const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'BEGIN:VEVENT',
+        `SUMMARY:${item.title}`,
+        `DTSTART:${formatDate(startDate)}`,
+        `DTEND:${formatDate(endDate)}`,
+        `LOCATION:${item.venue || ''}`,
+        `DESCRIPTION:${item.notes || ''}`,
+        'END:VEVENT',
+        'END:VCALENDAR'
+    ].join('\r\n');
+
+    const filename = `${(item.title || 'event').replace(/[^a-zA-Z0-9_\-]/g, '_')}.ics`;
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, 100);
+
+    return true;
 }

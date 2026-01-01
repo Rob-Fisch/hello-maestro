@@ -89,12 +89,12 @@ export const useContentStore = create<ContentState>()(
             routines: [],
             events: [],
             categories: [
-                { id: 'cat-1', name: 'Warmups' },
-                { id: 'cat-2', name: 'Technical' },
-                { id: 'cat-3', name: 'Repertoire' },
-                { id: 'cat-4', name: 'Performance' },
-                { id: 'cat-5', name: 'Coaching' },
-                { id: 'cat-6', name: 'Other' },
+                { id: `cat-1-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Warmups' },
+                { id: `cat-2-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Technical' },
+                { id: `cat-3-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Repertoire' },
+                { id: `cat-4-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Performance' },
+                { id: `cat-5-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Coaching' },
+                { id: `cat-6-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: 'Other' },
             ],
             people: [],
             settings: {
@@ -548,22 +548,41 @@ export const useContentStore = create<ContentState>()(
         {
             name: 'maestro-content-storage',
             storage: createJSONStorage(() => createPlatformStorage()),
-            version: 3,
+            version: 4,
             onRehydrateStorage: () => (state) => {
                 console.log('🚀 [ContentStore] Hydration complete');
                 state?.setHasHydrated(true);
             },
             migrate: (persistedState: any, version: number) => {
+                let state = persistedState as any;
                 if (version <= 2) {
                     // Migrate gigs to events
-                    const state = persistedState as any;
                     if (state.gigs) {
                         state.events = [...(state.events || []), ...(state.gigs || [])];
                         delete state.gigs;
                     }
-                    return state;
                 }
-                return persistedState;
+                if (version <= 3) {
+                    // Migrate default categories (cat-1..6) to unique IDs
+                    const idMap: Record<string, string> = {};
+                    state.categories = (state.categories || []).map((c: Category) => {
+                        if (c.id.startsWith('cat-')) {
+                            const newId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5) + '-' + c.id;
+                            idMap[c.id] = newId;
+                            return { ...c, id: newId };
+                        }
+                        return c;
+                    });
+
+                    // Update blocks referencing old category IDs
+                    state.blocks = (state.blocks || []).map((b: ContentBlock) => {
+                        if (b.categoryId && idMap[b.categoryId]) {
+                            return { ...b, categoryId: idMap[b.categoryId] };
+                        }
+                        return b;
+                    });
+                }
+                return state;
             },
         }
     )

@@ -1,3 +1,4 @@
+import { PAPER_THEME } from '@/lib/theme';
 import { useGearStore } from '@/store/gearStore';
 import { GearAsset, GearCategory, GearStatus } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +17,7 @@ interface SectionProps {
 function Section({ title, children }: SectionProps) {
     return (
         <View className="mb-8 px-6">
-            <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{title}</Text>
+            <Text className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-4">{title}</Text>
             {children}
         </View>
     );
@@ -34,9 +35,9 @@ interface InputProps {
 function Input({ label, value, onChangeText, placeholder, keyboardType = 'default', multiline = false }: InputProps) {
     return (
         <View className="mb-4">
-            <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">{label}</Text>
+            <Text className="text-xs font-bold text-stone-500 mb-2 uppercase tracking-wide">{label}</Text>
             <TextInput
-                className={`bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-semibold text-base ${multiline ? 'h-[100px] pt-3 text-top' : ''}`}
+                className={`bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 font-semibold text-base ${multiline ? 'h-[100px] pt-3 text-top' : ''}`}
                 value={value}
                 onChangeText={onChangeText}
                 placeholder={placeholder}
@@ -55,6 +56,7 @@ export default function AssetEditor() {
     const { assets, addAsset, updateAsset } = useGearStore();
 
     const existingAsset = id ? assets.find(a => a.id === id) : undefined;
+    const isEditing = !!existingAsset;
 
     // Form State
     const [name, setName] = React.useState(existingAsset?.name || '');
@@ -122,56 +124,32 @@ export default function AssetEditor() {
         router.back();
     };
 
-    const getStatusColor = (s: GearStatus) => {
-        switch (s) {
-            case 'Ready': return 'bg-green-100 border-green-200 text-green-700';
-            case 'In Repair': return 'bg-red-100 border-red-200 text-red-700';
-            case 'On Loan (To)': return 'bg-blue-100 border-blue-200 text-blue-700';
-            case 'On Loan (From)': return 'bg-purple-100 border-purple-200 text-purple-700';
-            case 'Retired': return 'bg-slate-100 border-slate-200 text-slate-500';
-            default: return 'bg-slate-100 border-slate-200 text-slate-500';
-        }
-    };
-
     return (
-        <View className="flex-1 bg-white">
-            {/* Header */}
-            <View className="px-4 pt-4 pb-2 border-b border-slate-200 flex-row justify-between items-center bg-white z-10">
-                <View>
-                    <Text className="text-2xl font-black text-slate-900 tracking-tight">
-                        {existingAsset ? 'Edit Gear' : 'New Gear'}
+        <View className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
+            <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 24, paddingBottom: 120 }}>
+                <View className="px-6 mb-8">
+                    <Text className="text-3xl font-black tracking-tight" style={{ color: PAPER_THEME.text }}>
+                        {isEditing ? 'Edit Gear' : 'New Gear'}
                     </Text>
-                    <Text className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                    <Text className="text-stone-500 font-bold uppercase tracking-widest text-xs mt-1">
                         Inventory Details
                     </Text>
                 </View>
 
-                <View className="flex-row gap-2">
-                    <TouchableOpacity
-                        onPress={() => router.back()}
-                        className="bg-slate-100 px-4 py-2 rounded-full flex-row items-center"
-                    >
-                        <Ionicons name="close-circle" size={18} color="#475569" />
-                        <Text className="text-slate-600 font-bold text-xs uppercase tracking-wide ml-2">Cancel</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 24 }}>
                 {/* Basic Info */}
                 <Section title="Basic Information">
                     <Input label="Name" value={name} onChangeText={setName} placeholder="e.g. Fender Stratocaster" />
 
                     <View className="mb-6">
-                        <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Category</Text>
+                        <Text className="text-xs font-bold text-stone-500 mb-2 uppercase tracking-wide">Category</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
                             {CATEGORIES.map(cat => (
                                 <TouchableOpacity
                                     key={cat}
                                     onPress={() => setCategory(cat)}
-                                    className={`px-4 py-2 rounded-full border mr-2 ${category === cat ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'}`}
+                                    className={`px-4 py-2 rounded-full border mr-2 ${category === cat ? 'bg-stone-800 border-stone-800' : 'bg-white border-stone-200'}`}
                                 >
-                                    <Text className={`font-bold text-xs ${category === cat ? 'text-white' : 'text-slate-600'}`}>{cat}</Text>
+                                    <Text className={`font-bold text-xs ${category === cat ? 'text-white' : 'text-stone-600'}`}>{cat}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -185,29 +163,26 @@ export default function AssetEditor() {
 
                 {/* Status & Wishlist */}
                 <Section title="Status & Visibility">
-                    <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Current Status</Text>
+                    <Text className="text-xs font-bold text-stone-500 mb-2 uppercase tracking-wide">Current Status</Text>
                     <View className="flex-row flex-wrap gap-2 mb-6">
                         {STATUSES.map(s => {
                             const isSelected = status === s;
-                            // Just simplified logic for selection: 
-                            // If selected: Solid Slate-900
-                            // If not: Light variant
                             return (
                                 <TouchableOpacity
                                     key={s}
                                     onPress={() => setStatus(s)}
-                                    className={`px-3 py-1.5 rounded-lg border ${isSelected ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'}`}
+                                    className={`px-3 py-1.5 rounded-lg border ${isSelected ? 'bg-stone-800 border-stone-800' : 'bg-white border-stone-200'}`}
                                 >
-                                    <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-600'}`}>{s}</Text>
+                                    <Text className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-stone-600'}`}>{s}</Text>
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
 
-                    <View className="flex-row justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <View className="flex-row justify-between items-center bg-white p-4 rounded-xl border border-stone-200">
                         <View>
-                            <Text className="font-bold text-slate-900 text-base">Wishlist Item</Text>
-                            <Text className="text-xs text-slate-500 font-medium mt-1">Don't own this yet, but want it</Text>
+                            <Text className="font-bold text-stone-900 text-base">Wishlist Item</Text>
+                            <Text className="text-xs text-stone-500 font-medium mt-1">Don't own this yet, but want it</Text>
                         </View>
                         <Switch
                             value={isWishlist}
@@ -251,17 +226,27 @@ export default function AssetEditor() {
                     <Input label="General Notes" value={notes} onChangeText={setNotes} placeholder="Any other details..." multiline />
                 </Section>
 
-                <View className="h-[120px]" />
+                <View className="h-[20px]" />
             </ScrollView>
 
-            {/* Sticky Footer Save Button */}
-            <View className="absolute bottom-6 left-6 right-6 border-t border-slate-100 pt-4 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 20 : 0 }}>
+            {/* Bottom Actions */}
+            <View className="flex-row gap-4 p-6 border-t border-stone-200 bg-white/90 absolute bottom-0 left-0 right-0" style={{ paddingBottom: Platform.OS === 'ios' ? 40 : 24 }}>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="flex-1 p-4 rounded-2xl border border-stone-300 items-center justify-center"
+                    style={{ backgroundColor: PAPER_THEME.cancelBtnBg }}
+                >
+                    <Text className="text-center font-bold uppercase tracking-wide" style={{ color: PAPER_THEME.cancelBtnText }}>Cancel</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={handleSave}
-                    className="bg-slate-900 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-slate-900/20"
+                    className="flex-1 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-orange-900/20"
+                    style={{ backgroundColor: PAPER_THEME.saveBtnBg }}
                 >
-                    <Ionicons name="checkmark-circle" size={20} color="white" />
-                    <Text className="text-white font-black text-lg uppercase tracking-wider ml-2">Save Gear</Text>
+                    <Ionicons name="checkmark-circle" size={20} color={PAPER_THEME.saveBtnText} />
+                    <Text className="font-black text-lg uppercase tracking-wider ml-2" style={{ color: PAPER_THEME.saveBtnText }}>
+                        {isEditing ? 'Update' : 'Save'}
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
