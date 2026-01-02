@@ -11,11 +11,10 @@ module.exports = function (api) {
                 "module-resolver",
                 {
                     alias: {
-                        "react-native-worklets": "react-native-worklets-core"
+                        "@": "./"
                     }
                 }
             ],
-            "react-native-worklets-core/plugin",
             "react-native-reanimated/plugin"
         ],
     };
