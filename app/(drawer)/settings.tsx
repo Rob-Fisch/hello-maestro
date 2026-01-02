@@ -3,11 +3,11 @@ import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Category } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { APP_VERSION, BUILD_NUMBER } from '../../constants/Version';
 
 
 export default function SettingsScreen() {
@@ -608,7 +608,7 @@ export default function SettingsScreen() {
                         {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
                     </Text>
                     <Text className="text-[10px] mt-1 text-slate-600">
-                        Version {Constants.expoConfig?.version ?? '1.2.2'} (Build {Constants.expoConfig?.extra?.buildNumber ?? '1'}) • {profile?.id.startsWith('mock-') ? 'Local Mode' : 'Cloud Sync Enabled'}
+                        Version {APP_VERSION} (Build {BUILD_NUMBER}) • {profile?.id.startsWith('mock-') ? 'Local Mode' : 'Cloud Sync Enabled'}
                     </Text>
                 </View>
 

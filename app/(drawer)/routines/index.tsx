@@ -9,7 +9,7 @@ import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RoutinesScreen() {
-    const { routines, deleteRoutine, settings, trackModuleUsage, fetchPublicRoutines, publicRoutines, forkRemoteRoutine } = useContentStore();
+    const { routines, deleteRoutine, settings, trackModuleUsage, fetchPublicRoutines, publicRoutines, forkRemoteRoutine, sessionLogs, progress } = useContentStore();
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
     const theme = useTheme();
@@ -67,6 +67,63 @@ export default function RoutinesScreen() {
         }
         forkRemoteRoutine(item);
     };
+
+    const Heatmap = () => (
+        <TouchableOpacity
+            onPress={() => router.push('/(drawer)/history')}
+            activeOpacity={0.7}
+            className="mb-8"
+        >
+            <View className="flex-row justify-between items-end mb-3 px-1">
+                <View>
+                    <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-1 shadow-sm">Practice Momentum</Text>
+                    <Text className="text-2xl font-black text-white shadow-sm">
+                        Keep it up!
+                    </Text>
+                </View>
+                <View className="flex-row items-center bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                    <Text className="text-xs font-bold text-slate-300 mr-1">View History</Text>
+                    <Ionicons name="chevron-forward" size={12} color="white" />
+                </View>
+            </View>
+
+            <View className="p-4 rounded-[24px] bg-white/5 border border-white/5">
+                <View className="flex-row flex-wrap justify-between" style={{ gap: 4 }}>
+                    {Array.from({ length: 35 }).map((_, i) => {
+                        const date = new Date();
+                        date.setDate(date.getDate() - (34 - i));
+                        const dateStr = date.toISOString().split('T')[0];
+
+                        // Activity Score
+                        const logsCount = (sessionLogs || []).filter(l => l.date.startsWith(dateStr)).length;
+                        const progressCount = (progress || []).filter(p => p.completedAt?.startsWith(dateStr)).length;
+                        const score = (logsCount * 3) + progressCount;
+
+                        let bgClass = 'bg-white/5'; // Default (0) - Subtle glass
+                        if (score >= 4) bgClass = 'bg-emerald-400'; // High
+                        else if (score >= 2) bgClass = 'bg-emerald-500/60'; // Medium
+                        else if (score >= 1) bgClass = 'bg-emerald-900/40'; // Low
+
+                        return (
+                            <View
+                                key={i}
+                                className={`h-4 w-[11%] rounded-sm ${bgClass}`}
+                                style={{
+                                    // Highlight today
+                                    borderColor: i === 34 ? 'white' : 'transparent',
+                                    borderWidth: i === 34 ? 1 : 0
+                                }}
+                            />
+                        );
+                    })}
+                </View>
+                <View className="flex-row justify-between mt-3">
+                    <Text className="text-[9px] font-bold text-slate-600">30 Days Ago</Text>
+                    <Text className="text-[9px] font-bold text-slate-600">Today</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
 
     const renderItem = ({ item }: { item: Routine }) => (
         <View className="mb-8 border rounded-card overflow-hidden shadow-lg shadow-gray-200/50 mx-1" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
@@ -244,9 +301,14 @@ export default function RoutinesScreen() {
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
-                ListHeaderComponent={activeTab === 'public' && isLoadingPublic ? (
-                    <View className="p-8 items-center"><Text className="text-slate-400">Loading community collections...</Text></View>
-                ) : null}
+                ListHeaderComponent={
+                    <View>
+                        {activeTab === 'mine' && <Heatmap />}
+                        {activeTab === 'public' && isLoadingPublic ? (
+                            <View className="p-8 items-center"><Text className="text-slate-400">Loading community collections...</Text></View>
+                        ) : null}
+                    </View>
+                }
                 ListEmptyComponent={
                     <View className="p-20 items-center justify-center">
                         <Ionicons name={activeTab === 'mine' ? "layers-outline" : "earth-outline"} size={80} color="#d1d5db" />

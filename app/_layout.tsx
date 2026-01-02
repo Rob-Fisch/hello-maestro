@@ -1,4 +1,5 @@
 // [AGENT NOTIFICATION] The user says the PWA is running and you might be stuck.
+import { VersionChecker } from '@/components/VersionChecker';
 import { useContentStore } from '@/store/contentStore';
 import { useGearStore } from '@/store/gearStore';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -59,14 +60,29 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
 
       // AUTO-SYNC ON START
-      // Forces cloud truth to overwrite stale local cache immediately
       const { profile, fullSync } = useContentStore.getState();
       if (profile && !profile.id.startsWith('mock-')) {
         console.log('🚀 [RootLayout] Triggering Auto-Sync...');
-        fullSync();
+        fullSync(); // Pull latest
       }
     }
   }, [isHydrated, fontsLoaded]);
+
+  // REALTIME SUBSCRIPTION MOUNT
+  useEffect(() => {
+    const { profile, initRealtime, cleanupRealtime } = useContentStore.getState();
+
+    if (profile && !profile.id.startsWith('mock-')) {
+      initRealtime();
+    } else {
+      cleanupRealtime();
+    }
+
+    return () => {
+      cleanupRealtime();
+    };
+  }, [profile?.id]); // Re-run only when user Identity changes
+
 
   useEffect(() => {
     if (!isHydrated || !isNavigationReady) return;
@@ -116,17 +132,18 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <VersionChecker />
       <ThemeProvider value={DefaultTheme}>
         <Stack screenOptions={{ animation: 'slide_from_right' }}>
           <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
           <Stack.Screen
             name="modal/person-editor"
-            options={{ title: 'Contact Editor' }}
+            options={{ title: 'Contact Editor', headerBackTitle: 'Back' }}
           />
           <Stack.Screen
             name="modal/event-editor"
-            options={{ title: 'Event Editor' }}
+            options={{ title: 'Event Editor', headerBackTitle: 'Back' }}
           />
           <Stack.Screen
             name="modal/routine-editor"
@@ -138,19 +155,19 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="modal/path-editor"
-            options={{ title: 'Path Editor' }}
+            options={{ title: 'Path Editor', headerBackTitle: 'Back' }}
           />
           <Stack.Screen
             name="modal/help"
-            options={{ presentation: 'modal', title: 'Help & FAQ' }}
+            options={{ presentation: 'modal', title: 'Help & FAQ', headerBackTitle: 'Back' }}
           />
           <Stack.Screen
             name="modal/node-editor"
-            options={{ title: 'Node Editor' }}
+            options={{ title: 'Node Editor', headerBackTitle: 'Back' }}
           />
           <Stack.Screen
             name="modal/asset-editor"
-            options={{ title: 'Asset Editor' }}
+            options={{ title: 'Asset Editor', headerBackTitle: 'Back' }}
           />
           <Stack.Screen
             name="modal/upgrade"

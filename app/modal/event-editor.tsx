@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 
@@ -28,7 +28,7 @@ export default function EventEditor() {
 
     const [title, setTitle] = useState(existingEvent?.title || '');
     const [venue, setVenue] = useState(existingEvent?.venue || '');
-    const [date, setDate] = useState(existingEvent?.date || new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(existingEvent?.date || new Date().toLocaleDateString('en-CA'));
     const [time, setTime] = useState(existingEvent?.time || '20:00');
     const [notes, setNotes] = useState(existingEvent?.notes || '');
     const [totalFee, setTotalFee] = useState(existingEvent?.totalFee || existingEvent?.fee || '');
@@ -587,11 +587,12 @@ const EditorHeader = ({
 
             <View className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-6">
                 <View className="mb-5">
-                    <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Event Title</Text>
+                    <Text className="text-[10px] uppercase font-black text-slate-600 mb-1 tracking-widest">Event Title</Text>
                     <TextInput
                         className="text-2xl font-bold text-slate-900"
                         placeholder={type === 'lesson' ? 'Weekly Sax Lesson' : 'Summer Festival...'}
-                        placeholderTextColor="#cbd5e1"
+                        placeholderTextColor="#475569"
+                        style={{ fontStyle: title ? 'normal' : 'italic' }}
                         value={title}
                         onChangeText={setTitle}
                     />
@@ -599,11 +600,12 @@ const EditorHeader = ({
 
                 {type === 'lesson' && (
                     <View className="mb-5">
-                        <Text className="text-[10px] uppercase font-black text-purple-600 mb-1 tracking-widest">Student Name</Text>
+                        <Text className="text-[10px] uppercase font-black text-purple-700 mb-1 tracking-widest">Student Name</Text>
                         <TextInput
                             className="text-lg font-semibold text-slate-900"
                             placeholder="John Doe"
-                            placeholderTextColor="#cbd5e1"
+                            placeholderTextColor="#475569"
+                            style={{ fontStyle: studentName ? 'normal' : 'italic' }}
                             value={studentName}
                             onChangeText={setStudentName}
                         />
@@ -612,7 +614,7 @@ const EditorHeader = ({
 
                 <View className="mb-5">
                     <View className="flex-row justify-between items-center mb-1">
-                        <Text className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Venue / Location</Text>
+                        <Text className="text-[10px] uppercase font-black text-slate-600 tracking-widest">Venue / Location</Text>
                         <TouchableOpacity onPress={() => setShowVenuePicker(true)} className="flex-row items-center">
                             <Ionicons name="people-circle-outline" size={16} color="#2563eb" />
                             <Text className="text-10px font-bold text-blue-600 ml-1">Select from Contacts</Text>
@@ -621,7 +623,8 @@ const EditorHeader = ({
                     <TextInput
                         className="text-lg font-semibold text-slate-900"
                         placeholder={type === 'lesson' ? 'Studio / Zoom' : 'The Jazz Corner'}
-                        placeholderTextColor="#cbd5e1"
+                        placeholderTextColor="#475569"
+                        style={{ fontStyle: venue ? 'normal' : 'italic' }}
                         value={venue}
                         onChangeText={setVenue}
                     />
@@ -812,34 +815,67 @@ const EditorHeader = ({
 
 // EditorFooter Component
 const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring, startDate, date, time, notes, setNotes, totalFee, setTotalFee, musicianFee, setMusicianFee, personSearchQuery, setPersonSearchQuery, availablePersonnel, searchQuery, setSearchQuery, availableRoutines, addRoutineToEvent, selectedGearIds, setSelectedGearIds, checkedGearIds, setCheckedGearIds }: any) => {
-    // ... Simplified prop passing for now, normally we'd separate this out
 
-    // We can define the roster/gear managers here if they were self-contained, but they are components.
-    // For now, let's just render the bottom part of the list
+    // UI State for Progressive Disclosure
+    const [trackPersonnel, setTrackPersonnel] = useState(slots && slots.length > 0);
+    const [isLeader, setIsLeader] = useState(false);
 
     return (
         <View className="p-6 pt-0">
-            {/* Roster Section */}
-            <View className="mb-8">
-                <Text className="text-xl font-black text-slate-900 mb-4">Personnel & Roster</Text>
-                <RosterManager
-                    slots={slots}
-                    onUpdateSlots={setSlots}
-                    availablePeople={people}
-                    event={{ title, date, time, type, venue }}
-                />
-            </View>
+            {/* Roster Section - Hidden for Lessons, Optional for others */}
+            {type !== 'lesson' && (
+                <View className="mb-8">
+                    <View className="flex-row justify-between items-center mb-4">
+                        <Text className="text-xl font-black text-slate-900">Personnel & Roster</Text>
+                        <View className="flex-col items-end gap-2">
+                            <View className="flex-row items-center gap-2">
+                                <Text className="text-xs font-bold text-slate-500 uppercase">Track Members?</Text>
+                                <Switch
+                                    value={trackPersonnel}
+                                    onValueChange={setTrackPersonnel}
+                                    trackColor={{ false: '#e2e8f0', true: '#2563eb' }}
+                                    thumbColor={'#ffffff'}
+                                />
+                            </View>
+                            {trackPersonnel && (
+                                <View className="flex-row items-center gap-2">
+                                    <Text className="text-xs font-bold text-slate-500 uppercase">As Leader</Text>
+                                    <Switch
+                                        value={isLeader}
+                                        onValueChange={setIsLeader}
+                                        trackColor={{ false: '#e2e8f0', true: '#2563eb' }}
+                                        thumbColor={'#ffffff'}
+                                    />
+                                </View>
+                            )}
+                        </View>
+                    </View>
 
-            {/* Gear Section */}
-            <View className="mb-8">
-                <Text className="text-xl font-black text-slate-900 mb-4">Pack List & Gear</Text>
-                <GearPackManager
-                    selectedItemIds={selectedGearIds}
-                    onUpdateItems={setSelectedGearIds}
-                    checkedItemIds={checkedGearIds}
-                    onUpdateCheckedItems={setCheckedGearIds}
-                />
-            </View>
+                    {trackPersonnel && (
+                        <View>
+                            <RosterManager
+                                slots={slots}
+                                onUpdateSlots={setSlots}
+                                availablePeople={people}
+                                event={{ title, date, time, type, venue }}
+                            />
+                        </View>
+                    )}
+                </View>
+            )}
+
+            {/* Gear Section - Temporarily Hidden per User Request */}
+            {false && (
+                <View className="mb-8">
+                    <Text className="text-xl font-black text-slate-900 mb-4">Pack List & Gear</Text>
+                    <GearPackManager
+                        selectedItemIds={selectedGearIds}
+                        onUpdateItems={setSelectedGearIds}
+                        checkedItemIds={checkedGearIds}
+                        onUpdateCheckedItems={setCheckedGearIds}
+                    />
+                </View>
+            )}
 
             {/* Routine Picker */}
             <View className="mb-8">
@@ -849,7 +885,8 @@ const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring
                     <TextInput
                         className="flex-1 ml-2 font-bold text-slate-900"
                         placeholder="Search routines..."
-                        placeholderTextColor="#94a3b8"
+                        placeholderTextColor="#475569"
+                        style={{ fontStyle: searchQuery ? 'normal' : 'italic' }}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
@@ -881,46 +918,53 @@ const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring
             </View>
 
             {/* Financials & Notes */}
-            <View className="mb-8">
-                <Text className="text-xl font-black text-slate-900 mb-4">Notes & Financials</Text>
-                <View className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm">
-                    <Text className="text-[10px] uppercase font-bold text-slate-400 mb-2">Private Notes</Text>
-                    <TextInput
-                        className="text-base text-slate-800 min-h-[100px] mb-6"
-                        placeholder="Load-in details, parking info, setlist notes..."
-                        value={notes}
-                        onChangeText={setNotes}
-                        multiline
-                        textAlignVertical="top"
-                        placeholderTextColor="#cbd5e1"
-                    />
+            {!['lesson', 'rehearsal'].includes(type) && (
+                <View className="mb-8">
+                    <Text className="text-xl font-black text-slate-900 mb-4">Notes & Financials</Text>
+                    <View className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm">
+                        <Text className="text-[10px] uppercase font-bold text-slate-600 mb-2">Private Notes</Text>
+                        <TextInput
+                            className="text-base text-slate-800 min-h-[100px] mb-6"
+                            placeholder="Load-in details, parking info, setlist notes..."
+                            value={notes}
+                            onChangeText={setNotes}
+                            multiline
+                            textAlignVertical="top"
+                            placeholderTextColor="#475569"
+                            style={{ fontStyle: notes ? 'normal' : 'italic' }}
+                        />
 
-                    <View className="flex-row gap-4">
-                        <View className="flex-1">
-                            <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">Total Fee ($)</Text>
-                            <TextInput
-                                className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-green-700"
-                                value={totalFee}
-                                onChangeText={setTotalFee}
-                                keyboardType="numeric"
-                                placeholder="0.00"
-                                placeholderTextColor="#cbd5e1"
-                            />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="text-[10px] uppercase font-bold text-slate-400 mb-1">Per-Musician ($)</Text>
-                            <TextInput
-                                className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-slate-700"
-                                value={musicianFee}
-                                onChangeText={setMusicianFee}
-                                keyboardType="numeric"
-                                placeholder="0.00"
-                                placeholderTextColor="#cbd5e1"
-                            />
+                        <View className="flex-row gap-4">
+                            {isLeader && (
+                                <View className="flex-1">
+                                    <Text className="text-[10px] uppercase font-bold text-slate-600 mb-1">Total Fee ($)</Text>
+                                    <TextInput
+                                        className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-green-700"
+                                        value={totalFee}
+                                        onChangeText={setTotalFee}
+                                        keyboardType="numeric"
+                                        placeholder="0.00"
+                                        placeholderTextColor="#475569"
+                                        style={{ fontStyle: totalFee ? 'normal' : 'italic' }}
+                                    />
+                                </View>
+                            )}
+                            <View className="flex-1">
+                                <Text className="text-[10px] uppercase font-bold text-slate-600 mb-1">Per-Musician ($)</Text>
+                                <TextInput
+                                    className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-slate-700"
+                                    value={musicianFee}
+                                    onChangeText={setMusicianFee}
+                                    keyboardType="numeric"
+                                    placeholder="0.00"
+                                    placeholderTextColor="#475569"
+                                    style={{ fontStyle: musicianFee ? 'normal' : 'italic' }}
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
+            )}
         </View>
     );
 }

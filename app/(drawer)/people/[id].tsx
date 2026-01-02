@@ -378,9 +378,22 @@ export default function PersonDetailScreen() {
             <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
                 {/* Header Profile */}
                 <View className="px-6 pb-6 border-b" style={{ paddingTop: Math.max(insets.top, 20), backgroundColor: theme.headerBg, borderColor: theme.border }}>
-                    <TouchableOpacity onPress={() => router.back()} className="mb-6 -ml-2 p-2 self-start rounded-full bg-gray-100">
-                        <Ionicons name="arrow-back" size={24} color={theme.text} />
-                    </TouchableOpacity>
+                    <View className="flex-row justify-between items-center mb-6">
+                        <TouchableOpacity
+                            onPress={() => router.navigate('/people')}
+                            className="-ml-2 flex-row items-center self-start rounded-full pl-2 pr-4 py-2 bg-white/10 border border-white/10"
+                        >
+                            <Ionicons name="chevron-back" size={20} color={theme.text} />
+                            <Text className="text-sm font-bold ml-1" style={{ color: theme.text }}>Back</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => router.push('/')}
+                            className="p-2 rounded-full bg-white/10 border border-white/10"
+                        >
+                            <Ionicons name="home" size={20} color={theme.text} />
+                        </TouchableOpacity>
+                    </View>
 
                     <View className={`self-start px-3 py-1 rounded-full mb-3 flex-row items-center ${badge.color}`}>
                         <Ionicons name={badge.icon as any} size={12} color={badge.text} />

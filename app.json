@@ -2,7 +2,7 @@
   "expo": {
     "name": "OpusMode",
     "slug": "opusmode",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "opusmode",
@@ -41,6 +41,13 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you select sheet music snippets.",
+          "cameraPermission": "The app accesses your camera to let you capture sheet music snippets."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/icon.png",
@@ -60,7 +67,7 @@
     },
     "extra": {
       "router": {},
-      "buildNumber": "1"
+      "buildNumber": "5"
     }
   }
 }

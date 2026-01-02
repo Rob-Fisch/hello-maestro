@@ -169,28 +169,30 @@ export default function PersonEditor() {
                 <View className="bg-white p-6 rounded-[32px] border border-stone-200 mb-6 shadow-sm">
                     <View className="flex-row gap-4 mb-6">
                         <View className="flex-1">
-                            <Text className="text-[10px] uppercase font-bold text-stone-400 mb-1">First Name</Text>
+                            <Text className="text-[10px] uppercase font-bold text-stone-700 mb-1">First Name</Text>
                             <TextInput
                                 className="text-xl font-bold py-1 border-b border-stone-200 text-stone-900"
                                 value={firstName}
                                 onChangeText={setFirstName}
                                 placeholder="Jane"
-                                placeholderTextColor="#d6d3d1"
+                                placeholderTextColor="#57534e"
+                                style={{ fontStyle: firstName ? 'normal' : 'italic' }}
                             />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-[10px] uppercase font-bold text-stone-400 mb-1">Last Name</Text>
+                            <Text className="text-[10px] uppercase font-bold text-stone-700 mb-1">Last Name</Text>
                             <TextInput
                                 className="text-xl font-bold py-1 border-b border-stone-200 text-stone-900"
                                 value={lastName}
                                 onChangeText={setLastName}
                                 placeholder="Doe"
-                                placeholderTextColor="#d6d3d1"
+                                placeholderTextColor="#57534e"
+                                style={{ fontStyle: lastName ? 'normal' : 'italic' }}
                             />
                         </View>
                     </View>
 
-                    <Text className="text-[10px] uppercase font-bold text-stone-400 mb-1">Email</Text>
+                    <Text className="text-[10px] uppercase font-bold text-stone-700 mb-1">Email</Text>
                     <TextInput
                         className="text-lg font-semibold py-1 mb-4 border-b border-stone-100 text-stone-900"
                         value={email}
@@ -198,17 +200,19 @@ export default function PersonEditor() {
                         keyboardType="email-address"
                         autoCapitalize="none"
                         placeholder="jane@example.com"
-                        placeholderTextColor="#d6d3d1"
+                        placeholderTextColor="#57534e"
+                        style={{ fontStyle: email ? 'normal' : 'italic' }}
                     />
 
-                    <Text className="text-[10px] uppercase font-bold text-stone-400 mb-1">General Phone</Text>
+                    <Text className="text-[10px] uppercase font-bold text-stone-700 mb-1">General Phone</Text>
                     <TextInput
                         className="text-lg font-semibold py-1 mb-4 border-b border-stone-100 text-stone-900"
                         value={phone}
                         onChangeText={setPhone}
                         keyboardType="phone-pad"
                         placeholder="(555) 123-4567"
-                        placeholderTextColor="#d6d3d1"
+                        placeholderTextColor="#57534e"
+                        style={{ fontStyle: phone ? 'normal' : 'italic' }}
                     />
 
                     <View className="mb-4">
@@ -228,13 +232,14 @@ export default function PersonEditor() {
 
                     {type !== 'venue_manager' && (
                         <>
-                            <Text className="text-[10px] uppercase font-bold text-stone-400 mb-1">Instruments</Text>
+                            <Text className="text-[10px] uppercase font-bold text-stone-700 mb-1">Instruments</Text>
                             <TextInput
                                 className="text-lg font-semibold py-1 mb-4 border-b border-stone-100 text-stone-900"
                                 placeholder="Piano, Guitar, Vocals..."
                                 value={instruments.join(', ')}
                                 onChangeText={(text) => setInstruments(text.split(',').map(s => s.trim()).filter(s => s !== ''))}
-                                placeholderTextColor="#d6d3d1"
+                                placeholderTextColor="#57534e"
+                                style={{ fontStyle: instruments.length ? 'normal' : 'italic' }}
                             />
                         </>
                     )}
@@ -255,34 +260,37 @@ export default function PersonEditor() {
                             )}
                         </View>
 
-                        <Text className="text-[10px] uppercase font-bold text-orange-400/70 mb-1">Venue Name</Text>
+                        <Text className="text-[10px] uppercase font-bold text-orange-700/70 mb-1">Venue Name</Text>
                         <TextInput
                             className="text-lg font-bold py-1 mb-4 border-b border-orange-200 text-orange-900"
                             placeholder="e.g. The Blue Note"
                             value={venueName}
                             onChangeText={setVenueName}
-                            placeholderTextColor="#fdba74"
+                            placeholderTextColor="#c2410c"
+                            style={{ fontStyle: venueName ? 'normal' : 'italic' }}
                         />
 
                         <View className="flex-row gap-4">
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase font-bold text-orange-400/70 mb-1">Type / Vibe</Text>
+                                <Text className="text-[10px] uppercase font-bold text-orange-700/70 mb-1">Type / Vibe</Text>
                                 <TextInput
                                     className="text-base font-semibold py-1 border-b border-orange-200 text-orange-900"
                                     placeholder="Jazz Club"
                                     value={venueType}
                                     onChangeText={setVenueType}
-                                    placeholderTextColor="#fdba74"
+                                    placeholderTextColor="#c2410c"
+                                    style={{ fontStyle: venueType ? 'normal' : 'italic' }}
                                 />
                             </View>
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase font-bold text-orange-400/70 mb-1">Location</Text>
+                                <Text className="text-[10px] uppercase font-bold text-orange-700/70 mb-1">Location</Text>
                                 <TextInput
                                     className="text-base font-semibold py-1 border-b border-orange-200 text-orange-900"
                                     placeholder="City, State"
                                     value={venueLocation}
                                     onChangeText={setVenueLocation}
-                                    placeholderTextColor="#fdba74"
+                                    placeholderTextColor="#c2410c"
+                                    style={{ fontStyle: venueLocation ? 'normal' : 'italic' }}
                                 />
                             </View>
                         </View>
@@ -291,7 +299,7 @@ export default function PersonEditor() {
 
                 {/* Notes Section */}
                 <View className="bg-white p-6 rounded-[32px] border border-stone-200 mb-8">
-                    <Text className="text-[10px] uppercase font-bold text-stone-400 mb-2">Private Notes</Text>
+                    <Text className="text-[10px] uppercase font-bold text-stone-700 mb-2">Private Notes</Text>
                     <TextInput
                         className="text-base text-stone-800 min-h-[100px]"
                         placeholder="Booking preferences, travel info, etc..."
@@ -299,7 +307,8 @@ export default function PersonEditor() {
                         onChangeText={setNotes}
                         multiline
                         textAlignVertical="top"
-                        placeholderTextColor="#d6d3d1"
+                        placeholderTextColor="#57534e"
+                        style={{ fontStyle: notes ? 'normal' : 'italic' }}
                     />
                 </View>
 

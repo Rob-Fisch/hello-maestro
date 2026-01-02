@@ -1,7 +1,8 @@
+import VideoPlayer from '@/components/VideoPlayer';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { LayoutAnimation, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LayoutAnimation, Linking, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const AccordionItem = ({ title, icon, children, defaultExpanded = false }: { title: string, icon: string, children: React.ReactNode, defaultExpanded?: boolean }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -12,22 +13,22 @@ const AccordionItem = ({ title, icon, children, defaultExpanded = false }: { tit
     };
 
     return (
-        <View className="mb-4 bg-card rounded-[32px] border border-border overflow-hidden shadow-sm">
+        <View className="mb-4 bg-slate-800 rounded-[32px] border border-slate-700 overflow-hidden shadow-sm">
             <TouchableOpacity
                 onPress={toggle}
                 className="flex-row items-center justify-between p-6"
                 activeOpacity={0.7}
             >
                 <View className="flex-row items-center flex-1">
-                    <View className="w-10 h-10 bg-blue-50 rounded-2xl items-center justify-center mr-4">
-                        <Ionicons name={icon as any} size={20} color="#2563eb" />
+                    <View className="w-10 h-10 bg-slate-700 rounded-2xl items-center justify-center mr-4 shadow-sm border border-slate-600">
+                        <Ionicons name={icon as any} size={20} color="#60a5fa" />
                     </View>
-                    <Text className="text-lg font-black text-foreground flex-1" numberOfLines={1}>{title}</Text>
+                    <Text className="text-lg font-black text-white flex-1" numberOfLines={1}>{title}</Text>
                 </View>
                 <Ionicons
                     name={isExpanded ? "chevron-up" : "chevron-down"}
                     size={20}
-                    color="#94a3b8"
+                    color="#cbd5e1"
                 />
             </TouchableOpacity>
 
@@ -42,6 +43,12 @@ const AccordionItem = ({ title, icon, children, defaultExpanded = false }: { tit
 
 export default function HelpScreen() {
     const router = useRouter();
+    const [currentVideo, setCurrentVideo] = useState<string | null>(null);
+
+    const tutorials = [
+        { id: '1', title: 'Welcome to OpusMode', duration: '1:30', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
+        { id: '2', title: 'Creating Your First Routine', duration: '2:15', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
+    ];
 
     const Step = ({ number, title, description }: { number: number, title: string, description: string }) => (
         <View className="flex-row mb-6">
@@ -49,8 +56,8 @@ export default function HelpScreen() {
                 <Text className="text-white font-black">{number}</Text>
             </View>
             <View className="flex-1">
-                <Text className="text-base font-bold text-foreground mb-1">{title}</Text>
-                <Text className="text-muted-foreground leading-relaxed text-sm">{description}</Text>
+                <Text className="text-base font-bold text-white mb-1">{title}</Text>
+                <Text className="text-slate-300 leading-relaxed text-sm">{description}</Text>
             </View>
         </View>
     );
@@ -61,8 +68,8 @@ export default function HelpScreen() {
                 <Ionicons name={icon as any} size={16} color={color} />
             </View>
             <View className="flex-1">
-                <Text className="text-sm font-black text-foreground uppercase tracking-tight mb-0.5">{label}</Text>
-                <Text className="text-xs text-muted-foreground leading-relaxed">{description}</Text>
+                <Text className="text-sm font-black text-white uppercase tracking-tight mb-0.5">{label}</Text>
+                <Text className="text-xs text-slate-300 leading-relaxed">{description}</Text>
             </View>
         </View>
     );
@@ -82,11 +89,34 @@ export default function HelpScreen() {
 
             <ScrollView className="flex-1 px-6 pt-8" contentContainerStyle={{ paddingBottom: 60 }}>
 
+                {/* Video Tutorials Section */}
+                <AccordionItem title="Video Tutorials" icon="videocam-outline" defaultExpanded={true}>
+                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                        Watch these quick guides to master OpusMode.
+                    </Text>
+
+                    {tutorials.map((video) => (
+                        <TouchableOpacity
+                            key={video.id}
+                            onPress={() => setCurrentVideo(video.url)}
+                            className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-3 flex-row items-center active:bg-slate-100"
+                        >
+                            <View className="w-12 h-12 bg-white rounded-xl items-center justify-center shadow-sm mr-4 relative">
+                                <Ionicons name="play" size={20} color="#2563eb" style={{ marginLeft: 2 }} />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-bold text-slate-900 text-base">{video.title}</Text>
+                                <Text className="text-xs text-slate-500 font-bold uppercase tracking-wide">{video.duration}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
+                        </TouchableOpacity>
+                    ))}
+                </AccordionItem>
+
                 <AccordionItem title="Roster Management Icons" icon="people-outline">
                     <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
                         Managing your session personnel is easy with these tools in the Event Editor:
                     </Text>
-
                     <IconHelp
                         icon="add-circle-outline"
                         label="Add Slot"
@@ -110,6 +140,13 @@ export default function HelpScreen() {
                         bgColor="#fffbeb"
                     />
                     <IconHelp
+                        icon="document-text-outline"
+                        label="Contract Management"
+                        description="Generate and track contracts for your performers."
+                        color="#7c3aed"
+                        bgColor="#f5f3ff"
+                    />
+                    <IconHelp
                         icon="checkmark"
                         label="Confirm Assignment"
                         description="Manually confirm a musician once they've accepted the gig."
@@ -127,10 +164,11 @@ export default function HelpScreen() {
                         icon="person-remove-outline"
                         label="Remove Person"
                         description="Clear the musician from the slot while keeping the role open."
-                        color="#4b5563"
+                        color="#4b5563" // Fixed typo in previous color in my thought process, just careful copying
                         bgColor="#f3f4f6"
                     />
                 </AccordionItem>
+                {/* ... Rest of existing accordions ... */}
 
                 <AccordionItem title="Calendar Sync (Google/Gmail)" icon="calendar-outline">
                     {Platform.OS === 'web' ? (
@@ -185,7 +223,7 @@ export default function HelpScreen() {
                     )}
                 </AccordionItem>
 
-                <AccordionItem title="Using AI Tools (Scout)" icon="telescope-outline" defaultExpanded={true}>
+                <AccordionItem title="Using AI Tools (Scout)" icon="telescope-outline">
                     <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
                         The Scout tool generates "Prompts"—specific instructions—that you can feed into powerful AI assistants to find leads. You need a separate account for these services.
                     </Text>
@@ -246,7 +284,7 @@ export default function HelpScreen() {
                 </AccordionItem>
 
                 <AccordionItem title="Privacy & Security" icon="lock-closed-outline">
-                    <Text className="text-muted-foreground leading-relaxed text-sm">
+                    <Text className="text-slate-200 leading-relaxed text-sm">
                         OpusMode stores your data locally on your device. We never sell your personal information or the details of your gigs. Your financial notes and roster details are private to you.
                     </Text>
                 </AccordionItem>
@@ -254,9 +292,26 @@ export default function HelpScreen() {
 
                 <View className="mt-12 items-center">
                     <Text className="text-gray-400 text-[10px] font-black uppercase tracking-[2px]">OpusMode Help Center</Text>
-                    <Text className="text-[10px] text-gray-300 mt-2 font-medium">Built with Zen Architecture • © 2025</Text>
+                    <Text className="text-muted-foreground mt-2 font-medium text-xs">Built with Zen Architecture • © 2025</Text>
                 </View>
             </ScrollView>
+
+            {/* Video Player Modal */}
+            <Modal
+                visible={!!currentVideo}
+                transparent={false}
+                animationType="slide"
+                onRequestClose={() => setCurrentVideo(null)}
+            >
+                <View className="flex-1 bg-black">
+                    {currentVideo && (
+                        <VideoPlayer
+                            source={currentVideo}
+                            onClose={() => setCurrentVideo(null)}
+                        />
+                    )}
+                </View>
+            </Modal>
         </View>
     );
 }

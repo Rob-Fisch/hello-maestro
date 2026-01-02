@@ -1,6 +1,6 @@
 import { createPlatformStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
-import { deleteFromCloud, pullFromCloud, pullProfileFromCloud, pushAllToCloud, syncToCloud } from '@/lib/sync';
+import { deleteFromCloud, mapFromDb, pullFromCloud, pullProfileFromCloud, pushAllToCloud, syncToCloud } from '@/lib/sync';
 import { Alert, Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -79,6 +79,12 @@ interface ContentState {
     // Persistence
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
+
+    // Realtime Sync
+    realtimeSub: any | null; // Keep as any to avoid complex type deps in interface
+    initRealtime: () => void;
+    cleanupRealtime: () => void;
+    handleRealtimeEvent: (payload: any) => void;
 }
 
 
@@ -160,6 +166,8 @@ export const useContentStore = create<ContentState>()(
                 }));
             },
 
+
+            realtimeSub: null,
 
             addBlock: (block) => {
                 set((state) => ({ blocks: [...state.blocks, block] }));
@@ -570,11 +578,106 @@ export const useContentStore = create<ContentState>()(
                 Alert.alert('Saved to Library', `"${newRoutine.title}" has been added to your collection.`);
             },
 
+            initRealtime: () => {
+                const state = get();
+                // Avoid multiple subscriptions or subscribing mock users
+                if (state.realtimeSub || !state.profile || state.profile.id.startsWith('mock-')) return;
+
+                const userId = state.profile.id;
+                console.log('[Realtime] Initializing subscription for user:', userId);
+
+                const channel = supabase.channel('db-changes')
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .subscribe((status) => {
+                        console.log('[Realtime] Status:', status);
+                    });
+
+                set({ realtimeSub: channel });
+            },
+
+            cleanupRealtime: () => {
+                const state = get();
+                if (state.realtimeSub) {
+                    console.log('[Realtime] Unsubscribing...');
+                    supabase.removeChannel(state.realtimeSub);
+                    set({ realtimeSub: null });
+                }
+            },
+
+            handleRealtimeEvent: (payload: any) => {
+                const { eventType, table, new: newRecord, old: oldRecord } = payload;
+                // console.log(`[Realtime] ${eventType} on ${table}`);
+
+                // Helper to upsert (Insert or Update)
+                const upsert = (list: any[], item: any) => {
+                    // Check by ID
+                    const mappedItem = mapFromDb(item); // Convert snake_case -> camelCase
+                    const exists = list.find(l => l.id === mappedItem.id);
+
+                    if (exists) {
+                        // Optional: Deep compare to avoid unnecessary re-renders?
+                        // For now, blind update to ensure consistency
+                        return list.map(l => l.id === mappedItem.id ? { ...l, ...mappedItem } : l);
+                    }
+                    // Insert new
+                    return [mappedItem, ...list];
+                };
+
+                const remove = (list: any[], id: string) => list.filter(l => l.id !== id);
+
+                set((state) => {
+                    switch (table) {
+                        case 'blocks':
+                            if (eventType === 'DELETE') return { blocks: remove(state.blocks, oldRecord.id) };
+                            return { blocks: upsert(state.blocks, newRecord) };
+                        case 'routines':
+                            if (eventType === 'DELETE') return { routines: remove(state.routines, oldRecord.id) };
+                            return { routines: upsert(state.routines, newRecord) };
+                        case 'events':
+                            if (eventType === 'DELETE') return { events: remove(state.events, oldRecord.id) };
+                            return { events: upsert(state.events, newRecord) };
+                        case 'categories':
+                            if (eventType === 'DELETE') return { categories: remove(state.categories, oldRecord.id) };
+                            return { categories: upsert(state.categories, newRecord) };
+                        case 'people':
+                            if (eventType === 'DELETE') return { people: remove(state.people, oldRecord.id) };
+                            return { people: upsert(state.people, newRecord) };
+                        case 'learning_paths':
+                            if (eventType === 'DELETE') return { paths: remove(state.paths, oldRecord.id) };
+                            // Paths uses 'paths' key in store, but 'learning_paths' in DB
+                            return { paths: upsert(state.paths, newRecord) };
+                        case 'user_progress':
+                            // Special case: Progress
+                            // We use upsert logic for progress too
+                            if (eventType === 'DELETE') return { progress: remove(state.progress, oldRecord.id) };
+                            return { progress: upsert(state.progress, newRecord) };
+                        case 'proof_of_work':
+                            if (eventType === 'DELETE') return { proofs: remove(state.proofs, oldRecord.id) };
+                            return { proofs: upsert(state.proofs, newRecord) };
+                        // Gear tables handled via GearStore? Or we trigger a refresh?
+                        // Ideally we'd dispatch to GearStore, but contentStore doesn't own that state.
+                        // For now, contentStore only syncs core content.
+                    }
+                    return {};
+                });
+            },
+
         }),
         {
             name: 'maestro-content-storage',
             storage: createJSONStorage(() => createPlatformStorage()),
             version: 4,
+
+            // EXCLUDE realtimeSub from persistence to prevent crashes
+            partialize: (state) => {
+                const { realtimeSub, ...rest } = state;
+                return rest;
+            },
+
             onRehydrateStorage: () => (state) => {
                 console.log('🚀 [ContentStore] Hydration complete');
                 state?.setHasHydrated(true);

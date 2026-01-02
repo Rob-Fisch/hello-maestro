@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { AppEvent, BookingSlot, BookingStatus, Person } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
-import { BookingSlot, Person, BookingStatus, AppEvent } from '@/store/types';
+import { useState } from 'react';
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SmsInviteModal } from './SmsInviteModal';
 
 interface RosterManagerProps {
@@ -96,8 +96,7 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
 
     return (
         <View className="mb-8">
-            <View className="flex-row justify-between items-center mb-4 px-1">
-                <Text className="text-xl font-bold tracking-tight text-foreground">Personnel Roster</Text>
+            <View className="flex-row justify-end items-center mb-4 px-1">
                 <TouchableOpacity
                     onPress={() => setIsAdding(true)}
                     className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded-full"
@@ -109,11 +108,13 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
 
             {isAdding && (
                 <View className="bg-blue-50 p-4 rounded-3xl border border-blue-100 mb-4 animate-in fade-in slide-in-from-top-2">
-                    <Text className="text-[10px] uppercase font-black text-blue-600 mb-2 tracking-widest px-1">New Booking Role</Text>
+                    <Text className="text-[10px] uppercase font-black text-blue-700 mb-2 tracking-widest px-1">New Booking Role</Text>
                     <View className="flex-row gap-2">
                         <TextInput
                             className="flex-1 bg-white border border-blue-100 p-3 rounded-2xl font-bold text-foreground"
                             placeholder="e.g. Lead Sax, Drums..."
+                            placeholderTextColor="#475569"
+                            style={{ fontStyle: newRole ? 'normal' : 'italic' }}
                             value={newRole}
                             onChangeText={setNewRole}
                             autoFocus
@@ -184,7 +185,7 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
                                         <TextInput
                                             className="text-foreground font-black text-xs min-w-[40px]"
                                             placeholder={event.musicianFee || '0'}
-                                            placeholderTextColor="#94a3b8"
+                                            placeholderTextColor="#475569"
                                             value={slot.fee || ''}
                                             onChangeText={(val) => updateSlotFee(slot.id, val)}
                                             keyboardType="numeric"

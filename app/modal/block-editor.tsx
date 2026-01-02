@@ -196,7 +196,7 @@ export default function BlockEditor() {
         color: PAPER_THEME.text
     };
 
-    const labelStyle = "text-sm font-bold mb-2 text-stone-500 uppercase tracking-wider";
+    const labelStyle = "text-sm font-bold mb-2 text-stone-700 uppercase tracking-wider";
 
     return (
         <View className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
@@ -214,9 +214,9 @@ export default function BlockEditor() {
                     <Text className={labelStyle}>Title</Text>
                     <TextInput
                         className="p-4 rounded-xl border text-lg font-bold"
-                        style={startInputStyle}
+                        style={[startInputStyle, { fontStyle: title ? 'normal' : 'italic' }]}
                         placeholder="e.g., C Major Scale"
-                        placeholderTextColor="#a8a29e"
+                        placeholderTextColor="#57534e"
                         value={title}
                         onChangeText={setTitle}
                         multiline
@@ -323,9 +323,9 @@ export default function BlockEditor() {
                     <Text className={labelStyle}>External Link (YouTube/Spotify)</Text>
                     <TextInput
                         className="p-4 rounded-xl border text-base"
-                        style={startInputStyle}
+                        style={[startInputStyle, { fontStyle: linkUrl ? 'normal' : 'italic' }]}
                         placeholder="https://..."
-                        placeholderTextColor="#a8a29e"
+                        placeholderTextColor="#57534e"
                         value={linkUrl}
                         onChangeText={setLinkUrl}
                         autoCapitalize="none"
@@ -363,6 +363,11 @@ export default function BlockEditor() {
                                 <Text className="text-amber-600 font-bold text-xs mt-2 uppercase">PDF</Text>
                             </Pressable>
                         </View>
+                        {Platform.OS === 'web' && (
+                            <Text className="text-xs text-stone-400 font-bold mb-4 italic text-center">
+                                Pro Tip: Use your OS Snipping tool (Cmd+Shift+4 or Win+Shift+S) to crop sheet music, then upload here.
+                            </Text>
+                        )}
 
                         {mediaUri && (
                             <View className="bg-stone-50 border border-stone-200 p-3 rounded-2xl relative">
@@ -432,9 +437,9 @@ export default function BlockEditor() {
                     <Text className={labelStyle}>Content / Notes</Text>
                     <TextInput
                         className="p-4 rounded-xl border text-base min-h-[120px]"
-                        style={startInputStyle}
+                        style={[startInputStyle, { fontStyle: content ? 'normal' : 'italic' }]}
                         placeholder="Enter notes or instructions..."
-                        placeholderTextColor="#a8a29e"
+                        placeholderTextColor="#57534e"
                         multiline
                         textAlignVertical="top"
                         value={content}
@@ -447,9 +452,9 @@ export default function BlockEditor() {
                     <Text className={labelStyle}>Tags</Text>
                     <TextInput
                         className="p-4 rounded-xl border text-base"
-                        style={startInputStyle}
+                        style={[startInputStyle, { fontStyle: tags ? 'normal' : 'italic' }]}
                         placeholder="warmup, jazz (comma separated)"
-                        placeholderTextColor="#a8a29e"
+                        placeholderTextColor="#57534e"
                         value={tags}
                         onChangeText={setTags}
                     />

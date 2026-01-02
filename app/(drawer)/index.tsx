@@ -128,36 +128,52 @@ export default function HomeScreen() {
                 {/* Header Profile Section */}
                 <View className="flex-row justify-between items-start mb-6">
                     <View className="flex-1 mr-4">
-                        <Text className="text-[10px] font-black uppercase tracking-[3px] mb-2 px-1 text-slate-400">Maestro Hub</Text>
+                        <View className="flex-row items-center mb-4 opacity-80">
+                            {/* Placeholder Logo */}
+                            <View className="w-5 h-5 rounded-md bg-indigo-500 items-center justify-center mr-2 shadow-sm">
+                                <Ionicons name="prism" size={10} color="white" />
+                            </View>
+                            <Text className="text-[10px] font-black uppercase tracking-[3px] text-indigo-200">OPUSMODE</Text>
+                        </View>
                         <Text className="text-4xl font-black tracking-tighter leading-tight text-white">
                             {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
                         </Text>
                     </View>
 
-                    <TouchableOpacity
-                        onPress={() => {
-                            if (isMock) {
-                                Alert.alert('Offline Mode', 'You are currently in a mock session. Sign in with a real account to enable cloud sync.');
-                            } else {
-                                fullSync();
-                            }
-                        }}
-                        className={`flex-row items-center px-4 py-2 rounded-full border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
-                            syncStatus === 'syncing' ? 'bg-blue-500/10 border-blue-500/20' :
-                                'bg-red-500/10 border-red-500/20' // Offline / Error
-                            }`}
-                    >
-                        <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-emerald-400' :
-                            syncStatus === 'syncing' ? 'bg-blue-400' :
-                                'bg-slate-400'
-                            }`} />
-                        <Text className={`text-[10px] font-black uppercase tracking-normal ${syncStatus === 'synced' ? 'text-emerald-100' :
-                            syncStatus === 'syncing' ? 'text-blue-100' :
-                                'text-slate-400'
-                            }`}>
-                            {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
-                        </Text>
-                    </TouchableOpacity>
+                    <View className="flex-row items-center gap-2">
+                        {/* Help Button */}
+                        <TouchableOpacity
+                            onPress={() => router.push('/modal/help')}
+                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 items-center justify-center"
+                        >
+                            <Ionicons name="help" size={20} color={theme.text} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (isMock) {
+                                    Alert.alert('Offline Mode', 'You are currently in a mock session. Sign in with a real account to enable cloud sync.');
+                                } else {
+                                    fullSync();
+                                }
+                            }}
+                            className={`flex-row items-center px-4 py-2 rounded-full border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                                syncStatus === 'syncing' ? 'bg-blue-500/10 border-blue-500/20' :
+                                    'bg-red-500/10 border-red-500/20' // Offline / Error
+                                }`}
+                        >
+                            <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-emerald-400' :
+                                syncStatus === 'syncing' ? 'bg-blue-400' :
+                                    'bg-slate-400'
+                                }`} />
+                            <Text className={`text-[10px] font-black uppercase tracking-normal ${syncStatus === 'synced' ? 'text-emerald-100' :
+                                syncStatus === 'syncing' ? 'text-blue-100' :
+                                    'text-slate-400'
+                                }`}>
+                                {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Offline / Conflict Warning Banner */}
@@ -173,117 +189,31 @@ export default function HomeScreen() {
                     </View>
                 )}
 
-                {/* Consistency Graph (Heatmap) */}
-                <TouchableOpacity
-                    onPress={() => router.push('/(drawer)/history')}
-                    activeOpacity={0.7}
-                    className="mb-8"
-                >
-                    <View className="flex-row justify-between items-end mb-3 px-1">
-                        <View>
-                            <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-1 shadow-sm">Practice Momentum</Text>
-                            <Text className="text-2xl font-black text-white shadow-sm">
-                                Keep it up!
-                            </Text>
-                        </View>
-                        <View className="flex-row items-center bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
-                            <Text className="text-xs font-bold text-slate-300 mr-1">View History</Text>
-                            <Ionicons name="chevron-forward" size={12} color="white" />
-                        </View>
-                    </View>
-
-                    <View className="p-4 rounded-[24px] bg-white/5 border border-white/5">
-                        <View className="flex-row flex-wrap justify-between" style={{ gap: 4 }}>
-                            {Array.from({ length: 35 }).map((_, i) => {
-                                const date = new Date();
-                                date.setDate(date.getDate() - (34 - i));
-                                const dateStr = date.toISOString().split('T')[0];
-
-                                // Activity Score
-                                const logsCount = (sessionLogs || []).filter(l => l.date.startsWith(dateStr)).length;
-                                const progressCount = (progress || []).filter(p => p.completedAt?.startsWith(dateStr)).length;
-                                const score = (logsCount * 3) + progressCount;
-
-                                let bgClass = 'bg-white/5'; // Default (0) - Subtle glass
-                                if (score >= 4) bgClass = 'bg-emerald-400'; // High
-                                else if (score >= 2) bgClass = 'bg-emerald-500/60'; // Medium
-                                else if (score >= 1) bgClass = 'bg-emerald-900/40'; // Low
-
-                                return (
-                                    <View
-                                        key={i}
-                                        className={`h-4 w-[11%] rounded-sm ${bgClass}`}
-                                        style={{
-                                            // Highlight today
-                                            borderColor: i === 34 ? 'white' : 'transparent',
-                                            borderWidth: i === 34 ? 1 : 0
-                                        }}
-                                    />
-                                );
-                            })}
-                        </View>
-                        <View className="flex-row justify-between mt-3">
-                            <Text className="text-[9px] font-bold text-slate-600">30 Days Ago</Text>
-                            <Text className="text-[9px] font-bold text-slate-600">Today</Text>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-
                 {/* SECTION 1: TOP OF THE FOLD (Daily Briefing) */}
                 <TouchableOpacity
                     onPress={() => router.push('/events')}
-                    className="p-6 rounded-[32px] mb-8 border shadow-sm relative overflow-hidden"
+                    className="p-5 rounded-[24px] mb-8 border shadow-sm relative overflow-hidden flex-row items-center justify-between"
                     style={{ backgroundColor: theme.card, borderColor: theme.border }}
                 >
-                    <View className="absolute top-0 right-0 p-6 opacity-20">
+                    <View className="absolute right-[-10] bottom-[-20] opacity-10 transform rotate-[-15deg]">
                         <Ionicons name="calendar" size={120} color={theme.text} />
                     </View>
 
-                    <View className="flex-row items-baseline mb-2 relative z-10">
-                        <Text className="text-6xl font-black tracking-tighter text-white">
-                            {todaysEvents.length}
+                    <View className="flex-1 pr-4 relative z-10">
+                        <Text className="text-lg font-black text-white mb-1">
+                            {todaysEvents.length === 0 ? "There are no events today." :
+                                todaysEvents.length === 1 ? "There is 1 event today." :
+                                    `There are ${todaysEvents.length} events today.`}
                         </Text>
-                        <Text className="text-xl font-bold ml-2 text-slate-200">
-                            Events Today
-                        </Text>
-                    </View>
-
-                    <View className="w-[70%] relative z-10">
-                        <Text className="font-medium text-base mb-4 text-slate-400">
-                            You also have <Text className="text-white font-bold">{upcomingEventsCount}</Text> items on the schedule for the next 7 days.
+                        <Text className="text-sm font-medium text-slate-400">
+                            {upcomingEventsCount === 0 ? "Nothing scheduled for the week." :
+                                upcomingEventsCount === 1 ? "1 item on the schedule for the next 7 days." :
+                                    `${upcomingEventsCount} items on the schedule for the next 7 days.`}
                         </Text>
                     </View>
 
-                    <View className="flex-row items-center relative z-10">
-                        <Text className="font-bold text-sm uppercase tracking-wider mr-2 text-white">View Schedule</Text>
-                        <Ionicons name="arrow-forward" size={16} color="white" />
-                    </View>
-                </TouchableOpacity>
-
-
-                {/* VENUE MANAGEMENT PROMO - Updated to Dark Glass Orange */}
-                <TouchableOpacity
-                    onPress={() => router.push({ pathname: '/people', params: { filter: 'venue_manager' } })}
-                    className="p-6 rounded-[32px] mb-8 border border-orange-500/20 bg-orange-500/10 shadow-sm relative overflow-hidden"
-                >
-                    <View className="absolute -right-4 -bottom-4 opacity-10">
-                        <Ionicons name="business" size={140} color="#f97316" />
-                    </View>
-
-                    <View className="relative z-10 mb-2 flex-row items-center">
-                        <View className="w-2 h-2 rounded-full bg-orange-500 mr-2" />
-                        <Text className="font-black text-[10px] uppercase tracking-widest text-orange-400 mb-0">Feature Spotlight</Text>
-                    </View>
-
-                    <Text className="text-2xl font-black text-white leading-tight mb-2 relative z-10">Venue Manager</Text>
-
-                    <Text className="text-orange-200/60 font-medium mb-4 relative z-10 w-[85%] leading-snug">
-                        Track booking history and manage relationships with venue owners.
-                    </Text>
-
-                    <View className="flex-row items-center relative z-10">
-                        <Text className="font-bold text-xs uppercase tracking-wider mr-2 text-orange-400">Open Venues</Text>
-                        <Ionicons name="arrow-forward" size={14} color="#f97316" />
+                    <View className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/5 relative z-10">
+                        <Ionicons name="arrow-forward" size={18} color="white" />
                     </View>
                 </TouchableOpacity>
 
@@ -317,31 +247,56 @@ export default function HomeScreen() {
                             key={item.title}
                             onPress={() => router.push(item.path as any)}
                             activeOpacity={0.7}
-                            className="w-[48%] mb-4 p-4 rounded-[28px] border shadow-sm relative overflow-hidden h-[160px] justify-between"
+                            className="w-[48%] mb-4 p-4 rounded-[32px] border shadow-sm relative overflow-hidden h-[140px] justify-between"
                             style={{ backgroundColor: theme.card, borderColor: theme.border }}
                         >
+                            {/* Watermark/Graphic */}
+                            <View className="absolute -right-4 -bottom-4 opacity-[0.07] transform rotate-[-10deg]">
+                                <Ionicons name={item.icon as any} size={90} color="white" />
+                            </View>
+
                             <View>
-                                {/* Icon Box */}
-                                <View className={`w-10 h-10 rounded-xl items-center justify-center mb-4 bg-white/5 border border-white/5`}>
-                                    <Ionicons name={item.icon as any} size={20} color="white" />
+                                {/* Colored Icon Box */}
+                                <View className={`w-12 h-12 rounded-2xl items-center justify-center mb-3 ${item.bg}`}>
+                                    <Ionicons name={item.icon as any} size={22} color="white" />
                                 </View>
-                                <Text className="text-base font-black tracking-tight leading-none mb-1 text-white">
+                                <Text className="text-sm font-black tracking-tight leading-4 text-white z-10 pr-2">
                                     {item.title}
-                                </Text>
-                                <Text className={`text-[9px] font-bold uppercase tracking-wider ${item.color}`}>
-                                    {item.subtitle}
                                 </Text>
                             </View>
 
-                            <Text className="text-[11px] mt-3 leading-tight opacity-40 font-medium text-white">
-                                {item.description}
-                            </Text>
+                            {/* Small decorative indicator */}
+                            <View className="flex-row items-center opacity-40">
+                                <Text className="text-[9px] uppercase font-bold text-white mr-1">Open</Text>
+                                <Ionicons name="arrow-forward" size={10} color="white" />
+                            </View>
                         </TouchableOpacity>
                     ))}
                 </View>
 
                 {/* Footer Padding */}
-                <View className="h-20" />
+                {/* Footer Section */}
+                <View className="mt-8 mb-16 items-center opacity-60">
+                    <Ionicons name="infinite" size={32} color={theme.mutedText} style={{ marginBottom: 16, opacity: 0.5 }} />
+                    <Text className="text-xs font-bold text-slate-500 mb-6">OpusMode v1.2</Text>
+
+                    <View className="flex-row gap-8">
+                        <TouchableOpacity onPress={() => router.push('/modal/help')}>
+                            <Text className="text-xs font-semibold text-slate-400">About</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.push('/modal/help')}>
+                            <Text className="text-xs font-semibold text-slate-400">Privacy Policy</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.push('/modal/help')}>
+                            <Text className="text-xs font-semibold text-slate-400">Contact Support</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text className="text-[10px] text-slate-600 mt-8 text-center max-w-[200px] leading-relaxed">
+                        Designed for musicians, by musicians.
+                        {"\n"}© 2024 OpusMode Inc.
+                    </Text>
+                </View>
             </View>
         </ScrollView>
     );

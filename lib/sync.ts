@@ -188,7 +188,7 @@ export async function uploadMediaToCloud(localUri: string, filename: string): Pr
 /**
  * Helper to map snake_case DB columns back to camelCase local types
  */
-function mapFromDb(data: any): any {
+export function mapFromDb(data: any): any {
     const mapping: Record<string, string> = {
         category_id: 'categoryId',
         media_uri: 'mediaUri',

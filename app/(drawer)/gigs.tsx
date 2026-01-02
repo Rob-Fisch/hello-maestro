@@ -109,7 +109,7 @@ export default function GigsScreen() {
                     {next30Days.length > 0 ? (
                         <View className="bg-black/20 rounded-2xl p-4 border border-rose-500/10">
                             <Text className="text-rose-100 font-medium leading-relaxed">
-                                Looking further ahead, you have <Text className="font-bold text-white">{next30Days.length} gigs</Text> coming up in the next 30 days.
+                                Looking further ahead, you have <Text className="font-bold text-white">{next30Days.length} {next30Days.length === 1 ? 'gig' : 'gigs'}</Text> coming up in the next 30 days.
                             </Text>
 
                             {/* Mini List of Next few */}

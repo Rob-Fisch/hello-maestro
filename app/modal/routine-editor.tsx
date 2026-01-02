@@ -239,21 +239,23 @@ export default function RoutineEditor() {
                     {/* Basic Info */}
                     <View className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm mb-8">
                         <View className="mb-6">
-                            <Text className="text-[10px] uppercase font-black text-stone-400 mb-2 tracking-widest">Title</Text>
+                            <Text className="text-[10px] uppercase font-black text-stone-700 mb-2 tracking-widest">Title</Text>
                             <TextInput
                                 className="text-2xl font-black text-stone-900 border-b border-stone-100 pb-2"
                                 placeholder="Morning Warmup..."
-                                placeholderTextColor="#a8a29e"
+                                placeholderTextColor="#57534e"
+                                style={{ fontStyle: title ? 'normal' : 'italic' }}
                                 value={title}
                                 onChangeText={setTitle}
                             />
                         </View>
                         <View>
-                            <Text className="text-[10px] uppercase font-black text-stone-400 mb-2 tracking-widest">Description</Text>
+                            <Text className="text-[10px] uppercase font-black text-stone-700 mb-2 tracking-widest">Description</Text>
                             <TextInput
                                 className="text-sm text-stone-700 bg-stone-50 p-3 rounded-xl border border-stone-100 min-h-[80px]"
                                 placeholder="What is this routine for?"
-                                placeholderTextColor="#a8a29e"
+                                placeholderTextColor="#57534e"
+                                style={{ fontStyle: description ? 'normal' : 'italic' }}
                                 value={description}
                                 onChangeText={setDescription}
                                 multiline
@@ -304,7 +306,7 @@ export default function RoutineEditor() {
 
                                 <View className="flex-row gap-3">
                                     <View className="flex-1">
-                                        <Text className="text-[10px] uppercase font-black text-stone-400 mb-1 tracking-widest">Start Date</Text>
+                                        <Text className="text-[10px] uppercase font-black text-stone-700 mb-1 tracking-widest">Start Date</Text>
                                         {Platform.OS === 'web' ? (
                                             <WebDatePicker date={schedule.startDate} onChange={(d) => setSchedule({ ...schedule, startDate: d })} />
                                         ) : (
@@ -330,7 +332,7 @@ export default function RoutineEditor() {
                                         )}
                                     </View>
                                     <View className="flex-1">
-                                        <Text className="text-[10px] uppercase font-black text-stone-400 mb-1 tracking-widest">End Date</Text>
+                                        <Text className="text-[10px] uppercase font-black text-stone-700 mb-1 tracking-widest">End Date</Text>
                                         {Platform.OS === 'web' ? (
                                             <WebDatePicker date={schedule.endDate} onChange={(d) => setSchedule({ ...schedule, endDate: d })} />
                                         ) : (
@@ -411,7 +413,8 @@ export default function RoutineEditor() {
                         <TextInput
                             className="flex-1 text-stone-900 font-semibold ml-3"
                             placeholder="Search by title or tags..."
-                            placeholderTextColor="#cbd5e1"
+                            placeholderTextColor="#57534e"
+                            style={{ fontStyle: searchQuery ? 'normal' : 'italic' }}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
