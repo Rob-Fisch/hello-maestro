@@ -403,13 +403,13 @@ export const useContentStore = create<ContentState>()(
                     ]);
 
 
-                    // 2. Pull stage: OPEN FOR ALL (Dev Override)
-                    // if (!state.profile?.isPremium) {
-                    //    set({ syncStatus: 'synced' }); // Backed up!
-                    //    return;
-                    // }
+                    // 2. Pull stage: Restricted to Premium
+                    if (!state.profile?.isPremium) {
+                        set({ syncStatus: 'synced' }); // Backed up!
+                        return;
+                    }
 
-                    // 2. Pull stage: Get everything else
+                    // 3. Pull stage: Get everything else
                     console.log('[FullSync] Starting Pull...');
                     const [cloudData, cloudProfile] = await Promise.all([
                         pullFromCloud(),
