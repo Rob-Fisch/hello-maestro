@@ -213,23 +213,20 @@ export default function HomeScreen() {
                 )}
 
                 {/* SECTION 1: TOP OF THE FOLD (Daily Briefing) */}
-                <View className="flex-row justify-between mb-8 mt-10">
-                    {/* Left: Breathing Logo Hero */}
+                <View className="flex-row justify-between mb-8 mt-6">
+                    {/* Left: Logo Card */}
                     <TouchableOpacity
                         onPress={() => setIsLogoExpanded(true)}
                         activeOpacity={0.8}
-                        className="w-[48%] items-center justify-center h-[180px]"
+                        className="w-[48%] items-center justify-center h-[180px] rounded-[32px] border shadow-sm p-4 overflow-hidden"
+                        style={{ backgroundColor: theme.card, borderColor: theme.border }}
                     >
-                        {/* Ambient Glow Background - Fills the void */}
-                        <View className="absolute w-[300px] h-[300px] bg-indigo-600/20 rounded-full blur-[100px]" />
-
                         <Animated.Image
                             source={require('../../assets/images/opusmode_om_logo_v9.png')}
                             style={{
-                                width: '100%',
-                                height: '100%',
+                                width: '90%',
+                                height: '90%',
                                 opacity: breathingOpacity,
-                                transform: [{ scale: 1.2 }]
                             }}
                             resizeMode="contain"
                         />
@@ -247,11 +244,11 @@ export default function HomeScreen() {
 
                         <View>
                             <Text className="text-4xl font-black text-white shadow-sm">{todaysEvents.length}</Text>
-                            <Text className="text-[10px] font-black uppercase tracking-widest text-slate-400">Events Today</Text>
+                            <Text className="text-xs font-black uppercase tracking-widest text-slate-400">Events Today</Text>
                         </View>
 
                         <View>
-                            <Text className="text-xs font-bold text-slate-300">
+                            <Text className="text-sm font-bold text-slate-300">
                                 {upcomingEventsCount} Scheduled
                             </Text>
                             <Text className="text-[10px] text-slate-500">Next 7 Days</Text>
