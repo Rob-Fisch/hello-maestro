@@ -13,6 +13,17 @@
     - **Tier**: Premium Feature.
     - **Context**: Useful for managers who need to do external reporting or analysis.
 
+### Business & Growth Features (Pro+)
+- [ ] **Gig Log (Finance Lite)**: Simple income tracker for events.
+    - Fields: `Guaranteed Pay`, `Tips`, `Status` (Unpaid, Paid, Deposit Received).
+    - Goal: Help users track accounts receivable.
+- [ ] **Expense Tracker**: Simple expense logging linked to events or general.
+    - Fields: `Category` (Travel, Gear, Food), `Amount`, `Receipt Image`.
+    - Goal: Tax deduction tracking.
+- [ ] **Fan Magnet (Data Collection)**: QR Code generator for gigs.
+    - Output: Hosted web form for fan email signup.
+    - Storage: Simple "Contacts" list in user account.
+
 ### Asset & Expense Tracker (Formerly "Vault")
 - [ ] **Reimagine Gear Vault**: Pivot from simple inventory to financial asset tracking.
     - **Features**: Track purchase dates, prices, depreciation, and insurance documentation.

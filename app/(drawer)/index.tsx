@@ -154,7 +154,7 @@ export default function HomeScreen() {
                     <View className="flex-row items-center flex-1 mr-4">
                         <View className="flex-row items-center opacity-80 mr-4">
                             <Image
-                                source={require('../../assets/images/opusmode_logo_master.png')}
+                                source={require('../../assets/images/opusmode_om_logo_v9.png')}
                                 style={{ width: 24, height: 24, marginRight: 8 }}
                                 resizeMode="contain"
                             />
@@ -224,7 +224,7 @@ export default function HomeScreen() {
                         <View className="absolute w-[300px] h-[300px] bg-indigo-600/20 rounded-full blur-[100px]" />
 
                         <Animated.Image
-                            source={require('../../assets/images/opusmode_logo_master.png')}
+                            source={require('../../assets/images/opusmode_om_logo_v9.png')}
                             style={{
                                 width: '100%',
                                 height: '100%',
@@ -348,36 +348,56 @@ export default function HomeScreen() {
                 animationType="fade"
                 onRequestClose={() => setIsLogoExpanded(false)}
             >
-                <TouchableOpacity
-                    activeOpacity={1}
-                    onPress={() => setIsLogoExpanded(false)}
-                    className="flex-1 bg-black items-center justify-center relative p-8"
-                >
+                <View className="flex-1 bg-black/95 items-center justify-center relative p-8">
+                    <TouchableOpacity
+                        className="absolute right-6 top-16 z-50 p-2 bg-white/10 rounded-full"
+                        onPress={() => setIsLogoExpanded(false)}
+                    >
+                        <Ionicons name="close" size={24} color="white" />
+                    </TouchableOpacity>
+
                     <Image
-                        source={require('../../assets/images/opusmode_logo_master.png')}
-                        style={{ width: '100%', height: '50%', marginBottom: 40 }}
+                        source={require('../../assets/images/opusmode_om_logo_v9.png')}
+                        style={{ width: '100%', height: '40%', marginBottom: 30 }}
                         resizeMode="contain"
                     />
 
-                    <View className="items-center">
-                        <Text className="text-white text-3xl font-black uppercase tracking-[12px] mb-3 text-center ml-2">
+                    <View className="items-center mb-12">
+                        <Text className="text-white text-3xl font-black uppercase tracking-[8px] mb-3 text-center ml-2">
                             OpusMode
                         </Text>
-                        <Text className="text-indigo-200/60 text-lg font-medium italic tracking-widest text-center mb-12">
+                        <Text className="text-indigo-200/60 text-lg font-medium italic tracking-widest text-center">
                             "Where Focus Meets Flow"
                         </Text>
-
-                        <Text className="text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                        <Text className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">
                             v1.2.3 • Designed for Musicians
                         </Text>
                     </View>
 
-                    <View className="absolute bottom-12">
-                        <Text className="text-white/10 text-[10px] font-bold uppercase tracking-[4px]">
-                            Tap anywhere to return
-                        </Text>
+                    {/* Action Buttons */}
+                    <View className="w-full gap-4">
+                        <TouchableOpacity
+                            onPress={() => {
+                                setIsLogoExpanded(false);
+                                router.push('/modal/pricing');
+                            }}
+                            className="w-full bg-indigo-600 py-4 rounded-xl items-center border border-indigo-400/30"
+                        >
+                            <Text className="text-white font-bold tracking-widest uppercase text-sm">
+                                View Plans & Pricing
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => setIsLogoExpanded(false)}
+                            className="w-full py-4 items-center"
+                        >
+                            <Text className="text-white/40 font-bold uppercase text-xs tracking-widest">
+                                Close
+                            </Text>
+                        </TouchableOpacity>
                     </View>
-                </TouchableOpacity>
+                </View>
             </Modal>
         </ScrollView>
     );
