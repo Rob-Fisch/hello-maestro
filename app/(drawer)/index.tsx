@@ -1,4 +1,4 @@
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/lib/theme';
@@ -61,7 +61,6 @@ export default function HomeScreen() {
     };
 
     const upcomingEventsCount = countEventsInRange(startOfWeek, endOfWeek);
-    const isMock = profile?.id.startsWith('mock-');
 
 
     const mainModules = [
@@ -151,11 +150,7 @@ export default function HomeScreen() {
 
                         <TouchableOpacity
                             onPress={() => {
-                                if (isMock) {
-                                    Alert.alert('Offline Mode', 'You are currently in a mock session. Sign in with a real account to enable cloud sync.');
-                                } else {
-                                    fullSync();
-                                }
+                                fullSync();
                             }}
                             className={`flex-row items-center px-4 py-2 rounded-full border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
                                 syncStatus === 'syncing' ? 'bg-blue-500/10 border-blue-500/20' :
@@ -218,7 +213,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
 
                 {/* FREE TIER SYNC WARNING */}
-                {profile && !profile.isPremium && !isMock && syncStatus === 'synced' && (
+                {profile && !profile.isPremium && syncStatus === 'synced' && (
                     <View className="mb-8 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 flex-row items-start">
                         <View className="mr-3 mt-1 bg-blue-500/20 p-1.5 rounded-full">
                             <Ionicons name="cloud-offline-outline" size={16} color="#60a5fa" />

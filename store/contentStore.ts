@@ -320,7 +320,7 @@ export const useContentStore = create<ContentState>()(
             },
             forkPathRemote: async (originalPathId, originatorName, originatorPathTitle) => {
                 const state = get();
-                if (state.profile?.id.startsWith('mock-')) {
+                if (!state.profile) {
                     Alert.alert('Cloud Sync Only', 'Forking is only available when signed in.');
                     return null;
                 }
@@ -369,7 +369,7 @@ export const useContentStore = create<ContentState>()(
 
             fullSync: async () => {
                 const state = get();
-                if (state.profile?.id.startsWith('mock-')) {
+                if (!state.profile) {
                     set({ syncStatus: 'offline' });
                     return;
                 }
@@ -461,7 +461,7 @@ export const useContentStore = create<ContentState>()(
                 const state = get();
 
                 // 1. Wipe Cloud Data if logged in
-                if (state.profile && !state.profile.id.startsWith('mock-')) {
+                if (state.profile) {
                     const { error } = await supabase.rpc('delete_own_data');
                     if (error) {
                         console.warn('[Purge RPC Missing/Failed]:', error.message);
@@ -518,28 +518,7 @@ export const useContentStore = create<ContentState>()(
             publicRoutines: [],
             fetchPublicRoutines: async () => {
                 const state = get();
-                if (!state.profile || state.profile.id.startsWith('mock-')) {
-                    // Mock data for offline/demo users
-                    set({
-                        publicRoutines: [
-                            {
-                                id: 'public-1',
-                                title: 'Jazz Standards Vol. 1',
-                                description: 'A curated list of essential jazz standards for beginners.',
-                                blocks: [],
-                                createdAt: new Date().toISOString(),
-                                isPublic: true
-                            },
-                            {
-                                id: 'public-2',
-                                title: 'Drum Rudiments Daily',
-                                description: 'Morning warmup routine for drummers.',
-                                blocks: [],
-                                createdAt: new Date().toISOString(),
-                                isPublic: true
-                            }
-                        ]
-                    });
+                if (!state.profile) {
                     return;
                 }
 
@@ -581,7 +560,7 @@ export const useContentStore = create<ContentState>()(
             initRealtime: () => {
                 const state = get();
                 // Avoid multiple subscriptions or subscribing mock users
-                if (state.realtimeSub || !state.profile || state.profile.id.startsWith('mock-')) return;
+                if (state.realtimeSub || !state.profile) return;
 
                 const userId = state.profile.id;
                 console.log('[Realtime] Initializing subscription for user:', userId);

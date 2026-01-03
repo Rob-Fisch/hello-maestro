@@ -21,6 +21,14 @@ export default function AuthScreen() {
     const [loading, setLoading] = useState(false);
     const [isSignUp, setIsSignUp] = useState(false);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
+
+    // --- SECRET BACKDOOR ---
+    const [secretTapCount, setSecretTapCount] = useState(0);
+    const [showSecretInput, setShowSecretInput] = useState(false);
+    const [secretCode, setSecretCode] = useState('');
+    const [isSecretUnlocked, setIsSecretUnlocked] = useState(false);
+    const lastTapRef = useRef(0);
+
     const { setProfile, fullSync } = useContentStore();
 
     const router = useRouter();
@@ -97,46 +105,20 @@ export default function AuthScreen() {
         setLoading(true);
 
         try {
-            const isRob = email.toLowerCase().startsWith('rob');
-
-            // If it's "Rob" and NO password, do the pure mock (No Sync)
-            if (isRob && !password) {
-                setProfile({
-                    id: 'mock-rob',
-                    email: email.toLowerCase().includes('@') ? email.toLowerCase() : 'rob@maestro.com',
-                    displayName: 'Rob',
-                });
-                Alert.alert('Offline Sandbox', 'You are entering in Offline Mode. Data will NOT sync to other devices and will be lost on sign out.');
-                setLoading(false);
-                router.replace('/(drawer)');
-                return;
-            }
-
-            // Otherwise, attempt real Supabase Auth
+            // Attempt real Supabase Auth
             if (isSignUp) {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
-                    options: { data: { display_name: isRob ? 'Rob' : undefined }, emailRedirectTo: Linking.createURL('/') }
+                    options: { data: { display_name: undefined }, emailRedirectTo: Linking.createURL('/') }
                 });
                 if (error) throw error;
                 Alert.alert('Success', 'Check your email for the confirmation link!');
             } else {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-                // If it's "Rob" and real auth fails, fall back to mock but warn
-                if (error && isRob) {
-                    setProfile({
-                        id: 'mock-rob',
-                        email: email.toLowerCase().includes('@') ? email.toLowerCase() : 'rob@maestro.com',
-                        displayName: 'Rob',
-                        isPremium: true
-                    });
-                    setLoading(false);
-                    router.replace('/(drawer)');
-                    Alert.alert('Offline Mode', 'Signed in as Rob offline. Sync is disabled because no real Supabase account was found for this email.');
-                    return;
-                }
+                if (error) throw error;
+
 
                 if (error) throw error;
 
@@ -194,19 +176,59 @@ export default function AuthScreen() {
                             Container for the images. 
                             Restored glowing edge, black background, and rounded corners.
                         */}
-                        <View className="w-full max-w-[320px] aspect-square items-center justify-center rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl shadow-purple-900/50">
-                            {/* The Animated Image */}
-                            <Animated.Image
-                                source={SLIDE_IMAGES[currentImageIndex]}
-                                style={{
-                                    opacity: fadeAnim,
-                                    width: '100%',
-                                    height: '100%',
-                                    resizeMode: 'contain'
+                        <TouchableOpacity
+                            activeOpacity={1}
+                            onPress={() => {
+                                const now = Date.now();
+                                if (now - lastTapRef.current < 500) {
+                                    setSecretTapCount(c => c + 1);
+                                } else {
+                                    setSecretTapCount(1);
+                                }
+                                lastTapRef.current = now;
+
+                                if (secretTapCount + 1 >= 5) {
+                                    setShowSecretInput(true);
+                                    // Feedback to user that something happened (optional, or keeping it silent/subtle)
+                                }
+                            }}
+                        >
+                            <View className="w-full max-w-[320px] aspect-square items-center justify-center rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl shadow-purple-900/50">
+                                {/* The Animated Image */}
+                                <Animated.Image
+                                    source={SLIDE_IMAGES[currentImageIndex]}
+                                    style={{
+                                        opacity: fadeAnim,
+                                        width: '100%',
+                                        height: '100%',
+                                        resizeMode: 'contain'
+                                    }}
+                                />
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Secret Input Field */}
+                    {showSecretInput && !isSecretUnlocked && (
+                        <View className="mb-8 w-full items-center">
+                            <TextInput
+                                className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white font-bold w-40 text-center"
+                                placeholder="Enter Access Code"
+                                placeholderTextColor="#64748b"
+                                secureTextEntry
+                                autoCapitalize="none"
+                                value={secretCode}
+                                onChangeText={(text) => {
+                                    setSecretCode(text);
+                                    if (text.toLowerCase() === 'maestro') {
+                                        setIsSecretUnlocked(true);
+                                        setShowSecretInput(false);
+                                        Alert.alert('Access Granted', 'Sign Up enabled.');
+                                    }
                                 }}
                             />
                         </View>
-                    </View>
+                    )}
 
                     <Text className="text-5xl font-black text-white tracking-tighter mb-2 text-center">OpusMode</Text>
                     <Text className="text-slate-400 text-lg font-medium leading-relaxed text-center mb-10">
@@ -274,14 +296,31 @@ export default function AuthScreen() {
                                 } else if (isSignUp) {
                                     setIsSignUp(false);
                                 } else {
-                                    setIsSignUp(true);
+                                    // ONLY ALLOW SIGN UP IF UNLOCKED
+                                    if (isSecretUnlocked) {
+                                        setIsSignUp(true);
+                                    } else {
+                                        // Optional: no-op or subtle shake
+                                    }
                                 }
                             }}
                             className="mt-6 p-4 items-center"
+                            activeOpacity={isSecretUnlocked || isForgotPassword || isSignUp ? 0.7 : 1}
                         >
                             <Text className="text-zinc-300 font-bold">
-                                {isForgotPassword ? 'Back to Sign In' : isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-                                <Text className="text-white"> {isForgotPassword ? '' : isSignUp ? 'Sign In' : 'Sign Up'}</Text>
+                                {isForgotPassword
+                                    ? 'Back to Sign In'
+                                    : isSignUp
+                                        ? 'Already have an account? '
+                                        : isSecretUnlocked
+                                            ? "Don't have an account? "
+                                            : ""} {/* HIDDEN BY DEFAULT */}
+
+                                {(isSecretUnlocked || isForgotPassword || isSignUp) && (
+                                    <Text className="text-white">
+                                        {isForgotPassword ? '' : isSignUp ? 'Sign In' : 'Sign Up'}
+                                    </Text>
+                                )}
                             </Text>
                         </TouchableOpacity>
 

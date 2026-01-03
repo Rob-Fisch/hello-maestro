@@ -61,7 +61,7 @@ export default function RootLayout() {
 
       // AUTO-SYNC ON START
       const { profile, fullSync } = useContentStore.getState();
-      if (profile && !profile.id.startsWith('mock-')) {
+      if (profile) {
         console.log('🚀 [RootLayout] Triggering Auto-Sync...');
         fullSync(); // Pull latest
       }
@@ -72,7 +72,7 @@ export default function RootLayout() {
   useEffect(() => {
     const { profile, initRealtime, cleanupRealtime } = useContentStore.getState();
 
-    if (profile && !profile.id.startsWith('mock-')) {
+    if (profile) {
       initRealtime();
     } else {
       cleanupRealtime();

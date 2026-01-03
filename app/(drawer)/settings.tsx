@@ -608,7 +608,7 @@ export default function SettingsScreen() {
                         {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
                     </Text>
                     <Text className="text-[10px] mt-1 text-slate-600">
-                        Version {APP_VERSION} (Build {BUILD_NUMBER}) • {profile?.id.startsWith('mock-') ? 'Local Mode' : 'Cloud Sync Enabled'}
+                        Version {APP_VERSION} (Build {BUILD_NUMBER}) • Cloud Sync Enabled
                     </Text>
                 </View>
 
