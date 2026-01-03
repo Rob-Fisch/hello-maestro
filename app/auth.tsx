@@ -178,6 +178,7 @@ export default function AuthScreen() {
                         */}
                         <TouchableOpacity
                             activeOpacity={1}
+                            className="w-full items-center"
                             onPress={() => {
                                 const now = Date.now();
                                 if (now - lastTapRef.current < 500) {
@@ -242,7 +243,7 @@ export default function AuthScreen() {
                                 <Ionicons name="mail-outline" size={20} color="white" />
                                 <TextInput
                                     className="flex-1 py-5 ml-3 text-white font-bold"
-                                    placeholder="maestro@example.com"
+                                    placeholder="opusmode@example.com"
                                     placeholderTextColor="#e4e4e7"
                                     value={email}
                                     onChangeText={setEmail}
