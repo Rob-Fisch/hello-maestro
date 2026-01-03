@@ -213,7 +213,7 @@ export default function HomeScreen() {
                 )}
 
                 {/* SECTION 1: TOP OF THE FOLD (Daily Briefing) */}
-                <View className="flex-row justify-between mb-8">
+                <View className="flex-row justify-between mb-8 mt-10">
                     {/* Left: Breathing Logo Hero */}
                     <TouchableOpacity
                         onPress={() => setIsLogoExpanded(true)}
@@ -229,7 +229,7 @@ export default function HomeScreen() {
                                 width: '100%',
                                 height: '100%',
                                 opacity: breathingOpacity,
-                                transform: [{ scale: 1.4 }]
+                                transform: [{ scale: 1.2 }]
                             }}
                             resizeMode="contain"
                         />

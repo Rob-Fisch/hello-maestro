@@ -10,6 +10,7 @@ import { APP_VERSION, BUILD_NUMBER } from '../constants/Version';
 
 
 const SLIDE_IMAGES = [
+    require('../assets/images/opusmode_om_logo_v9.png'),
     require('../assets/images/chaos_drift.png'),
     require('../assets/images/studio_order.png'),
     require('../assets/images/performance_glory.png'),
