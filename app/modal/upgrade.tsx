@@ -43,7 +43,7 @@ const SLIDES = [
         id: 'scout',
         title: 'THE SCOUT',
         subtitle: 'AI AGENT',
-        image: require('../../assets/images/studio_order.png'), // Reusing image as placeholder
+        image: require('../../assets/images/scout_vision.png'), // New generated image
         icon: 'telescope',
         color: '#8b5cf6', // Violet
         bg: 'bg-violet-950',
@@ -168,13 +168,15 @@ export default function UpgradeModal() {
 
                     {/* Changing Content */}
                     <Animated.View style={{ opacity: slideOpacity, alignItems: 'center' }} className="px-8">
-                        {/* Huge Iconic Representation */}
-                        {/* Hero Image */}
-                        <View className="mb-8 shadow-2xl shadow-black bg-black rounded-[32px] overflow-hidden border border-white/10 w-[300px] h-[300px]">
+                        {/* Huge Iconic Representation - Matches Auth Screen now */}
+                        <View className="w-full max-w-[320px] aspect-square items-center justify-center rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl shadow-purple-900/50 mb-8">
                             <Image
                                 source={activeSlide.image}
-                                className="w-full h-full"
-                                resizeMode="cover"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    resizeMode: 'contain'
+                                }}
                             />
                         </View>
 

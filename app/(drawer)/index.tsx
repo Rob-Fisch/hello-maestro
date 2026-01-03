@@ -1,4 +1,5 @@
-import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/lib/theme';
@@ -121,22 +122,44 @@ export default function HomeScreen() {
         },
     ];
 
+    const [isLogoExpanded, setIsLogoExpanded] = useState(false);
+
+    // Breathing Animation
+    const breathingOpacity = useRef(new Animated.Value(0.25)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(breathingOpacity, {
+                    toValue: 1,
+                    duration: 5000,
+                    easing: Easing.inOut(Easing.sin), // Pure sine wave for maximum smoothness
+                    useNativeDriver: true,
+                }),
+                Animated.timing(breathingOpacity, {
+                    toValue: 0.25,
+                    duration: 5000,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    }, []);
+
     return (
         <ScrollView className="flex-1 p-6" style={{ backgroundColor: theme.background, height: Platform.OS === 'web' ? '100vh' as any : undefined }}>
             <View className="mb-8" style={{ marginTop: Math.max(insets.top, 20) }}>
                 {/* Header Profile Section */}
-                <View className="flex-row justify-between items-start mb-6">
-                    <View className="flex-1 mr-4">
-                        <View className="flex-row items-center mb-4 opacity-80">
-                            {/* Placeholder Logo */}
-                            <View className="w-5 h-5 rounded-md bg-indigo-500 items-center justify-center mr-2 shadow-sm">
-                                <Ionicons name="prism" size={10} color="white" />
-                            </View>
+                <View className="flex-row justify-between items-center mb-6">
+                    <View className="flex-row items-center flex-1 mr-4">
+                        <View className="flex-row items-center opacity-80 mr-4">
+                            <Image
+                                source={require('../../assets/images/opusmode_logo_master.png')}
+                                style={{ width: 24, height: 24, marginRight: 8 }}
+                                resizeMode="contain"
+                            />
                             <Text className="text-[10px] font-black uppercase tracking-[3px] text-indigo-200">OPUSMODE</Text>
                         </View>
-                        <Text className="text-4xl font-black tracking-tighter leading-tight text-white">
-                            {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
-                        </Text>
                     </View>
 
                     <View className="flex-row items-center gap-2">
@@ -171,6 +194,11 @@ export default function HomeScreen() {
                     </View>
                 </View>
 
+                {/* Greeting - moved below aligned header */}
+                <Text className="text-4xl font-black tracking-tighter leading-tight text-white mb-6">
+                    {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
+                </Text>
+
                 {/* Offline / Conflict Warning Banner */}
                 {syncStatus === 'offline' && (
                     <View className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex-row items-start">
@@ -185,47 +213,51 @@ export default function HomeScreen() {
                 )}
 
                 {/* SECTION 1: TOP OF THE FOLD (Daily Briefing) */}
-                <TouchableOpacity
-                    onPress={() => router.push('/events')}
-                    className="p-5 rounded-[24px] mb-8 border shadow-sm relative overflow-hidden flex-row items-center justify-between"
-                    style={{ backgroundColor: theme.card, borderColor: theme.border }}
-                >
-                    <View className="absolute right-[-10] bottom-[-20] opacity-10 transform rotate-[-15deg]">
-                        <Ionicons name="calendar" size={120} color={theme.text} />
-                    </View>
+                <View className="flex-row justify-between mb-8">
+                    {/* Left: Breathing Logo Hero */}
+                    <TouchableOpacity
+                        onPress={() => setIsLogoExpanded(true)}
+                        activeOpacity={0.8}
+                        className="w-[48%] items-center justify-center h-[180px]"
+                    >
+                        {/* Ambient Glow Background - Fills the void */}
+                        <View className="absolute w-[300px] h-[300px] bg-indigo-600/20 rounded-full blur-[100px]" />
 
-                    <View className="flex-1 pr-4 relative z-10">
-                        <Text className="text-lg font-black text-white mb-1">
-                            {todaysEvents.length === 0 ? "There are no events today." :
-                                todaysEvents.length === 1 ? "There is 1 event today." :
-                                    `There are ${todaysEvents.length} events today.`}
-                        </Text>
-                        <Text className="text-sm font-medium text-slate-400">
-                            {upcomingEventsCount === 0 ? "Nothing scheduled for the week." :
-                                upcomingEventsCount === 1 ? "1 item on the schedule for the next 7 days." :
-                                    `${upcomingEventsCount} items on the schedule for the next 7 days.`}
-                        </Text>
-                    </View>
+                        <Animated.Image
+                            source={require('../../assets/images/opusmode_logo_master.png')}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                opacity: breathingOpacity,
+                                transform: [{ scale: 1.4 }]
+                            }}
+                            resizeMode="contain"
+                        />
+                    </TouchableOpacity>
 
-                    <View className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/5 relative z-10">
-                        <Ionicons name="arrow-forward" size={18} color="white" />
-                    </View>
-                </TouchableOpacity>
-
-                {/* FREE TIER SYNC WARNING */}
-                {profile && !profile.isPremium && syncStatus === 'synced' && (
-                    <View className="mb-8 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 flex-row items-start">
-                        <View className="mr-3 mt-1 bg-blue-500/20 p-1.5 rounded-full">
-                            <Ionicons name="cloud-offline-outline" size={16} color="#60a5fa" />
+                    {/* Right: Events Card */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/events')}
+                        className="w-[48%] p-5 rounded-[32px] border shadow-sm relative overflow-hidden justify-between h-[180px]"
+                        style={{ backgroundColor: theme.card, borderColor: theme.border }}
+                    >
+                        <View className="absolute right-[-10] bottom-[-10] opacity-10 transform rotate-[-15deg]">
+                            <Ionicons name="calendar" size={80} color={theme.text} />
                         </View>
-                        <View className="flex-1">
-                            <Text className="font-bold text-blue-100 text-sm mb-1">Backup Active (Free Tier)</Text>
-                            <Text className="text-blue-200/50 text-xs leading-relaxed">
-                                Your data is safely backed up ("Puddle Proof"), but will not sync to your other devices until you upgrade.
+
+                        <View>
+                            <Text className="text-4xl font-black text-white shadow-sm">{todaysEvents.length}</Text>
+                            <Text className="text-[10px] font-black uppercase tracking-widest text-slate-400">Events Today</Text>
+                        </View>
+
+                        <View>
+                            <Text className="text-xs font-bold text-slate-300">
+                                {upcomingEventsCount} Scheduled
                             </Text>
+                            <Text className="text-[10px] text-slate-500">Next 7 Days</Text>
                         </View>
-                    </View>
-                )}
+                    </TouchableOpacity>
+                </View>
 
                 {/* DIVIDER */}
                 <View className="h-[1px] w-full mb-8 opacity-10 bg-white" />
@@ -269,6 +301,21 @@ export default function HomeScreen() {
                     ))}
                 </View>
 
+                {/* FREE TIER SYNC WARNING - MOVED HERE */}
+                {profile && !profile.isPremium && syncStatus === 'synced' && (
+                    <View className="mt-4 mb-2 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 flex-row items-start">
+                        <View className="mr-3 mt-1 bg-blue-500/20 p-1.5 rounded-full">
+                            <Ionicons name="cloud-offline-outline" size={16} color="#60a5fa" />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="font-bold text-blue-100 text-sm mb-1">Backup Active (Free Tier)</Text>
+                            <Text className="text-blue-200/50 text-xs leading-relaxed">
+                                Your data is safely backed up ("Puddle Proof"), but will not sync to your other devices until you upgrade.
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
                 {/* Footer Padding */}
                 {/* Footer Section */}
                 <View className="mt-8 mb-16 items-center opacity-60">
@@ -289,10 +336,49 @@ export default function HomeScreen() {
 
                     <Text className="text-[10px] text-slate-600 mt-8 text-center max-w-[200px] leading-relaxed">
                         Designed for musicians, by musicians.
-                        {"\n"}© 2024 OpusMode Inc.
+                        {'\n'}© 2024 OpusMode Inc.
                     </Text>
                 </View>
             </View>
+
+            {/* FULL SCREEN LOGO MODAL */}
+            <Modal
+                visible={isLogoExpanded}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setIsLogoExpanded(false)}
+            >
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => setIsLogoExpanded(false)}
+                    className="flex-1 bg-black items-center justify-center relative p-8"
+                >
+                    <Image
+                        source={require('../../assets/images/opusmode_logo_master.png')}
+                        style={{ width: '100%', height: '50%', marginBottom: 40 }}
+                        resizeMode="contain"
+                    />
+
+                    <View className="items-center">
+                        <Text className="text-white text-3xl font-black uppercase tracking-[12px] mb-3 text-center ml-2">
+                            OpusMode
+                        </Text>
+                        <Text className="text-indigo-200/60 text-lg font-medium italic tracking-widest text-center mb-12">
+                            "Where Focus Meets Flow"
+                        </Text>
+
+                        <Text className="text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                            v1.2.3 • Designed for Musicians
+                        </Text>
+                    </View>
+
+                    <View className="absolute bottom-12">
+                        <Text className="text-white/10 text-[10px] font-bold uppercase tracking-[4px]">
+                            Tap anywhere to return
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </ScrollView>
     );
 }

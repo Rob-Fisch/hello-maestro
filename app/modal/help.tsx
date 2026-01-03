@@ -283,6 +283,28 @@ export default function HelpScreen() {
                     />
                 </AccordionItem>
 
+                <AccordionItem title="Sync & Backup (Important)" icon="cloud-offline-outline" defaultExpanded={true}>
+                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                        How your data is stored and synced depends on your plan:
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Puddle-Proof Backup"
+                        description="On the Free Tier, your data is safely backed up to the cloud instantly. If you lose your phone, your work is safe."
+                    />
+                    <Step
+                        number={2}
+                        title="Two Islands (Free Tier)"
+                        description="Free accounts work on 'Two Islands'. Data you create on your iPhone stays on your iPhone. Data you create on the Web stays on the Web. They are both safe, but they do not talk to each other."
+                    />
+                    <Step
+                        number={3}
+                        title="Pro Sync"
+                        description="Upgrading to Pro bridges the islands. All your data merges instantly and stays in sync across all your devices (iPhone, iPad, Web) in real-time."
+                    />
+                </AccordionItem>
+
                 <AccordionItem title="Privacy & Security" icon="lock-closed-outline">
                     <Text className="text-slate-200 leading-relaxed text-sm">
                         OpusMode stores your data locally on your device. We never sell your personal information or the details of your gigs. Your financial notes and roster details are private to you.
