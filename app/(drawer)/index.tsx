@@ -218,14 +218,14 @@ export default function HomeScreen() {
                     <TouchableOpacity
                         onPress={() => setIsLogoExpanded(true)}
                         activeOpacity={0.8}
-                        className="w-[48%] items-center justify-center h-[180px] rounded-[32px] border shadow-sm p-4 overflow-hidden"
+                        className="w-[48%] items-center justify-center h-[180px] rounded-[32px] border shadow-sm p-2 overflow-hidden"
                         style={{ backgroundColor: theme.card, borderColor: theme.border }}
                     >
                         <Animated.Image
                             source={require('../../assets/images/opusmode_om_logo_v9.png')}
                             style={{
-                                width: '90%',
-                                height: '90%',
+                                width: '100%',
+                                height: '100%',
                                 opacity: breathingOpacity,
                             }}
                             resizeMode="contain"
