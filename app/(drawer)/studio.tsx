@@ -1,13 +1,36 @@
 import { useTheme } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function StudioScreen() {
     const theme = useTheme();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+
+    // Breathing Animation
+    const breathingOpacity = useRef(new Animated.Value(0.25)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(breathingOpacity, {
+                    toValue: 1,
+                    duration: 5000,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(breathingOpacity, {
+                    toValue: 0.25,
+                    duration: 5000,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    }, []);
 
     const sections = [
         {
@@ -64,10 +87,15 @@ export default function StudioScreen() {
             </View>
 
             {/* Hero Image Section - Dark & Moody */}
-            <View className="w-full aspect-square max-h-[350px] mb-8 self-center shadow-2xl shadow-indigo-900/40 opacity-90">
-                <Image
+            <View className="w-full aspect-square max-h-[350px] mb-8 self-center shadow-2xl shadow-indigo-900/40">
+                <Animated.Image
                     source={require('@/assets/images/studio_order.png')}
-                    style={{ width: '100%', height: '100%', borderRadius: 32 }}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: 32,
+                        opacity: breathingOpacity
+                    }}
                     resizeMode="contain"
                 />
             </View>

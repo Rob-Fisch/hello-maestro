@@ -8,11 +8,11 @@ import { Stack, router, useRootNavigationState, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, LogBox, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import '../global.css';
 
-LogBox.ignoreAllLogs(true); // Suppress warnings/errors for clean video recording
+// LogBox.ignoreAllLogs(true); // Uncomment to suppress logs for video recording // Suppress warnings/errors for clean video recording
 
 SplashScreen.preventAutoHideAsync();
 

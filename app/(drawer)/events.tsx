@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ScheduleFilter = AppEventType | 'practice';
@@ -20,7 +20,8 @@ interface UnifiedItem {
 }
 
 import { useTheme } from '@/lib/theme';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing } from 'react-native';
 
 export default function ScheduleScreen() {
     const { events = [], routines = [], people = [], settings, deleteEvent, trackModuleUsage } = useContentStore();
@@ -33,6 +34,37 @@ export default function ScheduleScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
+    // Animation Logic
+    const breathingOpacity = useRef(new Animated.Value(0.25)).current;
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+    useEffect(() => {
+        // Breathing Loop (5s in, 5s out = 10s total)
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(breathingOpacity, {
+                    toValue: 1,
+                    duration: 5000,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(breathingOpacity, {
+                    toValue: 0.25,
+                    duration: 5000,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+
+        // Swap Image every 10 seconds (at the bottom of the breath)
+        const interval = setInterval(() => {
+            setActiveImageIndex(prev => (prev === 0 ? 1 : 0));
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const { filter, source } = useLocalSearchParams();
     const [activeFilters, setActiveFilters] = useState<ScheduleFilter[]>(() => {
         if (filter) {
@@ -42,7 +74,7 @@ export default function ScheduleScreen() {
                 return [filterParam as ScheduleFilter];
             }
         }
-        return ['performance', 'lesson', 'rehearsal'];
+        return ['performance', 'lesson', 'rehearsal', 'practice'];
     });
 
 
@@ -229,7 +261,7 @@ export default function ScheduleScreen() {
             case 'performance': return { label: 'Performance', className: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30', icon: '🎸' };
             case 'lesson': return { label: 'Lesson', className: 'bg-purple-500/20 text-purple-300 border border-purple-500/30', icon: '👨‍🏫' };
             case 'rehearsal': return { label: 'Rehearsal', className: 'bg-amber-500/20 text-amber-300 border border-amber-500/30', icon: '👥' };
-            case 'practice': return { label: 'Practice', className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30', icon: '🎼' };
+            case 'practice': return { label: 'Routines', className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30', icon: '🎼' };
             default: return { label: 'Other', className: 'bg-slate-700 text-slate-300 border border-slate-600', icon: '📅' };
         }
     };
@@ -415,6 +447,7 @@ export default function ScheduleScreen() {
         { key: 'performance', label: 'Performance', icon: '🎸' },
         { key: 'lesson', label: 'Lessons', icon: '👨‍🏫' },
         { key: 'rehearsal', label: 'Rehearsals', icon: '👥' },
+        { key: 'practice', label: 'Routines', icon: '🎼' },
     ];
 
     return (
@@ -457,10 +490,15 @@ export default function ScheduleScreen() {
                 ListHeaderComponent={
                     <>
                         {/* Hero Image Section - Dark & Moody */}
-                        <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40 opacity-90">
-                            <Image
-                                source={require('@/assets/images/schedule_header.png')}
-                                style={{ width: '100%', height: '100%', borderRadius: 32 }}
+                        <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40">
+                            <Animated.Image
+                                source={activeImageIndex === 0 ? require('@/assets/images/schedule_clock.png') : require('@/assets/images/schedule_calendar.png')}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: 32,
+                                    opacity: breathingOpacity
+                                }}
                                 resizeMode="contain"
                             />
                         </View>

@@ -46,8 +46,7 @@ export default function HelpScreen() {
     const [currentVideo, setCurrentVideo] = useState<string | null>(null);
 
     const tutorials = [
-        { id: '1', title: 'Welcome to OpusMode', duration: '1:30', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
-        { id: '2', title: 'Creating Your First Routine', duration: '2:15', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
+        { id: '1', title: 'Add Activity (Studio)', duration: '1:00', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/OpusMode%20-%20Add%20Activity.mp4' },
     ];
 
     const Step = ({ number, title, description }: { number: number, title: string, description: string }) => (

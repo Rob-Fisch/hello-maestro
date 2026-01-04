@@ -36,6 +36,7 @@ export default function VideoPlayer({ source, poster, onClose }: VideoPlayerProp
                 useNativeControls
                 resizeMode={ResizeMode.CONTAIN}
                 isLooping={false}
+                shouldPlay
                 onPlaybackStatusUpdate={status => setStatus(() => status)}
                 onLoadStart={() => setLoading(true)}
                 onLoad={() => setLoading(false)}

@@ -230,33 +230,33 @@ export default function BlockEditor() {
                         {(['text', 'sheet_music'] as const).map((t) => {
                             const isSelected = type === t;
                             return (
-                                <Pressable
+                                <TouchableOpacity
                                     key={t}
                                     onPress={() => setType(t)}
-                                    style={({ pressed }) => ({
-                                        opacity: pressed ? 0.8 : 1,
-                                        backgroundColor: isSelected ? PAPER_THEME.saveBtnBg : PAPER_THEME.background,
-                                        borderColor: isSelected ? PAPER_THEME.saveBtnBg : PAPER_THEME.inputBorder,
+                                    activeOpacity={0.8}
+                                    style={{
+                                        backgroundColor: isSelected ? '#c2410c' : '#ffffff',
+                                        borderColor: isSelected ? '#c2410c' : '#e7e5e4',
                                         borderWidth: 1,
                                         flex: 1,
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         paddingVertical: 16,
                                         borderRadius: 12,
-                                    })}
+                                    }}
                                 >
                                     <Text
                                         style={{
-                                            color: isSelected ? 'white' : PAPER_THEME.text,
+                                            color: isSelected ? '#ffffff' : '#1c1917',
                                             fontWeight: '900',
                                             textTransform: 'uppercase',
                                             letterSpacing: 2,
-                                            fontSize: 12
+                                            fontSize: 13
                                         }}
                                     >
                                         {t.replace('_', ' ')}
                                     </Text>
-                                </Pressable>
+                                </TouchableOpacity>
                             );
                         })}
                     </View>
