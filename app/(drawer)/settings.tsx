@@ -4,7 +4,8 @@ import { useContentStore } from '@/store/contentStore';
 import { useFinanceStore } from '@/store/financeStore';
 import { Category } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
+import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ export default function SettingsScreen() {
     }, []);
 
     const router = useRouter();
+    const navigation = useNavigation();
 
 
     const [newCategoryName, setNewCategoryName] = useState('');
@@ -213,10 +215,10 @@ export default function SettingsScreen() {
             {/* Header with Home Button - Top of Page */}
             <View className="px-6 flex-row items-start pt-8 mb-6" style={{ paddingTop: insets.top }}>
                 <TouchableOpacity
-                    onPress={() => router.push('/')}
+                    onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                     className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
                 >
-                    <Ionicons name="home-outline" size={24} color="white" />
+                    <Ionicons name="menu" size={24} color="white" />
                 </TouchableOpacity>
                 <View>
                     <Text className="text-[10px] font-black uppercase tracking-[3px] text-teal-400 mb-1">

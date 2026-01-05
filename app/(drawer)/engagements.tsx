@@ -2,7 +2,8 @@ import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { AppEvent } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
+import { router, useNavigation } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ export default function EngagementsScreen() {
     const { events = [], people = [] } = useContentStore();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
+    const navigation = useNavigation();
     const [filter, setFilter] = useState<'all' | 'needs_booking' | 'confirmed'>('all');
 
     const engagementStats = useMemo(() => {
@@ -113,8 +115,8 @@ export default function EngagementsScreen() {
             <View className="px-8 pb-4" style={{ paddingTop: Math.max(insets.top, 20) }}>
                 <View className="flex-row justify-between items-center mb-8">
                     <View className="flex-row items-center flex-1 mr-4">
-                        <TouchableOpacity onPress={() => router.push('/')} className="mr-4 p-2 -ml-2 rounded-full">
-                            <Ionicons name="home-outline" size={26} color={theme.text} />
+                        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())} className="mr-4 p-2 -ml-2 rounded-full">
+                            <Ionicons name="menu" size={26} color={theme.text} />
                         </TouchableOpacity>
                         <View className="flex-1">
                             <View className="flex-row items-center mb-1">

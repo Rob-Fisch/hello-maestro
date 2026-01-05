@@ -1,23 +1,43 @@
 import { Transaction, TransactionType } from '@/store/types';
-import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface TransactionEditorProps {
     visible: boolean;
     onClose: () => void;
     onSave: (transaction: Transaction) => void;
+    onDelete?: () => void;
     initialData?: Transaction;
     defaultType?: TransactionType;
 }
 
-export default function TransactionEditor({ visible, onClose, onSave, initialData, defaultType = 'expense' }: TransactionEditorProps) {
+export default function TransactionEditor({ visible, onClose, onSave, onDelete, initialData, defaultType = 'expense' }: TransactionEditorProps) {
     const isEditing = !!(initialData && initialData.id);
     const [type, setType] = useState<TransactionType>(initialData?.type || defaultType);
     const [amount, setAmount] = useState(initialData?.amount?.toString() || '');
     const [category, setCategory] = useState(initialData?.category || '');
     const [description, setDescription] = useState(initialData?.description || '');
+    const [receiptUri, setReceiptUri] = useState(initialData?.receiptUri || '');
     const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
     const [relatedEventId, setRelatedEventId] = useState(initialData?.relatedEventId);
+
+    // Date Picker State
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    // Reset state when visible changes or initialData changes
+    useEffect(() => {
+        if (visible) {
+            setType(initialData?.type || defaultType);
+            setAmount(initialData?.amount?.toString() || '');
+            setCategory(initialData?.category || '');
+            setDescription(initialData?.description || '');
+            setReceiptUri(initialData?.receiptUri || '');
+            setDate(initialData?.date || new Date().toISOString().split('T')[0]);
+            setRelatedEventId(initialData?.relatedEventId);
+        }
+    }, [visible, initialData, defaultType]);
 
     const handleSave = () => {
         if (!amount || isNaN(Number(amount))) {
@@ -36,6 +56,7 @@ export default function TransactionEditor({ visible, onClose, onSave, initialDat
             type,
             category,
             description,
+            receiptUri,
             relatedEventId,
             createdAt: initialData?.createdAt || new Date().toISOString(),
         };
@@ -47,6 +68,7 @@ export default function TransactionEditor({ visible, onClose, onSave, initialDat
             setAmount('');
             setCategory('');
             setDescription('');
+            setReceiptUri('');
         }
     };
 
@@ -124,14 +146,76 @@ export default function TransactionEditor({ visible, onClose, onSave, initialDat
                         className="bg-white p-4 rounded-xl border border-stone-200 text-lg font-bold text-stone-800 mb-8"
                     />
 
-                    {/* DATE */}
-                    <Text className="text-stone-400 font-bold uppercase text-xs tracking-widest mb-2">Date (YYYY-MM-DD)</Text>
+                    {/* RECEIPT LINK (New) */}
+                    <Text className="text-stone-400 font-bold uppercase text-xs tracking-widest mb-2">Receipt / Document Link</Text>
                     <TextInput
-                        value={date}
-                        onChangeText={setDate} // Simple text input for now, could use a DatePicker later
-                        placeholder="2024-01-01"
-                        className="bg-white p-4 rounded-xl border border-stone-200 text-lg font-bold text-stone-800 mb-8"
+                        value={receiptUri}
+                        onChangeText={setReceiptUri}
+                        placeholder="e.g. Drive Link, Dropbox, iCloud..."
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        className="bg-white p-4 rounded-xl border border-stone-200 text-sm font-bold text-stone-800 mb-8"
                     />
+
+                    {/* DATE */}
+                    <Text className="text-stone-400 font-bold uppercase text-xs tracking-widest mb-2">Date</Text>
+                    {Platform.OS === 'web' ? (
+                        <View className="bg-white p-4 rounded-xl border border-stone-200 mb-12">
+                            <input
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                style={{
+                                    fontSize: 18,
+                                    fontWeight: 'bold',
+                                    color: '#1c1917', // stone-900
+                                    border: 'none',
+                                    outline: 'none',
+                                    width: '100%',
+                                    backgroundColor: 'transparent'
+                                }}
+                            />
+                        </View>
+                    ) : (
+                        <View className="mb-12">
+                            {Platform.OS === 'android' && (
+                                <TouchableOpacity
+                                    onPress={() => setShowDatePicker(true)}
+                                    className="bg-white p-4 rounded-xl border border-stone-200"
+                                >
+                                    <Text className="text-lg font-bold text-stone-800">{date}</Text>
+                                </TouchableOpacity>
+                            )}
+                            {(Platform.OS === 'ios' || showDatePicker) && (
+                                <View className={Platform.OS === 'ios' ? "bg-white rounded-xl border border-stone-200 overflow-hidden items-start" : ""}>
+                                    <DateTimePicker
+                                        value={new Date(date)}
+                                        mode="date"
+                                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                        onChange={(event, selectedDate) => {
+                                            setShowDatePicker(Platform.OS === 'ios');
+                                            if (selectedDate) {
+                                                setDate(selectedDate.toISOString().split('T')[0]);
+                                            }
+                                        }}
+                                        style={Platform.OS === 'ios' ? { width: '100%' } : undefined}
+                                        themeVariant="light"
+                                    />
+                                </View>
+                            )}
+                        </View>
+                    )}
+
+                    {/* DELETE BUTTON - Only if editing and onDelete provided */}
+                    {isEditing && onDelete && (
+                        <TouchableOpacity
+                            onPress={onDelete}
+                            className="flex-row items-center justify-center p-4 rounded-xl bg-red-50 border border-red-100 mb-12"
+                        >
+                            <Ionicons name="trash-outline" size={20} color="#ef4444" style={{ marginRight: 8 }} />
+                            <Text className="text-red-500 font-bold">Delete Transaction</Text>
+                        </TouchableOpacity>
+                    )}
 
                 </ScrollView>
             </KeyboardAvoidingView>

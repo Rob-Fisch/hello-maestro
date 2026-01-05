@@ -1,9 +1,9 @@
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Href, router } from 'expo-router';
+import { Href } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
-import { Alert, Platform, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 
 
 interface NavItem {
@@ -28,7 +28,14 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'people', icon: 'people-outline', label: 'Contacts', path: '/people' },
     // Compass removed for V3 Consolidation
     { name: 'settings', icon: 'settings-outline', label: 'Settings', path: '/settings' },
-    { name: 'help', icon: 'help-circle-outline', label: 'Help', path: '/modal/help' },
+
+    // Hidden Routes (Explicitly defined to hide from Drawer)
+    { name: 'gear-vault', icon: 'briefcase', label: 'Vault', path: '/gear-vault', hidden: true },
+    { name: 'history', icon: 'time', label: 'History', path: '/history', hidden: true },
+    { name: 'engagements', icon: 'musical-notes', label: 'Engagements', path: '/engagements', hidden: true },
+    { name: 'people/[id]', icon: 'person', label: 'Person', path: '/people/1', hidden: true }, // Dynamic route
+    { name: 'routines/[id]', icon: 'list', label: 'Routine', path: '/routines/1', hidden: true }, // Dynamic route
+    { name: 'routines/index', icon: 'list', label: 'Routines', path: '/routines', hidden: true }, // Explicit index
 ];
 
 
@@ -88,63 +95,10 @@ export default function DrawerLayout() {
                                     ),
                                     drawerItemStyle: (item.name === 'menu' || isHidden) ? { display: 'none' } : undefined
                                 }}
-                                listeners={item.name === 'help' ? {
-                                    drawerItemPress: (e) => {
-                                        e.preventDefault();
-                                        router.push('/modal/help');
-                                    },
-                                } : undefined}
                             />
                         );
                     })}
 
-                    {/* Student Mode Toggle Item (Virtual) */}
-                    <Drawer.Screen
-                        name="student-mode-toggle"
-                        options={{
-                            drawerLabel: studentMode ? 'Exit Student Mode' : 'Student Mode',
-                            title: 'Student Mode',
-                            drawerIcon: ({ color, size }) => (
-                                <Ionicons name={studentMode ? "school" : "school-outline"} size={size + 4} color={studentMode ? "#4f46e5" : color} />
-                            ),
-                            drawerLabelStyle: studentMode ? { color: '#4f46e5', fontWeight: 'bold' } : undefined
-                        }}
-                        listeners={{
-                            drawerItemPress: (e) => {
-                                e.preventDefault();
-                                if (!studentMode) {
-                                    // Preamble for Parents
-                                    const title = "Enable Student Mode?";
-                                    const message = "OpusMode is a learning tool sent by your teacher to assist with musical learning.\n\nStudent Mode creates a safe, distraction-free environment, removing financial and social features.\n\nEnable now?";
-
-                                    Alert.alert(
-                                        title,
-                                        message,
-                                        [
-                                            { text: "Cancel", style: "cancel" },
-                                            {
-                                                text: "Enable",
-                                                onPress: () => {
-                                                    toggleStudentMode(true);
-                                                    router.push('/studio');
-                                                }
-                                            }
-                                        ]
-                                    );
-                                    // For Web compatibility
-                                    if (Platform.OS === 'web') {
-                                        const confirm = window.confirm(`${title}\n\n${message}`);
-                                        if (confirm) {
-                                            toggleStudentMode(true);
-                                            router.push('/studio');
-                                        }
-                                    }
-                                } else {
-                                    toggleStudentMode(false);
-                                }
-                            },
-                        }}
-                    />
                 </Drawer>
             </View>
         </View>

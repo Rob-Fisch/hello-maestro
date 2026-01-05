@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
+import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 
 export default function HomeScreen() {
@@ -152,6 +153,13 @@ export default function HomeScreen() {
                 {/* Header Profile Section */}
                 <View className="flex-row justify-between items-center mb-6">
                     <View className="flex-row items-center flex-1 mr-4">
+                        <TouchableOpacity
+                            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+                            className="mr-3 p-2 -ml-2 rounded-full"
+                        >
+                            <Ionicons name="menu" size={28} color={theme.text} />
+                        </TouchableOpacity>
+
                         <View className="flex-row items-center opacity-80 mr-4">
                             <Image
                                 source={require('../../assets/images/opusmode_om_logo_v9.png')}

@@ -198,19 +198,41 @@ export default function RoutineEditor() {
             <TouchableOpacity
                 onLongPress={drag}
                 disabled={isActive}
-                className={`mb-2 p-3 rounded-xl border flex-row items-center justify-between ${isActive ? 'bg-amber-50 border-amber-400 shadow-md transform scale-105' : 'bg-white border-stone-200 shadow-sm'}`}
+                className={`mb-2 p-3 rounded-xl border flex-row items-start justify-between ${isActive ? 'bg-amber-50 border-amber-400 shadow-md transform scale-105' : 'bg-white border-stone-200 shadow-sm'}`}
             >
-                <View className="flex-row items-center flex-1">
-                    <Text className="text-stone-300 mr-3 text-lg font-bold">☰</Text>
+                <View className="flex-row items-start flex-1">
+                    <Text className="text-stone-300 mr-3 text-lg font-bold mt-1">☰</Text>
                     {item.mediaUri && !item.mediaUri.endsWith('.pdf') && (
                         <Image source={{ uri: item.mediaUri }} className="w-10 h-10 rounded mr-3 bg-stone-100" />
                     )}
                     <View className="flex-1">
-                        <Text className="font-bold text-stone-900 text-base" numberOfLines={1}>{item.title}</Text>
-                        <Text className="text-xs text-stone-500 font-bold uppercase tracking-wide">{item.type.replace('_', ' ')}</Text>
+                        <View className="flex-row items-center justify-between">
+                            <Text className="font-bold text-stone-900 text-base flex-1" numberOfLines={1}>{item.title}</Text>
+                            <Text className="text-[10px] text-stone-400 font-bold uppercase tracking-wide ml-2">{item.type.replace('_', ' ')}</Text>
+                        </View>
+
+                        {/* Metadata Row: Tags */}
+                        {item.tags && item.tags.length > 0 && (
+                            <View className="flex-row flex-wrap gap-1 mt-1">
+                                {item.tags.map((tag, idx) => (
+                                    <View key={idx} className="bg-stone-100 px-1.5 py-0.5 rounded-md border border-stone-200">
+                                        <Text className="text-[10px] text-stone-600 font-bold" numberOfLines={1}>
+                                            {tag}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+
+                        {/* Metadata Row: Content Preview (Notes) */}
+                        {item.content && (
+                            <Text className="text-xs text-stone-500 mt-1 italic leading-tight" numberOfLines={2}>
+                                {item.content}
+                            </Text>
+                        )}
                     </View>
                 </View>
-                <TouchableOpacity onPress={() => removeBlockFromRoutine(item.id)} className="p-2 ml-2 bg-red-50 rounded-lg">
+                <TouchableOpacity onPress={() => removeBlockFromRoutine(item.id)} className="p-2 ml-2 bg-red-50 rounded-lg self-center">
                     <Ionicons name="trash-outline" size={16} color="#ef4444" />
                 </TouchableOpacity>
             </TouchableOpacity>

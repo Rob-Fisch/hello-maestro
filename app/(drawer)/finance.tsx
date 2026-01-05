@@ -1,3 +1,4 @@
+import FinanceExportModal from '@/components/FinanceExportModal';
 import TransactionEditor from '@/components/TransactionEditor';
 import { useContentStore } from '@/store/contentStore';
 import { useFinanceStore } from '@/store/financeStore';
@@ -6,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function FinancePage() {
@@ -18,117 +19,53 @@ export default function FinancePage() {
 
     // Use Finance Store
     const { events } = useContentStore();
-    const { transactions } = useFinanceStore();
+    const { transactions, addTransaction, updateTransaction, deleteTransaction } = useFinanceStore();
 
-    // Hybrid Teaser Logic: Calculate Potential Income from Events
-    const potentialIncome = useMemo(() => {
-        return events.reduce((sum, event) => {
-            // Try to find a fee string and parse number
-            const feeStr = event.musicianFee || event.totalFee || event.fee || '0';
-            const fee = parseFloat(feeStr.replace(/[^0-9.]/g, '')) || 0;
-            return sum + fee;
-        }, 0);
-    }, [events]);
+    // --- State ---
+    const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all');
 
-    const estimatedIncome = useMemo(() => {
-        // Fallback calculation: $150 * number of events
-        return events.length * 150;
-    }, [events]);
+    // Date Filtering State
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-11
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [isYearPickerVisible, setYearPickerVisible] = useState(false);
 
-    const displayTeaserAmount = potentialIncome > 0 ? potentialIncome : estimatedIncome;
-    const isEstimate = potentialIncome === 0;
-
-    if (!isPremium) {
-        return (
-            <View className="flex-1 bg-white">
-                <View className="bg-blue-600 pb-10 px-6 rounded-b-[40px] shadow-2xl z-10" style={{ paddingTop: insets.top + 20 }}>
-                    {/* Header */}
-                    <View className="flex-row items-center mb-6">
-                        <TouchableOpacity
-                            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-                            className="p-2 -ml-2 rounded-full bg-white/10 border border-white/20"
-                        >
-                            <Ionicons name="menu" size={24} color="white" />
-                        </TouchableOpacity>
-                    </View>
-
-                    <View className="items-center">
-                        <Ionicons name="wallet" size={64} color="white" className="mb-4" />
-                        <Text className="text-white text-3xl font-black text-center mb-2">Finance Tracker</Text>
-                        <Text className="text-blue-100 text-center font-medium">
-                            Maximize your net income by tracking expenses against your revenue.
-                        </Text>
-                    </View>
-                </View>
-
-                <ScrollView className="flex-1 -mt-10 px-6">
-                    <View className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 mb-6">
-                        <Text className="text-xs uppercase font-black text-gray-400 tracking-widest mb-4 text-center">Your Potential</Text>
-
-                        <View className="items-center mb-6">
-                            <Text className="text-5xl font-black text-green-600">
-                                ${displayTeaserAmount.toLocaleString()}
-                            </Text>
-                            <Text className="text-gray-400 text-xs mt-2 text-center px-8">
-                                {isEstimate
-                                    ? `Based on ${events.length} gigs at ~$150 avg.`
-                                    : `Aggregated from your ${events.length} existing events.`
-                                }
-                            </Text>
-                        </View>
-
-                        <View className="space-y-4">
-                            <View className="flex-row items-start">
-                                <View className="bg-green-100 p-2 rounded-full mr-3">
-                                    <Ionicons name="checkmark" size={16} color="#16a34a" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-bold text-gray-800">Track Gig Income</Text>
-                                    <Text className="text-gray-500 text-xs">Log payments instantly.</Text>
-                                </View>
-                            </View>
-                            <View className="flex-row items-start mt-4">
-                                <View className="bg-red-100 p-2 rounded-full mr-3">
-                                    <Ionicons name="checkmark" size={16} color="#ef4444" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-bold text-gray-800">Deduct Expenses</Text>
-                                    <Text className="text-gray-500 text-xs">Gas, gear, travel, and meals.</Text>
-                                </View>
-                            </View>
-                            <View className="flex-row items-start mt-4">
-                                <View className="bg-blue-100 p-2 rounded-full mr-3">
-                                    <Ionicons name="checkmark" size={16} color="#2563eb" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-bold text-gray-800">Private Ledger</Text>
-                                    <Text className="text-gray-500 text-xs">Securely stored on your device.</Text>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-
-                    <TouchableOpacity
-                        className="bg-stone-900 p-5 rounded-3xl items-center shadow-lg mb-8"
-                        onPress={() => alert('Upgrade Modal Placeholder')}
-                    >
-                        <Text className="text-white font-black text-lg">Start Tracking Now</Text>
-                        <Text className="text-stone-400 text-xs mt-1">Included with OpusMode Pro</Text>
-                    </TouchableOpacity>
-                </ScrollView>
-            </View>
-        );
-    }
-
-    // PRO VIEW
     const [isEditorVisible, setEditorVisible] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
-    const { addTransaction, updateTransaction, deleteTransaction } = useFinanceStore();
 
-    const totalBalance = useMemo(() => {
-        return transactions.reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
-    }, [transactions]);
+    const [isReportsVisible, setReportsVisible] = useState(false);
 
+    // --- Stats Logic (Independent of Tab Selection) ---
+    // We calculate stats based on the selected Month/Year, ignoring the 'activeTab' filter
+    // so the summary remains consistent even when viewing just "Income" or "Expense" lists.
+    const monthTransactions = useMemo(() => {
+        return transactions.filter(t => {
+            // Fix Timezone Issue: Parse YYYY-MM-DD directly to avoid UTC->Local shift
+            const [y, m, d] = t.date.split('-').map(Number);
+            // m is 1-12, selectedMonth is 0-11
+            return y === selectedYear && (m - 1) === selectedMonth;
+        });
+    }, [transactions, selectedYear, selectedMonth]);
+
+    const stats = useMemo(() => {
+        let income = 0;
+        let expense = 0;
+        monthTransactions.forEach(t => {
+            if (t.type === 'income') income += t.amount;
+            else expense += t.amount;
+        });
+        return { income, expense, net: income - expense };
+    }, [monthTransactions]);
+
+    // --- Filtering Logic for List View ---
+    const filteredTransactions = useMemo(() => {
+        return monthTransactions.filter(t => {
+            return activeTab === 'all' ? true : t.type === activeTab;
+        }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [monthTransactions, activeTab]);
+
+    // --- Handlers ---
     const handleSaveTransaction = (t: Transaction) => {
         if (editingTransaction) {
             updateTransaction(t.id, t);
@@ -138,88 +75,295 @@ export default function FinancePage() {
         setEditingTransaction(undefined);
     };
 
+    const handleDelete = (id: string) => {
+        if (Platform.OS === 'web') {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                deleteTransaction(id);
+                setEditorVisible(false); // Close editor if open
+            }
+        } else {
+            Alert.alert('Delete Transaction', 'Are you sure?', [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete', style: 'destructive', onPress: () => {
+                        deleteTransaction(id);
+                        setEditorVisible(false);
+                    }
+                }
+            ]);
+        }
+    };
+
+    const [isExportModalVisible, setExportModalVisible] = useState(false);
+
+    const handleExport = () => {
+        setExportModalVisible(true);
+    };
+
+
+    // --- Render Helpers ---
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    if (!isPremium) {
+        // ... (Keep existing Paywall / Teaser Code or simplify it? Preserving existing for now to minimize scope creep unless asked)
+        // Re-using the teaser logic from previous version for consistency
+        const potentialIncome = events.reduce((sum, event) => {
+            const feeStr = event.musicianFee || event.totalFee || event.fee || '0';
+            const fee = parseFloat(feeStr.replace(/[^0-9.]/g, '')) || 0;
+            return sum + fee;
+        }, 0);
+        const estimatedIncome = events.length * 150;
+        const displayTeaserAmount = potentialIncome > 0 ? potentialIncome : estimatedIncome;
+
+        return (
+            <View className="flex-1 bg-white">
+                <View className="bg-blue-600 pb-10 px-6 rounded-b-[40px] shadow-2xl z-10" style={{ paddingTop: insets.top + 20 }}>
+                    <View className="flex-row items-center mb-6">
+                        <TouchableOpacity
+                            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+                            className="p-2 -ml-2 rounded-full bg-white/10 border border-white/20"
+                        >
+                            <Ionicons name="menu" size={24} color="white" />
+                        </TouchableOpacity>
+                    </View>
+                    <View className="items-center">
+                        <Ionicons name="wallet" size={64} color="white" className="mb-4" />
+                        <Text className="text-white text-3xl font-black text-center mb-2">OpusMode Finance</Text>
+                        <View className="bg-white/20 px-4 py-2 rounded-full">
+                            <Text className="text-white font-bold text-lg">${displayTeaserAmount.toLocaleString()} Potential</Text>
+                        </View>
+                        <Text className="text-blue-100 text-center font-medium mt-4">
+                            Unlock the pro ledger to track your music income.
+                        </Text>
+                    </View>
+                </View>
+                <View className="flex-1 items-center justify-center">
+                    <TouchableOpacity onPress={() => router.push('/modal/upgrade')} className="bg-stone-900 px-8 py-4 rounded-full">
+                        <Text className="text-white font-bold">Upgrade to Pro</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
+
     return (
         <View className="flex-1 bg-stone-50">
-            {/* Header / Balance Card */}
-            <View className="bg-stone-900 pb-12 px-6 rounded-b-[40px] shadow-xl z-10" style={{ paddingTop: insets.top + 10 }}>
-                {/* Top Nav Row */}
-                <View className="flex-row justify-between items-center mb-6">
+            {/* --- COMPACT HEADER --- */}
+            <View className="bg-stone-900 px-6 pb-6 rounded-b-[32px] shadow-md z-20" style={{ paddingTop: insets.top + 10 }}>
+                {/* Top Row: Menu | Reports | Export */}
+                <View className="flex-row justify-between items-center mb-4">
                     <TouchableOpacity
                         onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-                        className="p-2 -ml-2 rounded-full bg-white/10 border border-white/20"
+                        className="p-2 -ml-2 rounded-full bg-white/10"
                     >
                         <Ionicons name="menu" size={24} color="white" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => router.push('/(drawer)/settings')} className="bg-stone-800 p-2 rounded-full border border-stone-700">
-                        <Ionicons name="settings-outline" size={20} color="white" />
+                    <View className="flex-row gap-3">
+                        <TouchableOpacity onPress={() => setReportsVisible(true)} className="p-2 bg-indigo-500/20 rounded-full border border-indigo-500/50">
+                            <Ionicons name="bar-chart" size={20} color="#818cf8" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleExport} className="p-2 bg-white/10 rounded-full">
+                            <Ionicons name="download-outline" size={20} color="white" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Summary Bar */}
+                <View className="flex-row items-center justify-between">
+                    <View>
+                        <Text className="text-stone-400 font-black text-[10px] uppercase tracking-widest mb-1">Net Balance</Text>
+                        <Text className={`text-4xl font-black tracking-tighter ${stats.net >= 0 ? 'text-white' : 'text-red-400'}`}>
+                            ${stats.net.toLocaleString()}
+                        </Text>
+                    </View>
+                    <View className="items-end">
+                        <View className="flex-row items-center mb-1">
+                            <Text className="text-stone-400 font-bold text-[10px] uppercase mr-2">Income</Text>
+                            <Ionicons name="arrow-up" size={12} color="#4ade80" />
+                            <Text className="text-green-400 font-bold ml-1">${stats.income.toLocaleString()}</Text>
+                        </View>
+                        <View className="flex-row items-center">
+                            <Text className="text-stone-400 font-bold text-[10px] uppercase mr-2">Expense</Text>
+                            <Ionicons name="arrow-down" size={12} color="#f87171" style={{ opacity: 0.8 }} />
+                            <Text className="text-red-400 font-bold ml-1">${stats.expense.toLocaleString()}</Text>
+                        </View>
+                    </View>
+                </View>
+            </View>
+
+            {/* --- CONTROLS AREA (Sticky-ish feel) --- */}
+            <View className="px-6 py-4 bg-stone-50 z-10">
+                {/* Month/Year Filter */}
+                <View className="flex-row justify-between items-center mb-4">
+                    <View className="flex-row items-center bg-white border border-stone-200 rounded-xl p-1 shadow-sm">
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (selectedMonth === 0) {
+                                    setSelectedMonth(11);
+                                    setSelectedYear(prev => prev - 1);
+                                } else {
+                                    setSelectedMonth(prev => prev - 1);
+                                }
+                            }}
+                            className="p-2"
+                        >
+                            <Ionicons name="chevron-back" size={16} color="#44403c" />
+                        </TouchableOpacity>
+
+                        <View className="px-4 items-center w-[140px]">
+                            <Text className="font-extrabold text-stone-800 text-base">{monthNames[selectedMonth]}</Text>
+                            <Text className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{selectedYear}</Text>
+                        </View>
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (selectedMonth === 11) {
+                                    setSelectedMonth(0);
+                                    setSelectedYear(prev => prev + 1);
+                                } else {
+                                    setSelectedMonth(prev => prev + 1);
+                                }
+                            }}
+                            className="p-2"
+                        >
+                            <Ionicons name="chevron-forward" size={16} color="#44403c" />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Add Button for quick access */}
+                    <TouchableOpacity
+                        onPress={() => { setEditingTransaction(undefined); setEditorVisible(true); }}
+                        className="bg-blue-600 w-12 h-12 rounded-xl items-center justify-center shadow-lg shadow-blue-500/30"
+                    >
+                        <Ionicons name="add" size={28} color="white" />
                     </TouchableOpacity>
                 </View>
 
-                <View className="flex-row justify-between items-start mb-6">
-                    <View>
-                        <Text className="text-stone-400 font-bold uppercase tracking-widest text-xs mb-1">Total Balance</Text>
-                        <Text className={`text-5xl font-black tracking-tight ${totalBalance >= 0 ? 'text-white' : 'text-red-400'}`}>
-                            ${totalBalance.toLocaleString()}
-                        </Text>
-                    </View>
+                {/* Tabs */}
+                <View className="flex-row bg-stone-200/50 p-1 rounded-xl mb-2">
+                    {['all', 'income', 'expense'].map((tab) => (
+                        <TouchableOpacity
+                            key={tab}
+                            onPress={() => setActiveTab(tab as any)}
+                            className={`flex-1 py-1.5 rounded-lg items-center ${activeTab === tab ? 'bg-white shadow-sm' : ''}`}
+                        >
+                            <Text className={`text-xs font-bold uppercase tracking-wide ${activeTab === tab ? 'text-stone-900' : 'text-stone-400'}`}>
+                                {tab}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
-
-                {/* Quick Stats (Income vs Expense) could go here */}
             </View>
 
-            {/* Transaction List */}
-            <ScrollView className="flex-1 -mt-6 px-4" contentContainerStyle={{ paddingBottom: 100 }}>
-                {transactions.length === 0 ? (
-                    <View className="items-center justify-center py-20">
-                        <Ionicons name="receipt-outline" size={48} color="#d6d3d1" />
-                        <Text className="text-stone-400 font-bold mt-4">No transactions yet.</Text>
-                        <Text className="text-stone-400 text-xs">Tap + to start tracking.</Text>
+            {/* --- TRANSACTION LIST --- */}
+            <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 100 }}>
+                {filteredTransactions.length === 0 ? (
+                    <View className="items-center justify-center py-20 opacity-50">
+                        <Ionicons name="documents-outline" size={48} color="#a8a29e" />
+                        <Text className="text-stone-400 font-bold mt-4">No transactions found</Text>
+                        <Text className="text-stone-400 text-xs">Try changing filters or add new.</Text>
                     </View>
                 ) : (
-                    transactions.map((t) => (
+                    filteredTransactions.map((t) => (
                         <TouchableOpacity
                             key={t.id}
                             onPress={() => { setEditingTransaction(t); setEditorVisible(true); }}
-                            className="bg-white p-4 mb-3 rounded-2xl shadow-sm border border-stone-100 flex-row items-center justify-between"
+                            className="bg-white p-3 mb-2 rounded-2xl shadow-sm border border-stone-100 flex-row items-center justify-between"
                         >
                             <View className="flex-row items-center flex-1">
-                                <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${t.type === 'income' ? 'bg-green-100' : 'bg-red-100'}`}>
-                                    <Ionicons name={t.type === 'income' ? 'arrow-down' : 'arrow-up'} size={18} color={t.type === 'income' ? '#16a34a' : '#ef4444'} />
+                                <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${t.type === 'income' ? 'bg-green-50' : 'bg-red-50'}`}>
+                                    <Ionicons name={t.type === 'income' ? 'arrow-down' : 'arrow-up'} size={16} color={t.type === 'income' ? '#16a34a' : '#ef4444'} />
                                 </View>
-                                <View className="flex-1">
-                                    <Text className="font-bold text-stone-800 text-base">{t.category}</Text>
-                                    <Text className="text-stone-500 text-xs" numberOfLines={1}>{t.description || t.date}</Text>
-                                    {t.relatedEventId && (
-                                        <View className="flex-row items-center mt-1">
-                                            <Ionicons name="link" size={10} color="#64748b" />
-                                            <Text className="text-[10px] text-slate-500 font-bold ml-1 uppercase">Event Linked</Text>
-                                        </View>
-                                    )}
+                                <View className="flex-1 mr-2">
+                                    <View className="flex-row items-center justify-between">
+                                        <Text className="font-bold text-stone-800 text-sm">{t.category}</Text>
+                                        <Text className="text-xs text-stone-400">{new Date(t.date).getDate()}</Text>
+                                    </View>
+                                    <Text className="text-stone-500 text-xs truncate" numberOfLines={1}>{t.description || "No description"}</Text>
                                 </View>
                             </View>
-                            <Text className={`font-black text-lg ${t.type === 'income' ? 'text-green-600' : 'text-stone-800'}`}>
-                                {t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()}
+                            <Text className={`font-black text-base ${t.type === 'income' ? 'text-green-600' : 'text-stone-900'}`}>
+                                {t.type === 'income' ? '+' : '-'}${Math.abs(t.amount).toLocaleString()}
                             </Text>
                         </TouchableOpacity>
                     ))
                 )}
             </ScrollView>
 
-            {/* FAB */}
-            <TouchableOpacity
-                onPress={() => { setEditingTransaction(undefined); setEditorVisible(true); }}
-                className="absolute bottom-10 right-6 bg-blue-600 w-16 h-16 rounded-full items-center justify-center shadow-lg shadow-blue-900/40"
-            >
-                <Ionicons name="add" size={32} color="white" />
-            </TouchableOpacity>
-
             <TransactionEditor
                 visible={isEditorVisible}
                 onClose={() => setEditorVisible(false)}
                 onSave={handleSaveTransaction}
                 initialData={editingTransaction}
+                onDelete={editingTransaction ? () => handleDelete(editingTransaction.id) : undefined}
             />
+
+            {/* --- CASH FLOW REPORT MODAL --- */}
+            <Modal
+                visible={isReportsVisible}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setReportsVisible(false)}
+            >
+                <View className="flex-1 bg-stone-900">
+                    <View className="px-6 py-4 flex-row justify-between items-center border-b border-white/10">
+                        <Text className="text-white font-black text-xl">Cash Flow {selectedYear}</Text>
+                        <TouchableOpacity onPress={() => setReportsVisible(false)} className="bg-white/10 p-2 rounded-full">
+                            <Ionicons name="close" size={24} color="white" />
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView className="flex-1 p-6">
+                        {monthNames.map((month, index) => {
+                            // Calculate monthly stats
+                            const mTrans = transactions.filter(t => {
+                                const d = new Date(t.date);
+                                return d.getFullYear() === selectedYear && d.getMonth() === index;
+                            });
+                            const inc = mTrans.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+                            const exp = mTrans.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                            const net = inc - exp;
+                            const hasActivity = mTrans.length > 0;
+
+                            if (!hasActivity) return null; // Skip empty months
+
+                            return (
+                                <View key={month} className="mb-6 bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <Text className="text-stone-400 font-bold uppercase tracking-widest text-xs mb-2">{month}</Text>
+                                    <View className="flex-row h-4 bg-black/50 rounded-full mb-3 overflow-hidden">
+                                        {/* Simple Bar Visualization */}
+                                        <View style={{ flex: inc, backgroundColor: '#4ade80' }} />
+                                        <View style={{ flex: exp, backgroundColor: '#f87171' }} />
+                                        {(inc === 0 && exp === 0) && <View style={{ flex: 1, backgroundColor: '#444' }} />}
+                                    </View>
+                                    <View className="flex-row justify-between">
+                                        <Text className="text-green-400 font-bold text-xs">+{inc.toLocaleString()}</Text>
+                                        <Text className="text-white font-black text-sm">{net > 0 ? '+' : ''}{net.toLocaleString()}</Text>
+                                        <Text className="text-red-400 font-bold text-xs">-{exp.toLocaleString()}</Text>
+                                    </View>
+                                </View>
+                            );
+                        })}
+
+                        {/* If no data for year */}
+                        {transactions.filter(t => new Date(t.date).getFullYear() === selectedYear).length === 0 && (
+                            <View className="items-center mt-20">
+                                <Text className="text-stone-600 font-bold">No data for {selectedYear}</Text>
+                            </View>
+                        )}
+                    </ScrollView>
+                </View>
+            </Modal>
+
+            <FinanceExportModal
+                visible={isExportModalVisible}
+                onClose={() => setExportModalVisible(false)}
+                allTransactions={transactions}
+                currentViewTransactions={filteredTransactions}
+                currentViewLabel={`${monthNames[selectedMonth]} ${selectedYear}`}
+                selectedYear={selectedYear}
+            />
+
         </View>
     );
 }

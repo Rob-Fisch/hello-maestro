@@ -1,7 +1,8 @@
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
+import { useNavigation, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function GigsScreen() {
     const { events = [], trackModuleUsage } = useContentStore();
     const router = useRouter();
+    const navigation = useNavigation();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
@@ -73,10 +75,10 @@ export default function GigsScreen() {
             {/* Header - Top with Safe Area */}
             <View className="px-6 flex-row items-start pt-8 mb-6" style={{ paddingTop: insets.top }}>
                 <TouchableOpacity
-                    onPress={() => router.push('/')}
+                    onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                     className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
                 >
-                    <Ionicons name="home-outline" size={24} color="white" />
+                    <Ionicons name="menu" size={24} color="white" />
                 </TouchableOpacity>
                 <View>
                     <Text className="text-[10px] font-black uppercase tracking-[3px] text-rose-400 mb-1">

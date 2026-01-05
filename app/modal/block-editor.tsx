@@ -23,7 +23,7 @@ export default function BlockEditor() {
     const id = params.id as string | undefined;
     const theme = useTheme();
 
-    const { blocks, addBlock, updateBlock, categories } = useContentStore();
+    const { blocks, addBlock, updateBlock, categories, addCategory } = useContentStore();
     const existingBlock = id ? blocks.find((b) => b.id === id) : undefined;
     const isEditing = !!existingBlock;
 
@@ -36,6 +36,8 @@ export default function BlockEditor() {
     const [mediaUri, setMediaUri] = useState<string | undefined>(existingBlock?.mediaUri);
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
     const [uploadingMedia, setUploadingMedia] = useState(false);
+    const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+    const [newCatName, setNewCatName] = useState('');
 
 
     const saveToPersistentStorage = async (uri: string, originalName?: string | null) => {
@@ -283,13 +285,62 @@ export default function BlockEditor() {
                         onRequestClose={() => setShowCategoryPicker(false)}
                     >
                         <View className="flex-1 justify-end bg-black/50">
-                            <View className="rounded-t-[40px] p-6 pb-12 max-h-[80%] bg-white border border-stone-200">
+                            <View className="rounded-t-[40px] p-6 pb-12 h-[80%] bg-white border border-stone-200" style={{ backgroundColor: '#ffffff' }}>
                                 <View className="flex-row justify-between items-center mb-6">
                                     <Text className="text-xl font-black text-stone-900">Select Category</Text>
-                                    <TouchableOpacity onPress={() => setShowCategoryPicker(false)} className="bg-stone-100 p-2 rounded-full">
+                                    <TouchableOpacity onPress={() => { setShowCategoryPicker(false); setNewCatName(''); setIsCreatingCategory(false); }} className="bg-stone-100 p-2 rounded-full">
                                         <Ionicons name="close" size={24} color="#1c1917" />
                                     </TouchableOpacity>
                                 </View>
+
+                                {isCreatingCategory ? (
+                                    <View className="mb-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                                        <Text className="text-xs font-bold text-stone-500 uppercase mb-2">New Category Name</Text>
+                                        <TextInput
+                                            className="bg-white p-4 rounded-xl border border-stone-200 text-lg font-bold mb-4"
+                                            placeholder="e.g. Ear Training"
+                                            value={newCatName}
+                                            onChangeText={setNewCatName}
+                                            autoFocus
+                                        />
+                                        <View className="flex-row gap-3">
+                                            <TouchableOpacity
+                                                onPress={() => { setIsCreatingCategory(false); setNewCatName(''); }}
+                                                className="flex-1 bg-stone-200 p-3 rounded-xl items-center"
+                                            >
+                                                <Text className="font-bold text-stone-600">Cancel</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    if (newCatName.trim()) {
+                                                        const newId = Date.now().toString();
+                                                        addCategory({ id: newId, name: newCatName.trim() });
+                                                        setCategoryId(newId);
+                                                        setNewCatName('');
+                                                        setIsCreatingCategory(false);
+                                                        setShowCategoryPicker(false);
+                                                    }
+                                                }}
+                                                className="flex-1 bg-black p-3 rounded-xl items-center"
+                                            >
+                                                <Text className="font-bold text-white">Create</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <View>
+                                        <TouchableOpacity
+                                            onPress={() => setIsCreatingCategory(true)}
+                                            className="flex-row items-center p-4 mb-4 bg-stone-50 rounded-2xl border border-dashed border-stone-300 active:bg-stone-100"
+                                        >
+                                            <View className="w-8 h-8 rounded-full bg-stone-200 items-center justify-center mr-3">
+                                                <Ionicons name="add" size={20} color="#57534e" />
+                                            </View>
+                                            <Text className="font-bold text-lg text-stone-600">Create New Category...</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
                                 <ScrollView showsVerticalScrollIndicator={false}>
                                     {categories
                                         .sort((a, b) => {
