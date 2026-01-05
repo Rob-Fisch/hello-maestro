@@ -1,10 +1,11 @@
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
+import { useFinanceStore } from '@/store/financeStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Href } from 'expo-router';
+import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { Href, useRouter } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
-import { useWindowDimensions, View } from 'react-native';
-
+import { Alert, Image, Platform, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 interface NavItem {
     name: string;
@@ -14,7 +15,6 @@ interface NavItem {
     hidden?: boolean;
 }
 
-
 const NAV_ITEMS: NavItem[] = [
     { name: 'index', icon: 'home-outline', label: 'Home', path: '/' },
     { name: 'studio', icon: 'easel-outline', label: 'Studio', path: '/studio' },
@@ -23,7 +23,7 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'events', icon: 'calendar-outline', label: 'Schedule', path: '/events' },
     { name: 'scout', icon: 'telescope-outline', label: 'Scout', path: '/scout' },
     // { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
-    { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs', hidden: true },
+    { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
     { name: 'finance', icon: 'wallet-outline', label: 'Finance', path: '/finance' },
     { name: 'people', icon: 'people-outline', label: 'Contacts', path: '/people' },
     // Compass removed for V3 Consolidation
@@ -38,7 +38,70 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'routines/index', icon: 'list', label: 'Routines', path: '/routines', hidden: true }, // Explicit index
 ];
 
+function CustomDrawerContent(props: any) {
+    const theme = useTheme();
+    const router = useRouter();
 
+    const handleLogout = async () => {
+        const logoutLogic = async () => {
+            try {
+                // Wipe stores
+                const { wipeLocalData } = useContentStore.getState();
+                const { wipeData: wipeFinanceData } = useFinanceStore.getState();
+
+                await wipeLocalData();
+                await wipeFinanceData();
+
+                router.replace('/auth');
+            } catch (e) {
+                console.error('Logout error:', e);
+                router.replace('/auth');
+            }
+        };
+
+        if (Platform.OS === 'web') {
+            if (confirm("Sign out?")) logoutLogic();
+        } else {
+            Alert.alert('Sign Out', 'Are you sure?', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Sign Out', style: 'destructive', onPress: logoutLogic },
+            ]);
+        }
+    };
+
+    return (
+        <View style={{ flex: 1 }}>
+            <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 20 }}>
+                {/* Header Logo Area */}
+                <View className="px-6 mb-6 mt-2 flex-row items-center opacity-80">
+                    <Image
+                        source={require('../../assets/images/opusmode_om_logo_v9.png')}
+                        style={{ width: 24, height: 24, marginRight: 12 }}
+                        resizeMode="contain"
+                    />
+                    <View>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] text-indigo-400">OpusMode</Text>
+                    </View>
+                </View>
+
+                {/* Standard Drawer Items */}
+                <DrawerItemList {...props} />
+            </DrawerContentScrollView>
+
+            {/* Footer Section */}
+            <View style={{ borderTopWidth: 1, borderTopColor: theme.border, padding: 20, paddingBottom: 30 }}>
+                <TouchableOpacity
+                    onPress={handleLogout}
+                    className="flex-row items-center p-2 opacity-70"
+                >
+                    <Ionicons name="log-out-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
+                    <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Sign Out</Text>
+                </TouchableOpacity>
+                <Text className="text-[10px] text-stone-500 mt-6 ml-2 font-bold opacity-40">v1.2.3</Text>
+            </View>
+        </View>
+    );
+}
 
 export default function DrawerLayout() {
     const { width } = useWindowDimensions();
@@ -53,6 +116,7 @@ export default function DrawerLayout() {
         <View style={{ flex: 1, backgroundColor: theme.background }}>
             <View style={{ flex: 1 }}>
                 <Drawer
+                    drawerContent={(props) => <CustomDrawerContent {...props} />}
                     screenOptions={{
                         headerShown: false,
                         drawerType: 'front',
@@ -74,6 +138,9 @@ export default function DrawerLayout() {
                             paddingHorizontal: 10,
                             marginVertical: 4,
                         },
+                        sceneContainerStyle: {
+                            backgroundColor: theme.background,
+                        }
                     }}
                 >
                     {NAV_ITEMS.map((item) => {
@@ -105,6 +172,3 @@ export default function DrawerLayout() {
 
     );
 }
-
-
-
