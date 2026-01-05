@@ -34,6 +34,9 @@ function mapToDb(data: any): any {
         originatorName: 'originator_name',
         originatorPathTitle: 'originator_path_title',
         isPublic: 'is_public',
+        originalRoutineId: 'original_routine_id',
+        clonedFromUserId: 'cloned_from_user_id',
+        socialLink: 'social_link',
         userId: 'user_id',
         pathId: 'path_id',
         nodeId: 'node_id',
@@ -80,6 +83,12 @@ export async function syncToCloud(table: TableName, data: any) {
 
         if (error) {
             console.warn(`[Sync Error] ${table}:`, error.message);
+            // Alert user so they know data isn't saving!
+            // import { Alert } from 'react-native'; // Ensure this is imported at top or used from checking Platform
+            // But this function is in lib/sync.ts, simple console.warn might be hidden.
+            // Let's re-throw or validly log.
+            // Actually, let's just use console for now but make it error so it shows in red
+            console.error(`[Sync Error] ${table}:`, error.message);
         }
     } catch (err) {
         console.warn(`[Sync Exception] ${table}:`, err);
@@ -217,6 +226,9 @@ export function mapFromDb(data: any): any {
         originator_name: 'originatorName',
         originator_path_title: 'originatorPathTitle',
         is_public: 'isPublic',
+        original_routine_id: 'originalRoutineId',
+        cloned_from_user_id: 'clonedFromUserId',
+        social_link: 'socialLink',
         user_id: 'userId',
         path_id: 'pathId',
         node_id: 'nodeId',

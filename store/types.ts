@@ -33,6 +33,8 @@ export interface Routine {
     blocks: ContentBlock[];
     schedule?: Schedule;
     isPublic?: boolean;
+    originalRoutineId?: string; // If cloned, points to source
+    clonedFromUserId?: string; // If cloned, points to teacher
     createdAt: string;
 }
 
@@ -72,6 +74,9 @@ export interface BookingSlot {
     confirmedAt?: string;
     notes?: string;
     fee?: string;
+    inviteId?: string; // Unique ID for public "Gig Link"
+    inviteType?: 'inquiry' | 'offer';
+    inviteExpiresAt?: string; // ISO Date for offer expiration
 }
 
 export type AppEventType = 'performance' | 'lesson' | 'rehearsal' | 'other';
@@ -95,6 +100,12 @@ export interface AppEvent {
     studentName?: string;
     schedule?: Schedule;
     createdAt: string;
+
+    // Fan Engagement / Digital Stage Plot
+    isPublicStagePlot?: boolean;
+    publicDescription?: string; // Fan-facing notes (separate from private 'notes')
+    showSetlist?: boolean;
+    socialLink?: string; // Event-specific link (e.g. Band Website for this specific gig)
 }
 
 /**
@@ -148,8 +159,12 @@ export interface UserProfile {
     email: string;
     displayName?: string;
     avatarUrl?: string;
-    lastSyncedAt?: string;
+    lastSyncedAt?: string;    // Pro Features & Fan Engagement
     isPremium?: boolean;
+    tipUrl?: string;          // Venmo/CashApp/PayPal (Global)
+    mailingListUrl?: string;  // Mailchimp/Google Form (Global)
+    // socialUrl removed in favor of Event-specific link
+    bio?: string;            // Short artist bio for Stage Plot
 }
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';
@@ -271,4 +286,20 @@ export interface PackList {
     itemIds: string[]; // List of GearAsset IDs
     additionalItems: string[]; // Manual entries like "Water", "Snacks"
     checkedItemIds: string[]; // For the load-out checklist
+}
+
+export type TransactionType = 'income' | 'expense';
+
+export type TransactionCategory = 'Gig' | 'Gear' | 'Lesson' | 'Travel' | 'Musician Payout' | 'Tip' | 'Other';
+
+export interface Transaction {
+    id: string;
+    date: string; // ISO date string
+    amount: number;
+    type: TransactionType;
+    category: string;
+    description: string;
+    relatedEventId?: string; // Link to an AppEvent
+    receiptUri?: string;     // Link to a receipt image
+    createdAt: string;
 }

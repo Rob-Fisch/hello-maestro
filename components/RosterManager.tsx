@@ -9,9 +9,10 @@ interface RosterManagerProps {
     onUpdateSlots: (slots: BookingSlot[]) => void;
     availablePeople: Person[];
     event: Partial<AppEvent>; // Needed for SMS template
+    onSave?: (slots?: BookingSlot[]) => void;
 }
 
-export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: RosterManagerProps) {
+export function RosterManager({ slots, onUpdateSlots, availablePeople, event, onSave }: RosterManagerProps) {
     const [isAdding, setIsAdding] = useState(false);
     const [newRole, setNewRole] = useState('');
     const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
@@ -82,17 +83,25 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
         }
     };
 
-    const handleConfirmAssignment = (musicianId: string) => {
+    const handleConfirmAssignment = (musicianId: string, inviteData?: { inviteId: string; inviteType: 'inquiry' | 'offer'; inviteExpiresAt?: string }) => {
         if (!selectedSlot) return;
 
-        onUpdateSlots(slots.map(s => s.id === selectedSlot.id ? {
+        const newSlots = slots.map(s => s.id === selectedSlot.id ? {
             ...s,
             musicianId,
-            status: 'invited',
-            invitedAt: new Date().toISOString()
-        } : s));
-    };
+            status: 'invited' as const,
+            invitedAt: new Date().toISOString(),
+            ...inviteData
+        } : s);
 
+        onUpdateSlots(newSlots);
+
+        // Auto-save the event so the invite ID exists in the cloud immediately!
+        if (onSave) {
+            console.log('Auto-saving event after invite creation...');
+            onSave(newSlots);
+        }
+    };
 
     return (
         <View className="mb-8">
@@ -229,6 +238,19 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
                                                 </TouchableOpacity>
                                             </>
                                         )}
+                                        {slot.status === 'declined' && (
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    setSelectedMusician(musician);
+                                                    setSelectedSlot(slot);
+                                                    setIsSmsVisible(true);
+                                                }}
+                                                className="bg-red-50 px-3 py-1.5 rounded-xl flex-row items-center border border-red-100"
+                                            >
+                                                <Ionicons name="refresh" size={14} color="#ef4444" />
+                                                <Text className="text-red-600 font-bold text-[10px] ml-1.5 uppercase">Re-Invite</Text>
+                                            </TouchableOpacity>
+                                        )}
                                         <TouchableOpacity
                                             onPress={() => setChangingSlotId(slot.id)}
                                             className="bg-blue-50 px-3 py-1.5 rounded-xl flex-row items-center"
@@ -260,6 +282,12 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
                                         {availablePeople
                                             .filter(p => p.id !== slot.musicianId)
+                                            .filter(p => {
+                                                const slotRole = slot.role.toLowerCase();
+                                                // Strict Filter: Must have matching instrument tag OR matching single instrument
+                                                return p.instruments?.some(i => i.toLowerCase().includes(slotRole))
+                                                    || p.instrument?.toLowerCase().includes(slotRole);
+                                            })
                                             .map(person => (
                                                 <TouchableOpacity
                                                     key={person.id}
@@ -291,8 +319,8 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event }: 
                         setSelectedSlot(null);
                         setSelectedMusician(null);
                     }}
-                    onConfirm={(mid) => {
-                        handleConfirmAssignment(mid);
+                    onConfirm={(mid, inviteData) => {
+                        handleConfirmAssignment(mid, inviteData);
                         setChangingSlotId(null);
                     }}
                     event={event}

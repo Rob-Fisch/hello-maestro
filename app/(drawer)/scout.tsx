@@ -1,7 +1,8 @@
 import { PremiumGate } from '@/components/PremiumGate';
 import { useTheme } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
+import { useNavigation, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,6 +58,7 @@ export default function ScoutScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
     const router = useRouter(); // Hooks must be used inside the component
+    const navigation = useNavigation();
 
     const [selectedTemplateId, setSelectedTemplateId] = useState('gigs');
     const [zip, setZip] = useState('');
@@ -123,8 +125,8 @@ export default function ScoutScreen() {
                 {/* Header with Home Button */}
                 <View className="flex-row justify-between items-center mb-6">
                     <View className="flex-row items-center flex-1 mr-4">
-                        <TouchableOpacity onPress={() => router.push('/')} className="mr-4 p-2 -ml-2 rounded-full">
-                            <Ionicons name="home-outline" size={26} color={theme.text} />
+                        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())} className="mr-4 p-2 -ml-2 rounded-full">
+                            <Ionicons name="menu" size={26} color={theme.text} />
                         </TouchableOpacity>
                         <View className="flex-1">
                             <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Scout</Text>
@@ -277,7 +279,7 @@ export default function ScoutScreen() {
 
                                 <View className="flex-row justify-between items-center mb-6">
                                     <Text className="text-2xl font-black" style={{ color: theme.text }}>Select Genres</Text>
-                                    <TouchableOpacity onPress={() => setShowGenreModal(false)} className="p-2 bg-gray-100 rounded-full">
+                                    <TouchableOpacity onPress={() => setShowGenreModal(false)} className="p-2 bg-white/10 rounded-full border border-white/10">
                                         <Ionicons name="close" size={24} color={theme.text} />
                                     </TouchableOpacity>
                                 </View>

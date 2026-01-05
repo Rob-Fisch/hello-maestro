@@ -90,8 +90,11 @@ export default function RootLayout() {
     if (!isHydrated || !isNavigationReady) return;
 
     const inAuthGroup = segments[0] === 'auth';
+    const inGigGroup = segments[0] === 'gig';
+    const inFanGroup = segments[0] === 'fan';
+    const inRoutineGroup = segments[0] === 'routine';
 
-    if (!profile && !inAuthGroup) {
+    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup) {
       router.replace('/auth');
     } else if (profile && inAuthGroup) {
       router.replace('/');

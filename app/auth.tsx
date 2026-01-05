@@ -3,7 +3,7 @@ import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { APP_VERSION, BUILD_NUMBER } from '../constants/Version';
@@ -33,6 +33,7 @@ export default function AuthScreen() {
     const { setProfile, fullSync } = useContentStore();
 
     const router = useRouter();
+    const { redirectTo } = useLocalSearchParams<{ redirectTo: string }>();
 
     // --- ANIMATION REFS ---
     const fadeAnim = useRef(new Animated.Value(1)).current; // Opacity for transitions
@@ -141,7 +142,11 @@ export default function AuthScreen() {
                     // Trigger sync (Store handles the permissions)
                     await fullSync();
                     setLoading(false);
-                    router.replace('/(drawer)');
+                    if (redirectTo) {
+                        router.replace(redirectTo as any);
+                    } else {
+                        router.replace('/(drawer)');
+                    }
                 }
             }
 

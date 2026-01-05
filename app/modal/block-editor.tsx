@@ -338,30 +338,71 @@ export default function BlockEditor() {
                         <Text className={labelStyle}>Attachments</Text>
 
                         <View className="flex-row gap-3 mb-4">
-                            <Pressable
-                                onPress={takePhoto}
-                                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                className="bg-orange-50 border border-orange-100 p-4 rounded-xl items-center flex-1"
-                            >
-                                <Ionicons name="camera" size={24} color="#ea580c" />
-                                <Text className="text-orange-600 font-bold text-xs mt-2 uppercase">Camera</Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={pickImage}
-                                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                className="bg-stone-100 border border-stone-200 p-4 rounded-xl items-center flex-1"
-                            >
-                                <Ionicons name="image" size={24} color="#57534e" />
-                                <Text className="text-stone-600 font-bold text-xs mt-2 uppercase">Gallery</Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={pickDocument}
-                                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                                className="bg-amber-50 border border-amber-100 p-4 rounded-xl items-center flex-1"
-                            >
-                                <Ionicons name="document-text" size={24} color="#d97706" />
-                                <Text className="text-amber-600 font-bold text-xs mt-2 uppercase">PDF</Text>
-                            </Pressable>
+                            {Platform.OS !== 'web' ? (
+                                // NATIVE APP: Full distinct controls
+                                <>
+                                    <Pressable
+                                        onPress={takePhoto}
+                                        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                        className="bg-orange-50 border border-orange-100 p-4 rounded-xl items-center flex-1"
+                                    >
+                                        <Ionicons name="camera" size={24} color="#ea580c" />
+                                        <Text className="text-orange-600 font-bold text-xs mt-2 uppercase">Camera</Text>
+                                    </Pressable>
+                                    <Pressable
+                                        onPress={pickImage}
+                                        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                        className="bg-stone-100 border border-stone-200 p-4 rounded-xl items-center flex-1"
+                                    >
+                                        <Ionicons name="image" size={24} color="#57534e" />
+                                        <Text className="text-stone-600 font-bold text-xs mt-2 uppercase">Gallery</Text>
+                                    </Pressable>
+                                    <Pressable
+                                        onPress={pickDocument}
+                                        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                        className="bg-amber-50 border border-amber-100 p-4 rounded-xl items-center flex-1"
+                                    >
+                                        <Ionicons name="document-text" size={24} color="#d97706" />
+                                        <Text className="text-amber-600 font-bold text-xs mt-2 uppercase">PDF</Text>
+                                    </Pressable>
+                                </>
+                            ) : (
+                                // WEB / PWA
+                                <>
+                                    {/* Mobile Web Logic Check */}
+                                    {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? (
+                                        // MOBILE WEB: Consolidated to "Add Photo" + "PDF"
+                                        <>
+                                            <Pressable
+                                                onPress={pickImage}
+                                                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                                className="bg-stone-100 border border-stone-200 p-4 rounded-xl items-center flex-1"
+                                            >
+                                                <Ionicons name="image" size={24} color="#57534e" />
+                                                <Text className="text-stone-600 font-bold text-xs mt-2 uppercase">Add Photo</Text>
+                                            </Pressable>
+                                            <Pressable
+                                                onPress={pickDocument}
+                                                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                                className="bg-amber-50 border border-amber-100 p-4 rounded-xl items-center flex-1"
+                                            >
+                                                <Ionicons name="document-text" size={24} color="#d97706" />
+                                                <Text className="text-amber-600 font-bold text-xs mt-2 uppercase">PDF</Text>
+                                            </Pressable>
+                                        </>
+                                    ) : (
+                                        // DESKTOP WEB: Single "Upload File" button
+                                        <Pressable
+                                            onPress={pickImage}
+                                            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                                            className="bg-stone-100 border border-stone-200 p-4 rounded-xl items-center flex-1"
+                                        >
+                                            <Ionicons name="cloud-upload" size={24} color="#57534e" />
+                                            <Text className="text-stone-600 font-bold text-xs mt-2 uppercase">Upload File</Text>
+                                        </Pressable>
+                                    )}
+                                </>
+                            )}
                         </View>
                         {Platform.OS === 'web' && (
                             <Text className="text-xs text-stone-400 font-bold mb-4 italic text-center">

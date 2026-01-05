@@ -163,6 +163,36 @@ export default function HomeScreen() {
                     </View>
 
                     <View className="flex-row items-center gap-2">
+                        {/* Logout Button */}
+                        <TouchableOpacity
+                            onPress={() => {
+                                const logoutLogic = async () => {
+                                    try {
+                                        const { wipeLocalData } = useContentStore.getState();
+                                        await wipeLocalData();
+                                        router.replace('/auth');
+                                    } catch (e) {
+                                        console.error('Logout error:', e);
+                                        router.replace('/auth');
+                                    }
+                                };
+
+                                if (Platform.OS === 'web') {
+                                    if (confirm("Sign out?")) logoutLogic();
+                                } else {
+                                    // Alert needs to be imported if used
+                                    const { Alert } = require('react-native');
+                                    Alert.alert('Sign Out', 'Are you sure?', [
+                                        { text: 'Cancel', style: 'cancel' },
+                                        { text: 'Sign Out', style: 'destructive', onPress: logoutLogic },
+                                    ]);
+                                }
+                            }}
+                            className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 items-center justify-center mr-2"
+                        >
+                            <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+                        </TouchableOpacity>
+
                         {/* Help Button */}
                         <TouchableOpacity
                             onPress={() => router.push('/modal/help')}

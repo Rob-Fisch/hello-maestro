@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
+import { useFinanceStore } from '@/store/financeStore';
 import { Category } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -84,9 +85,19 @@ export default function SettingsScreen() {
     };
 
     const handleLogout = () => {
-        const logoutLogic = () => {
-            setProfile(null);
-            router.replace('/auth');
+        const logoutLogic = async () => {
+            try {
+                const { wipeLocalData } = useContentStore.getState();
+                const { wipeData: wipeFinanceData } = useFinanceStore.getState(); // Import this store
+
+                await wipeLocalData();
+                await wipeFinanceData();
+
+                router.replace('/auth');
+            } catch (e) {
+                console.error('Logout error:', e);
+                router.replace('/auth'); // Fallback
+            }
         };
 
         if (Platform.OS === 'web') {
@@ -153,8 +164,8 @@ export default function SettingsScreen() {
         const performDelete = async () => {
             setUpdating(true);
             try {
-                const { wipeAllData } = useContentStore.getState();
-                await wipeAllData();
+                const { nukeAccount } = useContentStore.getState();
+                await nukeAccount();
                 await supabase.auth.signOut();
                 router.replace('/auth');
             } catch (error: any) {
@@ -531,14 +542,21 @@ export default function SettingsScreen() {
                         ) : (
                             <View>
                                 <TouchableOpacity
-                                    onPress={() => {
-                                        // MOCK DOWNGRADE ACTION
-                                        setProfile({ ...profile!, isPremium: false });
-                                        alert("Pro subscription cancelled. You are now on the Free plan.");
+                                    onPress={async () => {
+                                        try {
+                                            const { error } = await supabase.auth.updateUser({
+                                                data: { is_premium: false }
+                                            });
+                                            if (error) throw error;
+                                            setProfile({ ...profile!, isPremium: false });
+                                            Alert.alert('Success', "You have downgraded to the Free tier.");
+                                        } catch (e: any) {
+                                            Alert.alert('Error', e.message);
+                                        }
                                     }}
                                     className="bg-white/5 border border-white/10 p-3 rounded-xl items-center"
                                 >
-                                    <Text className="text-slate-300 font-bold">Manage Subscription</Text>
+                                    <Text className="text-slate-300 font-bold">Downgrade to Free</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -558,8 +576,8 @@ export default function SettingsScreen() {
                             onPress={() => {
                                 if (Platform.OS === 'web') {
                                     if (confirm('Factory Reset: This will wipe all data on this device and the cloud but keep your account. Are you sure?')) {
-                                        const { wipeAllData } = useContentStore.getState();
-                                        wipeAllData()
+                                        const { nukeAccount } = useContentStore.getState();
+                                        nukeAccount()
                                             .then(() => {
                                                 alert('Reset Complete: App has been clean slate reset.');
                                                 router.replace('/');
@@ -572,8 +590,8 @@ export default function SettingsScreen() {
                                         {
                                             text: 'Reset', style: 'destructive', onPress: async () => {
                                                 try {
-                                                    const { wipeAllData } = useContentStore.getState();
-                                                    await wipeAllData();
+                                                    const { nukeAccount } = useContentStore.getState();
+                                                    await nukeAccount();
                                                     Alert.alert('Reset Complete', 'App has been clean slate reset.');
                                                     router.replace('/');
                                                 } catch (e: any) {

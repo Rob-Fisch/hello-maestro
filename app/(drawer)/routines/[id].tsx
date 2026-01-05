@@ -63,7 +63,7 @@ const WebDatePicker = ({ date, onChange }: { date?: string, onChange: (d: string
 export default function CollectionDetail() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { routines, updateRoutine, progress, updateProgress, settings, logSession, sessionLogs } = useContentStore();
+    const { routines, updateRoutine, progress, updateProgress, settings, logSession, sessionLogs, profile } = useContentStore();
 
     const routine = routines.find(r => r.id === id);
 
@@ -132,7 +132,7 @@ export default function CollectionDetail() {
     const handleConfirmExport = async () => {
         setShowExportModal(false);
         setTimeout(() => {
-            exportToPdf(routine, { ...settings, includeTOC });
+            exportToPdf(routine, { ...settings, includeTOC }, profile?.displayName);
         }, 300);
     };
 

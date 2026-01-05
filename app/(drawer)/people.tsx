@@ -2,8 +2,9 @@ import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Person, PersonType } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
+import { DrawerActions } from '@react-navigation/native';
 import * as Contacts from 'expo-contacts';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ export default function PeopleScreen() {
     const { people = [], deletePerson, trackModuleUsage } = useContentStore();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
+    const navigation = useNavigation();
 
     const params = useLocalSearchParams();
     // Parse filter param safely
@@ -156,8 +158,8 @@ export default function PeopleScreen() {
                             <Ionicons name="arrow-back" size={24} color="white" />
                         </TouchableOpacity>
                     ) : (
-                        <TouchableOpacity onPress={() => router.push('/')} className="p-2 -ml-2 rounded-full bg-white/5 border border-white/10">
-                            <Ionicons name="home-outline" size={24} color="white" />
+                        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())} className="p-2 -ml-2 rounded-full bg-white/5 border border-white/10">
+                            <Ionicons name="menu" size={24} color="white" />
                         </TouchableOpacity>
                     )}
                 </View>

@@ -4,6 +4,7 @@ import { Category, ContentBlock, Routine, Schedule } from '@/store/types';
 
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Image, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -130,14 +131,26 @@ export default function RoutineEditor() {
         }
 
         // GATEKEEPER (Immediate Check in Editor)
-        const hasPrivateFiles = selectedBlocks.some(b => !!b.mediaUri);
-        if (hasPrivateFiles) {
+        const privateBlocks = selectedBlocks.filter(b => !!b.mediaUri);
+        if (privateBlocks.length > 0) {
+            const msg = `This routine contains ${privateBlocks.length} items with attached files (e.g. "${privateBlocks[0].title}"). These files may not be visible to students if they are private. Proceed?`;
+
             if (Platform.OS === 'web') {
-                alert('Cannot make Public. You have private file-based items selected. Remove them first.');
+                if (window.confirm(msg)) {
+                    setIsPublic(true);
+                } else {
+                    setIsPublic(false);
+                }
             } else {
-                Alert.alert('Cannot Make Public', 'Remove private files before making this collection public.');
+                Alert.alert(
+                    'Private Files Detected',
+                    msg,
+                    [
+                        { text: 'Cancel', style: 'cancel', onPress: () => setIsPublic(false) },
+                        { text: 'Make Public', style: 'destructive', onPress: () => setIsPublic(true) }
+                    ]
+                );
             }
-            setIsPublic(false);
         } else {
             setIsPublic(true);
         }
@@ -262,6 +275,49 @@ export default function RoutineEditor() {
                                 textAlignVertical="top"
                             />
                         </View>
+                    </View>
+
+                    {/* Share / Teacher Tools */}
+                    <Text className="text-lg font-black text-stone-900 mb-4 px-1">Share Lesson</Text>
+                    <View className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm mb-8">
+                        <View className="flex-row justify-between items-center mb-2">
+                            <View className="flex-1 mr-4">
+                                <Text className="font-bold text-stone-900 text-base">Make Public (Shareable)</Text>
+                                <Text className="text-xs text-stone-500 mt-1">
+                                    Allow students to import this lesson via a link.
+                                </Text>
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => togglePublic(!isPublic)}
+                                className={`w-12 h-7 rounded-full justify-center ${isPublic ? 'bg-indigo-600' : 'bg-stone-300'}`}
+                            >
+                                <View className={`w-5 h-5 bg-white rounded-full shadow-sm mx-1 ${isPublic ? 'self-end' : 'self-start'}`} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {isPublic && (
+                            <View className="mt-4 pt-4 border-t border-stone-100">
+                                <View className="bg-stone-50 p-3 rounded-xl border border-stone-200 mb-3">
+                                    <Text className="text-xs text-stone-500 font-mono" numberOfLines={1}>
+                                        {existingRoutine?.id ? `opusmode.net/routine/${existingRoutine.id}` : 'Save routine to generate link...'}
+                                    </Text>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={async () => {
+                                        if (existingRoutine?.id) {
+                                            await Clipboard.setStringAsync(`https://opusmode.net/routine/${existingRoutine.id}`);
+                                            Alert.alert("Copied", "Link copied to clipboard");
+                                        } else {
+                                            Alert.alert("Save First", "Please save the routine to generate a link.");
+                                        }
+                                    }}
+                                    className="flex-row items-center justify-center bg-indigo-50 py-3 rounded-xl border border-indigo-100"
+                                >
+                                    <Ionicons name="link" size={18} color="#4f46e5" style={{ marginRight: 8 }} />
+                                    <Text className="text-indigo-600 font-bold uppercase text-xs tracking-wide">Copy Link</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
 
                     {/* Schedule */}

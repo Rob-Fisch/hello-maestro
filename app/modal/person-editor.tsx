@@ -42,7 +42,8 @@ export default function PersonEditor() {
             setType(existingPerson.type || 'student');
             setEmail(existingPerson.email || '');
             setPhone(existingPerson.phone || '');
-            setInstrument(existingPerson.instrument || '');
+            setPhone(existingPerson.phone || '');
+            setInstrument(existingPerson.instruments?.join(', ') || existingPerson.instrument || '');
             setInstruments(existingPerson.instruments || []);
             setVerifiedPhone(existingPerson.verifiedPhone || '');
             setNotes(existingPerson.notes || '');
@@ -236,11 +237,22 @@ export default function PersonEditor() {
                             <TextInput
                                 className="text-lg font-semibold py-1 mb-4 border-b border-stone-100 text-stone-900"
                                 placeholder="Piano, Guitar, Vocals..."
-                                value={instruments.join(', ')}
-                                onChangeText={(text) => setInstruments(text.split(',').map(s => s.trim()).filter(s => s !== ''))}
+                                value={instrument}
+                                onChangeText={(text) => {
+                                    setInstrument(text);
+                                    setInstruments(text.split(',').map(s => s.trim()).filter(Boolean));
+                                }}
                                 placeholderTextColor="#57534e"
-                                style={{ fontStyle: instruments.length ? 'normal' : 'italic' }}
+                                style={{ fontStyle: instrument ? 'normal' : 'italic' }}
                             />
+                            {/* Visual Confirmation of Tags */}
+                            <View className="flex-row flex-wrap gap-2 mb-4">
+                                {instruments.map((inst, index) => (
+                                    <View key={index} className="bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
+                                        <Text className="text-blue-700 text-xs font-bold">{inst}</Text>
+                                    </View>
+                                ))}
+                            </View>
                         </>
                     )}
                 </View>

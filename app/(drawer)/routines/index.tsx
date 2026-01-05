@@ -9,7 +9,7 @@ import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RoutinesScreen() {
-    const { routines, deleteRoutine, settings, trackModuleUsage, fetchPublicRoutines, publicRoutines, forkRemoteRoutine, sessionLogs, progress } = useContentStore();
+    const { routines, deleteRoutine, settings, trackModuleUsage, fetchPublicRoutines, publicRoutines, forkRemoteRoutine, sessionLogs, progress, profile } = useContentStore();
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
     const theme = useTheme();
@@ -207,7 +207,7 @@ export default function RoutinesScreen() {
             {activeTab === 'mine' && (
                 <View className="flex-row items-center justify-between px-8 py-6 border-t" style={{ borderColor: theme.border, backgroundColor: `${theme.primary}05` }}>
                     <TouchableOpacity
-                        onPress={() => exportToPdf(item, settings)}
+                        onPress={() => exportToPdf(item, settings, profile?.displayName)}
                         className="flex-row items-center px-5 py-2.5 rounded-2xl shadow-sm border"
                         style={{ backgroundColor: theme.card, borderColor: theme.border }}
                     >

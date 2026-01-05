@@ -1,26 +1,32 @@
-import { GearPackManager } from '@/components/GearPackManager';
 import { RosterManager } from '@/components/RosterManager';
+import TransactionEditor from '@/components/TransactionEditor';
 import { PAPER_THEME } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
+import { useFinanceStore } from '@/store/financeStore';
 import { useGearStore } from '@/store/gearStore';
-import { AppEvent, AppEventType, BookingSlot, Person, Routine } from '@/store/types';
+import { AppEvent, AppEventType, BookingSlot, Person, Routine, Transaction } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+// @ts-ignore
+import * as Clipboard from 'expo-clipboard';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
+import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
+import QRCode from 'react-native-qrcode-svg';
 
 
 export default function EventEditor() {
     const router = useRouter();
     const navigation = useNavigation();
     const params = useLocalSearchParams();
-    const id = params.id as string | undefined;
+    // Initialize activeId from params.id. If undef (create), it stays undef until first save.
+    const [activeId, setActiveId] = useState<string | undefined>(params.id as string | undefined);
 
-    const { routines = [], events = [], people = [], addEvent, updateEvent } = useContentStore();
-    const existingEvent = id ? events.find((e) => e.id === id) : undefined;
-    const isEditing = !!existingEvent;
+    const { routines = [], events = [], people = [], addEvent, updateEvent, profile } = useContentStore();
+    const existingEvent = activeId ? events.find((e) => e.id === activeId) : undefined;
+    const isEditing = !!existingEvent; // Derived from activeId now
 
     const [type, setType] = useState<AppEventType>(
         existingEvent?.type || (params.type as AppEventType) || 'performance'
@@ -36,6 +42,15 @@ export default function EventEditor() {
     const [studentName, setStudentName] = useState(existingEvent?.studentName || '');
     const [duration, setDuration] = useState<number>(existingEvent?.duration || 60);
 
+    // Public Stage Plot / Fan Engagement
+    const [publicDescription, setPublicDescription] = useState(existingEvent?.publicDescription || '');
+    const [socialLink, setSocialLink] = useState(existingEvent?.socialLink || '');
+    const [showSetlist, setShowSetlist] = useState(existingEvent?.showSetlist || false);
+    const [isPublicStagePlot, setIsPublicStagePlot] = useState(existingEvent?.isPublicStagePlot || false);
+    const [showQrModal, setShowQrModal] = useState(false);
+    const isPremium = profile?.isPremium;
+    const { studentMode } = useContentStore();
+
     // selectedRoutineIds stores the IDs of routines (sets) for this event
     const [selectedRoutineIds, setSelectedRoutineIds] = useState<string[]>(
         existingEvent?.routines || []
@@ -47,7 +62,7 @@ export default function EventEditor() {
     );
 
     const { packLists, addPackList, updatePackList, getPackListForEvent } = useGearStore();
-    const existingPackList = id ? getPackListForEvent(id) : undefined;
+    const existingPackList = activeId ? getPackListForEvent(activeId) : undefined;
 
     const [selectedGearIds, setSelectedGearIds] = useState<string[]>(
         existingPackList?.itemIds || []
@@ -114,7 +129,12 @@ export default function EventEditor() {
         setSelectedRoutineIds(prev => prev.filter((id) => id !== routineId));
     }, []);
 
-    const handleSave = () => {
+    const cleanFee = (fee: string) => {
+        const parsed = parseFloat(fee);
+        return isNaN(parsed) || parsed <= 0 ? undefined : parsed.toFixed(2);
+    };
+
+    const performSave = (shouldExit: boolean = true, slotsOverride?: BookingSlot[]) => {
         if (!title.trim() || !venue.trim()) {
             const msg = 'Please enter a title and venue/location';
             if (Platform.OS === 'web') alert(msg);
@@ -123,19 +143,23 @@ export default function EventEditor() {
         }
 
         const eventData: AppEvent = {
-            id: id || Date.now().toString(),
+            id: activeId || Date.now().toString(),
             type,
             title,
             venue,
             date: isRecurring ? startDate : date,
             time,
             routines: selectedRoutineIds,
-            slots, // New structured roster
+            slots: slotsOverride || slots, // Use override if provided, else accessible state
             notes: notes.trim() || undefined,
-            totalFee: totalFee.trim() || undefined,
-            fee: totalFee.trim() || undefined, // Keep for backward compatibility
-            musicianFee: musicianFee.trim() || undefined,
+            totalFee: cleanFee(totalFee),
+            fee: cleanFee(totalFee), // Keep for backward compatibility
+            musicianFee: cleanFee(musicianFee),
             studentName: type === 'lesson' ? studentName.trim() || undefined : undefined,
+            isPublicStagePlot,
+            publicDescription: publicDescription.trim() || undefined,
+            socialLink: socialLink.trim() || undefined,
+            showSetlist,
             schedule: isRecurring ? {
                 type: 'recurring',
                 daysOfWeek,
@@ -149,8 +173,8 @@ export default function EventEditor() {
             createdAt: existingEvent?.createdAt || new Date().toISOString(),
         };
 
-        if (isEditing && id) {
-            updateEvent(id, eventData);
+        if (isEditing && activeId) {
+            updateEvent(activeId, eventData);
             if (existingPackList) {
                 updatePackList(existingPackList.id, {
                     itemIds: selectedGearIds,
@@ -159,15 +183,19 @@ export default function EventEditor() {
             } else if (selectedGearIds.length > 0) {
                 addPackList({
                     id: Date.now().toString() + 'pl',
-                    eventId: id,
+                    eventId: activeId,
                     itemIds: selectedGearIds,
                     checkedItemIds: checkedGearIds,
                     additionalItems: []
                 });
             }
         } else {
-            const newEventId = Date.now().toString();
-            addEvent({ ...eventData, id: newEventId });
+            const newEventId = eventData.id; // Use the ID we generated in eventData
+            addEvent(eventData);
+
+            // CRITICAL: Switch to Edit Mode immediately so subsequent saves update this event
+            setActiveId(newEventId);
+
             if (selectedGearIds.length > 0) {
                 addPackList({
                     id: Date.now().toString() + 'pl',
@@ -179,8 +207,11 @@ export default function EventEditor() {
             }
         }
 
-        router.back();
+        if (shouldExit) router.back();
     };
+
+    const handleSave = () => performSave(true);
+    const saveWithoutExit = (slotsOverride?: BookingSlot[]) => performSave(false, slotsOverride);
 
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -211,7 +242,47 @@ export default function EventEditor() {
         setDuration(prev => Math.max(15, prev + amount));
     };
 
-    // --- Sub-render components moved here or defined as true components ---
+    // --- Finance Integration ---
+    const { transactions, addTransaction } = useFinanceStore();
+    const [showTransactionEditor, setShowTransactionEditor] = useState(false);
+
+    const relatedTransactions = useMemo(() => {
+        if (!activeId) return [];
+        return transactions.filter(t => t.relatedEventId === activeId);
+    }, [activeId, transactions]);
+
+    const financePaidAmount = useMemo(() => {
+        return relatedTransactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+    }, [relatedTransactions]);
+
+    const financeStatus = useMemo(() => {
+        const fee = parseFloat(totalFee || musicianFee || '0');
+        if (financePaidAmount <= 0) return 'unpaid';
+        if (financePaidAmount >= fee && fee > 0) return 'paid';
+        return 'partial';
+    }, [financePaidAmount, totalFee, musicianFee]);
+
+    const handleLogPayment = () => {
+        console.log('[EventEditor] Log Payment Clicked', { activeId });
+        if (!activeId) {
+            const msg = 'Please save the event before logging a payment.';
+            if (Platform.OS === 'web') alert(msg);
+            else Alert.alert('Save Required', msg);
+            return;
+        }
+        console.log('[EventEditor] Opening Transaction Editor');
+        setShowTransactionEditor(true);
+    };
+
+    const handleSaveTransaction = (t: Transaction) => {
+        addTransaction({
+            ...t,
+            relatedEventId: activeId,
+            description: t.description || `Payment for ${title}`
+        });
+    };
 
 
     return (
@@ -240,6 +311,24 @@ export default function EventEditor() {
                             setMusicianFee={setMusicianFee} formatDisplayTime={formatDisplayTime}
                             getTimeDate={getTimeDate} notes={notes}
                             people={people}
+                            // Finance Props
+                            financeStatus={financeStatus}
+                            financePaidAmount={financePaidAmount}
+                            onLogPayment={handleLogPayment}
+                            // Public Stage Plot Props
+                            isPremium={isPremium}
+                            isPublicStagePlot={isPublicStagePlot}
+                            setIsPublicStagePlot={setIsPublicStagePlot}
+                            publicDescription={publicDescription}
+                            setPublicDescription={setPublicDescription}
+                            socialLink={socialLink}
+                            setSocialLink={setSocialLink}
+                            showSetlist={showSetlist}
+                            setShowSetlist={setShowSetlist}
+                            showQrModal={showQrModal}
+                            setShowQrModal={setShowQrModal}
+                            eventId={activeId}
+                            studentMode={studentMode}
                         />
                     </>
                 }
@@ -248,7 +337,9 @@ export default function EventEditor() {
                         slots={slots} setSlots={setSlots} people={people} type={type}
                         title={title} venue={venue} isRecurring={isRecurring}
                         startDate={startDate} date={date} time={time} notes={notes}
-                        setNotes={setNotes} totalFee={totalFee} musicianFee={musicianFee}
+                        setNotes={setNotes}
+                        totalFee={totalFee} setTotalFee={setTotalFee}
+                        musicianFee={musicianFee} setMusicianFee={setMusicianFee}
                         personSearchQuery={personSearchQuery} setPersonSearchQuery={setPersonSearchQuery}
                         availablePersonnel={availablePersonnel} searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery} availableRoutines={availableRoutines}
@@ -257,12 +348,14 @@ export default function EventEditor() {
                         setSelectedGearIds={setSelectedGearIds}
                         checkedGearIds={checkedGearIds}
                         setCheckedGearIds={setCheckedGearIds}
+                        onSave={saveWithoutExit}
+                        studentMode={studentMode}
                     />
                 }
                 renderItem={({ item, drag, isActive }) => (
                     <View className="px-6">
                         <ScaleDecorator>
-                            <TouchableOpacity
+                            <GHTouchableOpacity
                                 onLongPress={drag}
                                 disabled={isActive}
                                 className={`mb-2 p-4 rounded-2xl border flex-row items-center justify-between ${isActive ? 'bg-slate-100 border-slate-300' : 'bg-white border-slate-200 shadow-sm'}`}
@@ -279,7 +372,7 @@ export default function EventEditor() {
                                 <TouchableOpacity onPress={() => removeRoutineFromEvent(item.id)} className="p-2 ml-2 bg-slate-50 rounded-full">
                                     <Ionicons name="trash-outline" size={16} color="#ef4444" />
                                 </TouchableOpacity>
-                            </TouchableOpacity>
+                            </GHTouchableOpacity>
                         </ScaleDecorator>
                     </View>
                 )}
@@ -292,27 +385,75 @@ export default function EventEditor() {
                 }
             />
 
-            {/* Save Button */}
-            <View className="flex-row gap-4 p-6 border-t border-stone-200 absolute bottom-0 left-0 right-0 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 40 : 24 }}>
+            {/* Save Button Container - Explicit Styles to Match PersonEditor */}
+            <View
+                style={{
+                    flexDirection: 'row',
+                    gap: 16,
+                    padding: 24,
+                    borderTopWidth: 1,
+                    borderColor: '#e7e5e4',
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    paddingBottom: Platform.OS === 'ios' ? 40 : 24
+                }}
+            >
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    className="flex-1 p-4 rounded-2xl border border-stone-300 items-center justify-center"
-                    style={{ backgroundColor: PAPER_THEME.cancelBtnBg }}
+                    style={{
+                        flex: 1,
+                        padding: 16,
+                        borderRadius: 16,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: '#d6d3d1', // stone-300
+                        backgroundColor: '#e7e5e4' // PAPER_THEME.cancelBtnBg
+                    }}
+                    activeOpacity={0.7}
                 >
-                    <Text className="text-center font-bold uppercase tracking-wide" style={{ color: PAPER_THEME.cancelBtnText }}>Cancel</Text>
+                    <Text style={{ textAlign: 'center', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1, color: '#57534e' }}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={handleSave}
-                    className="flex-1 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-orange-900/20"
-                    style={{ backgroundColor: PAPER_THEME.saveBtnBg }}
+                    style={{
+                        flex: 1,
+                        padding: 16,
+                        borderRadius: 16,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#c2410c', // PAPER_THEME.saveBtnBg
+                        shadowColor: '#7c2d12', // orange-900
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 8,
+                        elevation: 5
+                    }}
+                    activeOpacity={0.7}
                 >
-                    <Ionicons name="checkmark-circle" size={20} color={PAPER_THEME.saveBtnText} />
-                    <Text className="font-black text-lg uppercase tracking-wider ml-2" style={{ color: PAPER_THEME.saveBtnText }}>
-                        {isEditing ? 'Update' : 'Save'}
-                    </Text>
+                    <Text style={{ fontWeight: '900', fontSize: 18, textTransform: 'uppercase', letterSpacing: 1.5, color: '#ffffff' }}>{isEditing ? 'Update' : 'Save'}</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+
+            <TransactionEditor
+                visible={showTransactionEditor}
+                onClose={() => setShowTransactionEditor(false)}
+                onSave={handleSaveTransaction}
+                initialData={{
+                    relatedEventId: activeId,
+                    amount: 0,
+                    type: 'income',
+                    category: 'Gig',
+                    description: `Payment for ${title}${venue ? ` at ${venue}` : ''}`,
+                    // Add dummy ID/date/createdAt to satisfy type if needed, or let component handle defaults
+                    id: '', date: '', createdAt: ''
+                } as any} // Cast to any or Partial if type is strict, but component handles partials? No, logic above expects full Transaction or undefined. 
+            // Actually TransactionEditor expects initialData to be Transaction.
+            // Let's pass a safe partial object or handle it.
+            // Looking at TransactionEditor: `initialData?: Transaction`. 
+            // And it uses `initialData?.amount` etc.
+            // So I can pass a constructed object.
+            />
+        </View >
     );
 }
 
@@ -507,6 +648,24 @@ interface HeaderProps {
     getTimeDate: () => Date;
     notes: string;
     people: Person[];
+    // Finance Props
+    financeStatus: 'unpaid' | 'paid' | 'partial';
+    financePaidAmount: number;
+    onLogPayment: () => void;
+    // Public Stage Plot Props
+    isPremium: boolean | undefined;
+    isPublicStagePlot: boolean;
+    setIsPublicStagePlot: (b: boolean) => void;
+    publicDescription: string;
+    setPublicDescription: (s: string) => void;
+    socialLink: string;
+    setSocialLink: (s: string) => void;
+    showSetlist: boolean;
+    setShowSetlist: (b: boolean) => void;
+    showQrModal: boolean;
+    setShowQrModal: (b: boolean) => void;
+    eventId: string | undefined;
+    studentMode: boolean;
 }
 
 const EditorHeader = ({
@@ -515,7 +674,14 @@ const EditorHeader = ({
     startDate, setStartDate, endDate, setEndDate, date, setDate,
     time, setTime, duration, setDuration, totalFee, setTotalFee,
     musicianFee, setMusicianFee, formatDisplayTime, getTimeDate, notes,
-    people
+    people,
+    // Finance Props
+    financeStatus, financePaidAmount, onLogPayment,
+    // Public Stage Plot Props
+    isPremium, isPublicStagePlot, setIsPublicStagePlot,
+    publicDescription, setPublicDescription, socialLink, setSocialLink,
+    showSetlist, setShowSetlist,
+    showQrModal, setShowQrModal, eventId, studentMode
 }: HeaderProps) => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
@@ -525,7 +691,6 @@ const EditorHeader = ({
     const [showVenuePicker, setShowVenuePicker] = useState(false);
     const venueManagers = useMemo(() => people.filter(p => p.type === 'venue_manager'), [people]);
 
-    // Generate time options for web picker
     // Generate time options for web picker
     const timeOptions = useMemo(() => {
         const opts = [];
@@ -584,6 +749,44 @@ const EditorHeader = ({
                     </TouchableOpacity>
                 ))}
             </View>
+
+            {/* FINANCE STATUS / FEE SECTION (Hidden in Student Mode) */}
+            {!studentMode && (
+                <View className="bg-emerald-50 p-4 rounded-3xl border border-emerald-100 flex-row items-center justify-between mb-6">
+                    <View>
+                        <Text className="text-[10px] uppercase font-black text-emerald-600 mb-1 tracking-widest">Finance Status</Text>
+                        <View className="flex-row items-baseline gap-1">
+                            <Text className={`text-2xl font-black ${financeStatus === 'paid' ? 'text-emerald-700' : 'text-emerald-900'}`}>
+                                {financeStatus === 'paid' ? 'PAID' : financeStatus === 'partial' ? 'PARTIAL' : 'UNPAID'}
+                            </Text>
+                            {financePaidAmount > 0 && (
+                                <Text className="text-xs font-bold text-emerald-600">(${financePaidAmount} collected)</Text>
+                            )}
+                        </View>
+                    </View>
+
+                    {financeStatus !== 'paid' && (
+                        <TouchableOpacity
+                            onPress={onLogPayment}
+                            className="rounded-full shadow-md flex-row items-center justify-center bg-green-600"
+                            style={{
+                                backgroundColor: '#16a34a',
+                                borderRadius: 100, // Force Pill
+                                paddingHorizontal: 24,
+                                paddingVertical: 12,
+                                minWidth: 160, // Give it more heft
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                elevation: 4
+                            }}
+                            activeOpacity={0.8}
+                        >
+                            <Ionicons name="cash-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                            <Text className="text-white font-bold text-xs uppercase tracking-wide" style={{ color: '#ffffff' }}>Log Payment</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
 
             <View className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-6">
                 <View className="mb-5">
@@ -749,6 +952,125 @@ const EditorHeader = ({
                     </View>
                 )}
 
+
+                {/* FAN ENGAGEMENT SECTION (PRO) - Hidden in Student Mode */}
+                {isPremium && !studentMode && (
+                    <View className="mb-8 p-5 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden relative">
+                        <View className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
+
+                        <View className="flex-row items-center mb-4">
+                            <View className="w-10 h-10 rounded-full bg-indigo-500 items-center justify-center mr-3 shadow-lg shadow-indigo-500/30">
+                                <Ionicons name="qr-code" size={20} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-black text-white text-lg">Digital Stage Plot</Text>
+                                <Text className="text-indigo-200 text-xs font-medium">Public Event Page for Fans</Text>
+                            </View>
+                        </View>
+
+                        <View className="flex-row items-center justify-between mb-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                            <Text className="text-slate-300 font-bold text-sm">Enable Public Page</Text>
+                            <TouchableOpacity
+                                onPress={() => setIsPublicStagePlot(!isPublicStagePlot)}
+                                className={`w-12 h-7 rounded-full justify-center ${isPublicStagePlot ? 'bg-indigo-500' : 'bg-slate-600'}`}
+                            >
+                                <View className={`w-5 h-5 bg-white rounded-full shadow-sm mx-1 ${isPublicStagePlot ? 'self-end' : 'self-start'}`} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {isPublicStagePlot && (
+                            <View>
+                                <View className="mb-4">
+                                    <Text className="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Public Description</Text>
+                                    <TextInput
+                                        className="bg-slate-800 text-white p-3 rounded-xl border border-slate-700 min-h-[80px]"
+                                        placeholder="Thanks for coming! Tip us below..."
+                                        placeholderTextColor="#64748b"
+                                        multiline
+                                        value={publicDescription}
+                                        onChangeText={setPublicDescription}
+                                    />
+                                </View>
+
+                                <View className="mb-4">
+                                    <Text className="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Band Website</Text>
+                                    <TextInput
+                                        className="bg-slate-800 text-white p-3 rounded-xl border border-slate-700"
+                                        placeholder="https://myband.com"
+                                        placeholderTextColor="#64748b"
+                                        autoCapitalize="none"
+                                        value={socialLink}
+                                        onChangeText={setSocialLink}
+                                    />
+                                </View>
+
+                                <TouchableOpacity
+                                    onPress={() => setShowSetlist(!showSetlist)}
+                                    className="flex-row items-center mb-6"
+                                >
+                                    <View className={`w-5 h-5 rounded-md border mr-2 items-center justify-center ${showSetlist ? 'bg-indigo-500 border-indigo-500' : 'border-slate-600'}`}>
+                                        {showSetlist && <Ionicons name="checkmark" size={14} color="white" />}
+                                    </View>
+                                    <Text className="text-slate-300 text-sm font-bold">Show Setlist on Page</Text>
+                                </TouchableOpacity>
+
+                                <View className="flex-row gap-3">
+                                    <TouchableOpacity
+                                        onPress={() => setShowQrModal(true)}
+                                        className="flex-1 bg-white py-3 rounded-xl items-center flex-row justify-center"
+                                    >
+                                        <Ionicons name="qr-code-outline" size={18} color="black" style={{ marginRight: 8 }} />
+                                        <Text className="text-black font-black text-xs uppercase tracking-wide">View QR</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={async () => {
+                                            const url = eventId ? `https://opusmode.net/fan/${eventId}` : 'Save event first';
+                                            await Clipboard.setStringAsync(url);
+                                            Alert.alert("Copied", "Link copied to clipboard.");
+                                        }}
+                                        className="flex-1 bg-slate-800 border border-slate-700 py-3 rounded-xl items-center flex-row justify-center"
+                                    >
+                                        <Ionicons name="link-outline" size={18} color="white" style={{ marginRight: 8 }} />
+                                        <Text className="text-white font-bold text-xs uppercase tracking-wide">Copy Link</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+                    </View>
+                )}
+
+                {/* QR MODAL */}
+                <Modal visible={showQrModal} animationType="fade" transparent>
+                    <View className="flex-1 bg-black/90 justify-center items-center p-6">
+                        <View className="bg-white p-8 rounded-3xl items-center w-full max-w-[320px]">
+                            <Text className="text-2xl font-black mb-2 text-center">{title || 'Untitled Event'}</Text>
+                            <Text className="text-slate-500 font-bold mb-6 text-center">{venue}</Text>
+
+                            <View className="mb-8 p-2 border-4 border-black rounded-xl">
+                                {eventId ? (
+                                    <QRCode
+                                        value={`https://opusmode.net/fan/${eventId}`}
+                                        size={200}
+                                    />
+                                ) : (
+                                    <Text>Save Event to Generate QR</Text>
+                                )}
+                            </View>
+
+                            <Text className="text-center text-xs text-slate-400 mb-6 px-4">
+                                Fans can scan this to see the setlist, bio, and tipping links.
+                            </Text>
+
+                            <TouchableOpacity
+                                onPress={() => setShowQrModal(false)}
+                                className="bg-black w-full py-4 rounded-xl items-center"
+                            >
+                                <Text className="text-white font-black uppercase text-sm">Close</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+
                 <View className="mb-2">
                     <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Time</Text>
                     {Platform.OS === 'web' ? (
@@ -814,111 +1136,16 @@ const EditorHeader = ({
 
 
 // EditorFooter Component
-const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring, startDate, date, time, notes, setNotes, totalFee, setTotalFee, musicianFee, setMusicianFee, personSearchQuery, setPersonSearchQuery, availablePersonnel, searchQuery, setSearchQuery, availableRoutines, addRoutineToEvent, selectedGearIds, setSelectedGearIds, checkedGearIds, setCheckedGearIds }: any) => {
+const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring, startDate, date, time, notes, setNotes, totalFee, setTotalFee, musicianFee, setMusicianFee, personSearchQuery, setPersonSearchQuery, availablePersonnel, searchQuery, setSearchQuery, availableRoutines, addRoutineToEvent, selectedGearIds, setSelectedGearIds, checkedGearIds, setCheckedGearIds, onSave, studentMode }: any) => {
 
     // UI State for Progressive Disclosure
     const [trackPersonnel, setTrackPersonnel] = useState(slots && slots.length > 0);
-    const [isLeader, setIsLeader] = useState(false);
+
 
     return (
         <View className="p-6 pt-0">
-            {/* Roster Section - Hidden for Lessons, Optional for others */}
-            {type !== 'lesson' && (
-                <View className="mb-8">
-                    <View className="flex-row justify-between items-center mb-4">
-                        <Text className="text-xl font-black text-slate-900">Personnel & Roster</Text>
-                        <View className="flex-col items-end gap-2">
-                            <View className="flex-row items-center gap-2">
-                                <Text className="text-xs font-bold text-slate-500 uppercase">Track Members?</Text>
-                                <Switch
-                                    value={trackPersonnel}
-                                    onValueChange={setTrackPersonnel}
-                                    trackColor={{ false: '#e2e8f0', true: '#2563eb' }}
-                                    thumbColor={'#ffffff'}
-                                />
-                            </View>
-                            {trackPersonnel && (
-                                <View className="flex-row items-center gap-2">
-                                    <Text className="text-xs font-bold text-slate-500 uppercase">As Leader</Text>
-                                    <Switch
-                                        value={isLeader}
-                                        onValueChange={setIsLeader}
-                                        trackColor={{ false: '#e2e8f0', true: '#2563eb' }}
-                                        thumbColor={'#ffffff'}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                    </View>
-
-                    {trackPersonnel && (
-                        <View>
-                            <RosterManager
-                                slots={slots}
-                                onUpdateSlots={setSlots}
-                                availablePeople={people}
-                                event={{ title, date, time, type, venue }}
-                            />
-                        </View>
-                    )}
-                </View>
-            )}
-
-            {/* Gear Section - Temporarily Hidden per User Request */}
-            {false && (
-                <View className="mb-8">
-                    <Text className="text-xl font-black text-slate-900 mb-4">Pack List & Gear</Text>
-                    <GearPackManager
-                        selectedItemIds={selectedGearIds}
-                        onUpdateItems={setSelectedGearIds}
-                        checkedItemIds={checkedGearIds}
-                        onUpdateCheckedItems={setCheckedGearIds}
-                    />
-                </View>
-            )}
-
-            {/* Routine Picker */}
-            <View className="mb-8">
-                <Text className="text-xl font-black text-slate-900 mb-4">Add {type === 'lesson' ? 'Lesson Plan' : 'Setlist'} Content</Text>
-                <View className="flex-row items-center bg-slate-100 rounded-2xl px-4 py-3 mb-4">
-                    <Ionicons name="search" size={20} color="#94a3b8" />
-                    <TextInput
-                        className="flex-1 ml-2 font-bold text-slate-900"
-                        placeholder="Search routines..."
-                        placeholderTextColor="#475569"
-                        style={{ fontStyle: searchQuery ? 'normal' : 'italic' }}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-4">
-                    {availableRoutines.map((routine: any) => (
-                        <TouchableOpacity
-                            key={routine.id}
-                            onPress={() => addRoutineToEvent(routine.id)}
-                            className="w-[160px] h-[100px] bg-white border border-slate-200 rounded-2xl p-4 justify-between shadow-sm mr-4"
-                        >
-                            <View>
-                                <Text className="font-bold text-slate-900" numberOfLines={1}>{routine.title}</Text>
-                                <Text className="text-xs text-slate-500">{routine.blocks.length} items</Text>
-                            </View>
-                            <View className="flex-row justify-end">
-                                <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
-                                    <Ionicons name="add" size={20} color="#0f172a" />
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    ))}
-                    {availableRoutines.length === 0 && (
-                        <View className="w-full p-4 items-center justify-center bg-slate-50 rounded-2xl border-dashed border border-slate-200">
-                            <Text className="text-slate-400 font-bold">No matching routines found.</Text>
-                        </View>
-                    )}
-                </ScrollView>
-            </View>
-
-            {/* Financials & Notes */}
-            {!['lesson', 'rehearsal'].includes(type) && (
+            {/* Financials & Notes (Hidden in Student Mode) */}
+            {!studentMode && !['lesson', 'rehearsal'].includes(type) && (
                 <View className="mb-8">
                     <Text className="text-xl font-black text-slate-900 mb-4">Notes & Financials</Text>
                     <View className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm">
@@ -935,9 +1162,18 @@ const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring
                         />
 
                         <View className="flex-row gap-4">
-                            {isLeader && (
-                                <View className="flex-1">
-                                    <Text className="text-[10px] uppercase font-bold text-slate-600 mb-1">Total Fee ($)</Text>
+                            <View className="flex-1">
+                                <Text className="text-[10px] uppercase font-bold text-slate-600 mb-1">Agreed Fee ($)</Text>
+                                {Platform.OS === 'web' ? (
+                                    <input
+                                        type="number"
+                                        className="w-full text-xl font-mono font-bold py-1 border-b border-slate-200 text-green-700 bg-transparent outline-none"
+                                        value={totalFee}
+                                        onChange={(e) => setTotalFee(e.target.value)}
+                                        placeholder="0.00"
+                                        style={{ fontFamily: 'monospace' }}
+                                    />
+                                ) : (
                                     <TextInput
                                         className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-green-700"
                                         value={totalFee}
@@ -947,22 +1183,66 @@ const EditorFooter = ({ slots, setSlots, people, type, title, venue, isRecurring
                                         placeholderTextColor="#475569"
                                         style={{ fontStyle: totalFee ? 'normal' : 'italic' }}
                                     />
-                                </View>
-                            )}
+                                )}
+                            </View>
                             <View className="flex-1">
                                 <Text className="text-[10px] uppercase font-bold text-slate-600 mb-1">Per-Musician ($)</Text>
-                                <TextInput
-                                    className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-slate-700"
-                                    value={musicianFee}
-                                    onChangeText={setMusicianFee}
-                                    keyboardType="numeric"
-                                    placeholder="0.00"
-                                    placeholderTextColor="#475569"
-                                    style={{ fontStyle: musicianFee ? 'normal' : 'italic' }}
-                                />
+                                {Platform.OS === 'web' ? (
+                                    <input
+                                        type="number"
+                                        className="w-full text-xl font-mono font-bold py-1 border-b border-slate-200 text-slate-700 bg-transparent outline-none"
+                                        value={musicianFee}
+                                        onChange={(e) => setMusicianFee(e.target.value)}
+                                        placeholder="0.00"
+                                        style={{ fontFamily: 'monospace' }}
+                                    />
+                                ) : (
+                                    <TextInput
+                                        className="text-xl font-mono font-bold py-1 border-b border-slate-200 text-slate-700"
+                                        value={musicianFee}
+                                        onChangeText={setMusicianFee}
+                                        keyboardType="numeric"
+                                        placeholder="0.00"
+                                        placeholderTextColor="#475569"
+                                        style={{ fontStyle: musicianFee ? 'normal' : 'italic' }}
+                                    />
+                                )}
                             </View>
                         </View>
                     </View>
+                </View>
+            )}
+
+            {/* Roster Section - Hidden for Lessons, Optional for others */}
+            {type !== 'lesson' && (
+                <View className="mb-8">
+                    <View className="flex-row justify-between items-center mb-4">
+                        <Text className="text-xl font-black text-slate-900">Personnel & Roster</Text>
+                        <View className="flex-col items-end gap-2">
+                            <View className="flex-row items-center gap-2">
+                                <Text className="text-xs font-bold text-slate-500 uppercase">Track Members?</Text>
+                                <Switch
+                                    value={trackPersonnel}
+                                    onValueChange={setTrackPersonnel}
+                                    trackColor={{ false: '#e2e8f0', true: '#2563eb' }}
+                                    thumbColor={'#ffffff'}
+                                />
+                            </View>
+
+                        </View>
+                    </View>
+
+                    {trackPersonnel && (
+                        <View>
+                            <RosterManager
+                                slots={slots}
+                                onUpdateSlots={setSlots}
+                                availablePeople={people}
+                                event={{ title, date, time, type, venue, musicianFee }}
+                                onSave={onSave}
+                            />
+                        </View>
+                    )}
                 </View>
             )}
         </View>

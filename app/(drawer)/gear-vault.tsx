@@ -1,4 +1,5 @@
 import { useTheme } from '@/lib/theme';
+import { useContentStore } from '@/store/contentStore';
 import { useGearStore } from '@/store/gearStore';
 import { GearCategory, GearStatus } from '@/store/types';
 import { exportGearInventory } from '@/utils/gearExport';
@@ -52,6 +53,7 @@ function WishlistSearch() {
 export default function GearVaultScreen() {
     const theme = useTheme();
     const { assets, deleteAsset } = useGearStore();
+    const { profile } = useContentStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<GearCategory | 'All'>('All');
 
@@ -92,7 +94,7 @@ export default function GearVaultScreen() {
                 <View style={styles.headerActions}>
                     <TouchableOpacity
                         style={[styles.exportButton, { borderColor: theme.border }]}
-                        onPress={() => exportGearInventory(assets)}
+                        onPress={() => exportGearInventory(assets, profile?.displayName || 'My')}
                     >
                         <Ionicons name="document-text-outline" size={20} color={theme.primary} />
                     </TouchableOpacity>
@@ -201,7 +203,7 @@ export default function GearVaultScreen() {
                                         onPress={() => handleDelete(asset.id, asset.name)}
                                         style={styles.deleteIcon}
                                     >
-                                        <Ionicons name="trash-outline" size={18} color={theme.error} />
+                                        <Ionicons name="trash-outline" size={18} color="#ef4444" />
                                     </TouchableOpacity>
                                 </View>
                             </TouchableOpacity>
@@ -210,7 +212,7 @@ export default function GearVaultScreen() {
                 )}
                 <View style={{ height: 100 }} />
             </ScrollView>
-        </View>
+        </View >
     );
 }
 

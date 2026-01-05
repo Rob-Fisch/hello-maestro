@@ -1,11 +1,10 @@
-import * as Print from 'expo-print';
-import { PDFDocument } from 'pdf-lib';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
-import { Platform, Alert } from 'react-native';
 import { GearAsset } from '@/store/types';
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import { Alert } from 'react-native';
 
-export const exportGearInventory = async (assets: GearAsset[]) => {
+export const exportGearInventory = async (assets: GearAsset[], ownerName?: string) => {
     try {
         const totalPurchase = assets.reduce((sum, a) => sum + (parseFloat(a.financials?.purchasePrice || '0') || 0), 0);
         const totalValue = assets.reduce((sum, a) => sum + (parseFloat(a.financials?.currentValue || '0') || 0), 0);
@@ -35,7 +34,7 @@ export const exportGearInventory = async (assets: GearAsset[]) => {
                 </head>
                 <body>
                     <div class="header">
-                        <h1>Maestro Gear Inventory</h1>
+                        <h1>${ownerName ? ownerName + ' ' : ''}Gear Inventory</h1>
                         <p style="color: #64748b; margin-top: 8px;">Asset & Valuation Report for Insurance/Tax Purposes</p>
                     </div>
 
@@ -81,7 +80,7 @@ export const exportGearInventory = async (assets: GearAsset[]) => {
                     </table>
 
                     <div class="footer">
-                        Report Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()} &bull; Created with OpusMode
+                        Report Generated for ${ownerName || 'User'} on ${new Date().toLocaleDateString()}
                     </div>
                 </body>
             </html>

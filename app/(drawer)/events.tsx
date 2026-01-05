@@ -2,8 +2,9 @@ import { useContentStore } from '@/store/contentStore';
 import { AppEvent, AppEventType, Person, Routine } from '@/store/types';
 import { addUnifiedToCalendar, downloadIcs, openGoogleCalendar } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
+import { DrawerActions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
-import { Link, useLocalSearchParams, useRouter } from 'expo-router';
+import { Link, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,13 +25,14 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 
 export default function ScheduleScreen() {
-    const { events = [], routines = [], people = [], settings, deleteEvent, trackModuleUsage } = useContentStore();
+    const { events = [], routines = [], people = [], settings, profile, deleteEvent, trackModuleUsage } = useContentStore();
 
     useEffect(() => {
         trackModuleUsage('events');
     }, []);
 
     const router = useRouter();
+    const navigation = useNavigation();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
@@ -298,7 +300,7 @@ export default function ScheduleScreen() {
                     }}
                 >
                     <View className="flex-row justify-between items-start mb-3">
-                        <View className="flex-1 mr-4">
+                        <View className="flex-1 mr-2">
                             <View className={`self-start px-2 py-0.5 rounded-lg mb-2 ${badge.className}`}>
                                 <Text className={`text-[9px] uppercase font-black tracking-widest ${badge.className.split(' ').find(c => c.startsWith('text-'))}`}>{badge.label}</Text>
                             </View>
@@ -310,11 +312,27 @@ export default function ScheduleScreen() {
                                 <Text className="text-sm font-bold text-purple-400 mt-1">Student: {(item.originalItem as AppEvent).studentName}</Text>
                             )}
                         </View>
-                        {!isRoutine && ((item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee) && (
-                            <View className="bg-emerald-500/20 border border-emerald-500/30 px-2 py-1 rounded-xl">
-                                <Text className="text-[10px] font-black text-emerald-400">{(item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee}</Text>
-                            </View>
-                        )}
+
+                        {/* Right Side: Fee + Delete Action */}
+                        <View className="flex-row items-center gap-3">
+                            {!isRoutine && ((item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee) && (
+                                <View className="bg-emerald-500/20 border border-emerald-500/30 px-2 py-1.5 rounded-xl flex-row items-center">
+                                    <Ionicons name="briefcase-outline" size={10} color="#34d399" style={{ marginRight: 4 }} />
+                                    <Text className="text-[10px] font-black text-emerald-400">
+                                        ${(item.originalItem as AppEvent).totalFee || (item.originalItem as AppEvent).fee}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {!isRoutine && (
+                                <TouchableOpacity
+                                    onPress={() => handleDeleteEvent(item.originalItem.id, item.type)}
+                                    className="p-2 -mr-2" // Negative margin to align visually with edge
+                                >
+                                    <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     </View>
 
                     <View className="flex-row items-center gap-3">
@@ -430,15 +448,6 @@ export default function ScheduleScreen() {
                         </View>
                     </View>
                 </TouchableOpacity>
-
-                {!isRoutine && (
-                    <TouchableOpacity
-                        onPress={() => handleDeleteEvent(item.originalItem.id, item.type)}
-                        className="absolute top-5 right-5 p-3"
-                    >
-                        <Ionicons name="trash-outline" size={22} color="#ef4444" />
-                    </TouchableOpacity>
-                )}
             </View>
         );
     };
@@ -463,10 +472,10 @@ export default function ScheduleScreen() {
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
-                        onPress={() => router.push('/')}
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                         className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
                     >
-                        <Ionicons name="home-outline" size={24} color="white" />
+                        <Ionicons name="menu" size={24} color="white" />
                     </TouchableOpacity>
                 )}
                 <View className="flex-1 flex-row justify-between items-start">
@@ -504,6 +513,30 @@ export default function ScheduleScreen() {
                         </View>
 
                         <View className="px-6 pb-4">
+                            {/* PRODUCT ADOPTION HOOK */}
+                            {!profile?.isPremium && (
+                                <View className="mb-6 bg-slate-900 p-5 rounded-3xl border border-slate-800 shadow-xl shadow-slate-900/50">
+                                    <View className="flex-row items-center mb-3">
+                                        <View className="w-10 h-10 rounded-full bg-indigo-500/20 items-center justify-center mr-3 border border-indigo-500/30">
+                                            <Ionicons name="sparkles" size={20} color="#818cf8" />
+                                        </View>
+                                        <View className="flex-1">
+                                            <Text className="text-white font-black text-lg">Go Pro</Text>
+                                            <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider">Unlock Your Potential</Text>
+                                        </View>
+                                    </View>
+                                    <Text className="text-slate-300 text-sm mb-4 leading-relaxed font-medium">
+                                        Track your gig income, manage expenses, and get deeper insights into your career.
+                                    </Text>
+                                    <TouchableOpacity
+                                        onPress={() => router.push('/(drawer)/finance')}
+                                        className="bg-indigo-600 py-3 rounded-2xl items-center shadow-lg shadow-indigo-500/30"
+                                    >
+                                        <Text className="text-white font-black uppercase text-xs tracking-widest">View Demo</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
                             <View className="flex-row flex-wrap gap-3 justify-center">
                                 {filterOptions.map(opt => {
                                     const isActive = activeFilters.includes(opt.key);

@@ -69,7 +69,11 @@ interface ContentState {
     trackModuleUsage: (moduleId: string) => void;
     recentBlockIds: string[];
     trackBlockUsage: (blockId: string) => void;
-    wipeAllData: () => Promise<void>;
+
+    // SAFE Logout
+    wipeLocalData: () => Promise<void>;
+    // DANGER Account Deletion
+    nukeAccount: () => Promise<void>;
 
     // Public / Community
     publicRoutines: Routine[];
@@ -85,6 +89,10 @@ interface ContentState {
     initRealtime: () => void;
     cleanupRealtime: () => void;
     handleRealtimeEvent: (payload: any) => void;
+
+    // Parent Proxy / Student Mode
+    studentMode: boolean;
+    toggleStudentMode: (enabled: boolean) => void;
 }
 
 
@@ -403,13 +411,9 @@ export const useContentStore = create<ContentState>()(
                     ]);
 
 
-                    // 2. Pull stage: Restricted to Premium
-                    if (!state.profile?.isPremium) {
-                        set({ syncStatus: 'synced' }); // Backed up!
-                        return;
-                    }
-
-                    // 3. Pull stage: Get everything else
+                    // 2. Pull stage: Universal (Data Portability)
+                    // Free users can pull, but they don't get Realtime updates.
+                    // This ensures they can restore from backup on login/refresh.
                     console.log('[FullSync] Starting Pull...');
                     const [cloudData, cloudProfile] = await Promise.all([
                         pullFromCloud(),
@@ -457,16 +461,15 @@ export const useContentStore = create<ContentState>()(
                 }
             },
 
-            wipeAllData: async () => {
+            nukeAccount: async () => {
                 const state = get();
 
-                // 1. Wipe Cloud Data if logged in
+                // 1. Wipe Cloud Data if logged in (DANGER!)
                 if (state.profile) {
                     const { error } = await supabase.rpc('delete_own_data');
                     if (error) {
                         console.warn('[Purge RPC Missing/Failed]:', error.message);
                         // Fallback: Delete table by table manually
-                        // ORDER MATTERS due to Foreign Keys: Delete children first
                         await supabase.from('blocks').delete().eq('user_id', state.profile?.id);
                         await supabase.from('routines').delete().eq('user_id', state.profile?.id);
                         await supabase.from('events').delete().eq('user_id', state.profile?.id);
@@ -480,7 +483,18 @@ export const useContentStore = create<ContentState>()(
                     }
                 }
 
-                // 2. Wipe Local Data
+                // 2. Call local wipe
+                get().wipeLocalData();
+            },
+
+            wipeLocalData: async () => {
+                // 1. Wipe Local State
+                try {
+                    // Clear Supabase Session Local (though auth.tsx handles router replace)
+                    // Note: We don't sign out from Supabase here to avoid circular dep if needed, but usually we should.
+                    // supabase.auth.signOut(); // Let component handle this to avoid flicker?
+                } catch (e) { }
+
                 set({
                     blocks: [],
                     routines: [],
@@ -504,7 +518,7 @@ export const useContentStore = create<ContentState>()(
                     publicRoutines: [], // Clear public cache
                 });
 
-                // 3. Clear Storage explicitly using platform-specific method
+                // 2. Clear Storage explicitly using platform-specific method
                 if (Platform.OS === 'web') {
                     if (typeof window !== 'undefined') {
                         window.localStorage.removeItem('maestro-content-storage');
@@ -637,6 +651,13 @@ export const useContentStore = create<ContentState>()(
                         case 'proof_of_work':
                             if (eventType === 'DELETE') return { proofs: remove(state.proofs, oldRecord.id) };
                             return { proofs: upsert(state.proofs, newRecord) };
+                        case 'profiles':
+                            // Handle profile updates (e.g. is_premium change)
+                            if (newRecord && state.profile && newRecord.id === state.profile.id) {
+                                const mappedProfile = mapFromDb(newRecord);
+                                return { profile: { ...state.profile, ...mappedProfile } };
+                            }
+                            return {};
                         // Gear tables handled via GearStore? Or we trigger a refresh?
                         // Ideally we'd dispatch to GearStore, but contentStore doesn't own that state.
                         // For now, contentStore only syncs core content.
@@ -644,6 +665,10 @@ export const useContentStore = create<ContentState>()(
                     return {};
                 });
             },
+
+            // Student Mode
+            studentMode: false,
+            toggleStudentMode: (enabled) => set({ studentMode: enabled }),
 
         }),
         {
