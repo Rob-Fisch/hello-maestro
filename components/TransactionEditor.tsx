@@ -108,19 +108,17 @@ export default function TransactionEditor({ visible, onClose, onSave, onDelete, 
                     </View>
 
                     {/* AMOUNT */}
-                    <View className="items-center mb-8">
-                        <Text className="text-stone-400 font-bold uppercase text-xs tracking-widest mb-2">Amount</Text>
-                        <View className="flex-row items-center">
-                            <Text className={`text-5xl font-black mr-1 ${type === 'income' ? 'text-green-600' : 'text-stone-800'}`}>$</Text>
-                            <TextInput
-                                value={amount}
-                                onChangeText={setAmount}
-                                keyboardType="numeric"
-                                placeholder="0.00"
-                                className={`text-6xl font-black ${type === 'income' ? 'text-green-600' : 'text-stone-800'}`}
-                                autoFocus
-                            />
-                        </View>
+                    <Text className="text-stone-400 font-bold uppercase text-xs tracking-widest mb-2">Amount</Text>
+                    <View className="flex-row items-center bg-white p-4 rounded-xl border border-stone-200 mb-8">
+                        <Text className={`text-3xl font-black mr-2 ${type === 'income' ? 'text-green-600' : 'text-stone-800'}`}>$</Text>
+                        <TextInput
+                            value={amount}
+                            onChangeText={setAmount}
+                            keyboardType="numeric"
+                            placeholder="0.00"
+                            className={`text-4xl font-black flex-1 ${type === 'income' ? 'text-green-600' : 'text-stone-800'}`}
+                            autoFocus
+                        />
                     </View>
 
                     {/* CATEGORY */}

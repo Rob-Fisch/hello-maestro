@@ -27,26 +27,37 @@ export default function FinancePage() {
     // Date Filtering State
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth(); // 0-11
+
+    // "Period" can be a month index (0-11) OR a quarter index (0-3)
+    const [periodType, setPeriodType] = useState<'month' | 'quarter'>('month');
     const [selectedYear, setSelectedYear] = useState(currentYear);
-    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-    const [isYearPickerVisible, setYearPickerVisible] = useState(false);
+    const [selectedPeriodValue, setSelectedPeriodValue] = useState(currentMonth);
+
+    const [isPeriodPickerVisible, setPeriodPickerVisible] = useState(false);
 
     const [isEditorVisible, setEditorVisible] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
-
     const [isReportsVisible, setReportsVisible] = useState(false);
 
-    // --- Stats Logic (Independent of Tab Selection) ---
-    // We calculate stats based on the selected Month/Year, ignoring the 'activeTab' filter
-    // so the summary remains consistent even when viewing just "Income" or "Expense" lists.
+    // --- Stats Logic ---
     const monthTransactions = useMemo(() => {
         return transactions.filter(t => {
-            // Fix Timezone Issue: Parse YYYY-MM-DD directly to avoid UTC->Local shift
+            // Fix Timezone: Parse YYYY-MM-DD
             const [y, m, d] = t.date.split('-').map(Number);
-            // m is 1-12, selectedMonth is 0-11
-            return y === selectedYear && (m - 1) === selectedMonth;
+            const tDateMonthIndex = m - 1; // 0-11
+
+            if (y !== selectedYear) return false;
+
+            if (periodType === 'month') {
+                return tDateMonthIndex === selectedPeriodValue;
+            } else {
+                // Quarter Logic: Q1=0 (0,1,2), Q2=1 (3,4,5)...
+                const qStart = selectedPeriodValue * 3;
+                const qEnd = qStart + 2;
+                return tDateMonthIndex >= qStart && tDateMonthIndex <= qEnd;
+            }
         });
-    }, [transactions, selectedYear, selectedMonth]);
+    }, [transactions, selectedYear, selectedPeriodValue, periodType]);
 
     const stats = useMemo(() => {
         let income = 0;
@@ -58,7 +69,7 @@ export default function FinancePage() {
         return { income, expense, net: income - expense };
     }, [monthTransactions]);
 
-    // --- Filtering Logic for List View ---
+    // --- Filtered List ---
     const filteredTransactions = useMemo(() => {
         return monthTransactions.filter(t => {
             return activeTab === 'all' ? true : t.type === activeTab;
@@ -79,7 +90,7 @@ export default function FinancePage() {
         if (Platform.OS === 'web') {
             if (confirm('Are you sure you want to delete this transaction?')) {
                 deleteTransaction(id);
-                setEditorVisible(false); // Close editor if open
+                setEditorVisible(false);
             }
         } else {
             Alert.alert('Delete Transaction', 'Are you sure?', [
@@ -95,14 +106,53 @@ export default function FinancePage() {
     };
 
     const [isExportModalVisible, setExportModalVisible] = useState(false);
-
-    const handleExport = () => {
-        setExportModalVisible(true);
-    };
-
+    const handleExport = () => setExportModalVisible(true);
 
     // --- Render Helpers ---
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const quarterNames = ["Q1 (Jan-Mar)", "Q2 (Apr-Jun)", "Q3 (Jul-Sep)", "Q4 (Oct-Dec)"];
+
+    const currentPeriodLabel = periodType === 'month'
+        ? monthNames[selectedPeriodValue]
+        : quarterNames[selectedPeriodValue];
+
+    const handlePrevPeriod = () => {
+        if (periodType === 'month') {
+            if (selectedPeriodValue === 0) {
+                setSelectedPeriodValue(11);
+                setSelectedYear(prev => prev - 1);
+            } else {
+                setSelectedPeriodValue(prev => prev - 1);
+            }
+        } else {
+            // Quarter
+            if (selectedPeriodValue === 0) {
+                setSelectedPeriodValue(3);
+                setSelectedYear(prev => prev - 1);
+            } else {
+                setSelectedPeriodValue(prev => prev - 1);
+            }
+        }
+    };
+
+    const handleNextPeriod = () => {
+        if (periodType === 'month') {
+            if (selectedPeriodValue === 11) {
+                setSelectedPeriodValue(0);
+                setSelectedYear(prev => prev + 1);
+            } else {
+                setSelectedPeriodValue(prev => prev + 1);
+            }
+        } else {
+            if (selectedPeriodValue === 3) {
+                setSelectedPeriodValue(0);
+                setSelectedYear(prev => prev + 1);
+            } else {
+                setSelectedPeriodValue(prev => prev + 1);
+            }
+        }
+    };
+
 
     if (!isPremium) {
         // ... (Keep existing Paywall / Teaser Code or simplify it? Preserving existing for now to minimize scope creep unless asked)
@@ -198,33 +248,25 @@ export default function FinancePage() {
                 <View className="flex-row justify-between items-center mb-4">
                     <View className="flex-row items-center bg-white border border-stone-200 rounded-xl p-1 shadow-sm">
                         <TouchableOpacity
-                            onPress={() => {
-                                if (selectedMonth === 0) {
-                                    setSelectedMonth(11);
-                                    setSelectedYear(prev => prev - 1);
-                                } else {
-                                    setSelectedMonth(prev => prev - 1);
-                                }
-                            }}
+                            onPress={handlePrevPeriod}
                             className="p-2"
                         >
                             <Ionicons name="chevron-back" size={16} color="#44403c" />
                         </TouchableOpacity>
 
-                        <View className="px-4 items-center w-[140px]">
-                            <Text className="font-extrabold text-stone-800 text-base">{monthNames[selectedMonth]}</Text>
+                        <TouchableOpacity
+                            onPress={() => setPeriodPickerVisible(true)}
+                            className="px-4 items-center min-w-[140px]"
+                        >
+                            <View className="flex-row items-center gap-1">
+                                <Text className="font-extrabold text-stone-800 text-base">{currentPeriodLabel}</Text>
+                                <Ionicons name="caret-down" size={12} color="#57534e" />
+                            </View>
                             <Text className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{selectedYear}</Text>
-                        </View>
+                        </TouchableOpacity>
 
                         <TouchableOpacity
-                            onPress={() => {
-                                if (selectedMonth === 11) {
-                                    setSelectedMonth(0);
-                                    setSelectedYear(prev => prev + 1);
-                                } else {
-                                    setSelectedMonth(prev => prev + 1);
-                                }
-                            }}
+                            onPress={handleNextPeriod}
                             className="p-2"
                         >
                             <Ionicons name="chevron-forward" size={16} color="#44403c" />
@@ -360,10 +402,91 @@ export default function FinancePage() {
                 onClose={() => setExportModalVisible(false)}
                 allTransactions={transactions}
                 currentViewTransactions={filteredTransactions}
-                currentViewLabel={`${monthNames[selectedMonth]} ${selectedYear}`}
+                currentViewLabel={`${currentPeriodLabel} ${selectedYear}`}
                 selectedYear={selectedYear}
             />
 
+
+            {/* --- PERIOD PICKER MODAL --- */}
+            <Modal
+                visible={isPeriodPickerVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setPeriodPickerVisible(false)}
+            >
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => setPeriodPickerVisible(false)}
+                    className="flex-1 bg-black/60 items-center justify-center p-6"
+                >
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        onPress={(e) => e.stopPropagation()}
+                        className="bg-stone-900 w-full max-w-[340px] rounded-3xl p-6 border border-stone-800"
+                    >
+                        <Text className="text-white text-xl font-black mb-6 text-center">Select Time Period</Text>
+
+                        {/* Switcher */}
+                        <View className="flex-row bg-stone-800 p-1 rounded-xl mb-6">
+                            <TouchableOpacity
+                                onPress={() => setPeriodType('month')}
+                                className={`flex-1 py-3 rounded-lg items-center ${periodType === 'month' ? 'bg-stone-700' : ''}`}
+                            >
+                                <Text className={`font-bold ${periodType === 'month' ? 'text-white' : 'text-stone-500'}`}>Monthly</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setPeriodType('quarter')}
+                                className={`flex-1 py-3 rounded-lg items-center ${periodType === 'quarter' ? 'bg-stone-700' : ''}`}
+                            >
+                                <Text className={`font-bold ${periodType === 'quarter' ? 'text-white' : 'text-stone-500'}`}>Quarterly</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView className="max-h-[300px]">
+                            {periodType === 'month' ? (
+                                <View className="flex-row flex-wrap justify-between">
+                                    {monthNames.map((m, i) => (
+                                        <TouchableOpacity
+                                            key={m}
+                                            onPress={() => {
+                                                setSelectedPeriodValue(i);
+                                                setPeriodType('month');
+                                                setPeriodPickerVisible(false);
+                                            }}
+                                            className={`w-[48%] py-4 mb-2 rounded-xl items-center ${selectedPeriodValue === i && periodType === 'month' ? 'bg-blue-600' : 'bg-stone-800'}`}
+                                        >
+                                            <Text className={`font-bold ${selectedPeriodValue === i && periodType === 'month' ? 'text-white' : 'text-stone-400'}`}>{m}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            ) : (
+                                <View>
+                                    {quarterNames.map((q, i) => (
+                                        <TouchableOpacity
+                                            key={q}
+                                            onPress={() => {
+                                                setSelectedPeriodValue(i);
+                                                setPeriodType('quarter');
+                                                setPeriodPickerVisible(false);
+                                            }}
+                                            className={`w-full py-4 mb-3 rounded-xl items-center flex-row justify-center ${selectedPeriodValue === i && periodType === 'quarter' ? 'bg-blue-600' : 'bg-stone-800'}`}
+                                        >
+                                            <Ionicons name="calendar-outline" size={18} color={selectedPeriodValue === i && periodType === 'quarter' ? 'white' : '#78716c'} style={{ marginRight: 8 }} />
+                                            <Text className={`font-bold text-lg ${selectedPeriodValue === i && periodType === 'quarter' ? 'text-white' : 'text-stone-400'}`}>{q}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </ScrollView>
+
+                        <View className="mt-4 pt-4 border-t border-stone-800 items-center">
+                            <TouchableOpacity onPress={() => setPeriodPickerVisible(false)}>
+                                <Text className="text-stone-500 font-bold">Cancel</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 }

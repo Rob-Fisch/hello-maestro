@@ -33,6 +33,7 @@ export interface Routine {
     blocks: ContentBlock[];
     schedule?: Schedule;
     isPublic?: boolean;
+    expiresAt?: string; // ISO date string. If set, link is invalid after this date.
     originalRoutineId?: string; // If cloned, points to source
     clonedFromUserId?: string; // If cloned, points to teacher
     createdAt: string;

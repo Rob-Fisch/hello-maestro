@@ -1,6 +1,7 @@
+import { Alert, Platform } from 'react-native';
 import { supabase } from './supabase';
 
-export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work' | 'gear_assets' | 'pack_lists';
+export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work' | 'gear_assets' | 'pack_lists' | 'transactions';
 
 /**
  * Helper to map camelCase local types to snake_case DB columns
@@ -51,8 +52,10 @@ function mapToDb(data: any): any {
         eventId: 'event_id',
         itemIds: 'item_ids',
         checkedItemIds: 'checked_item_ids',
+        relatedEventId: 'related_event_id',
+        expiresAt: 'expires_at',
+        receiptUri: 'receipt_uri',
     };
-
 
 
 
@@ -75,6 +78,11 @@ export async function syncToCloud(table: TableName, data: any) {
         user_id: session.user.id,
         last_synced_at: new Date().toISOString(),
     };
+
+    // Debug logging for routines to verify is_public status
+    if (table === 'routines') {
+        console.log(`[Sync Debug] Pushing routine update: id=${payload.id}, is_public=${payload.is_public}`);
+    }
 
     try {
         const { error } = await supabase
@@ -243,6 +251,9 @@ export function mapFromDb(data: any): any {
         event_id: 'eventId',
         item_ids: 'itemIds',
         checked_item_ids: 'checkedItemIds',
+        related_event_id: 'relatedEventId',
+        expires_at: 'expiresAt',
+        receipt_uri: 'receiptUri',
     };
 
 
@@ -252,7 +263,12 @@ export function mapFromDb(data: any): any {
     const mapped: any = {};
     for (const key in data) {
         const localKey = mapping[key] || key;
-        mapped[localKey] = data[key];
+        // Fix for Postgres 'numeric' type returning as string
+        if (localKey === 'amount') {
+            mapped[localKey] = Number(data[key]);
+        } else {
+            mapped[localKey] = data[key];
+        }
     }
     return mapped;
 }
@@ -278,9 +294,13 @@ export async function pushAllToCloud(table: TableName, dataArray: any[]) {
         if (error) {
             throw new Error(`[Push Error] ${table}: ${error.message}`);
         }
-    } catch (err) {
+    } catch (err: any) {
         console.warn(`[Push Exception] ${table}:`, err);
-        // Do not re-throw, so other tables can still sync
+        if (Platform.OS === 'web') {
+            alert(`Sync Error (${table}): ${err.message || err}`);
+        } else {
+            Alert.alert(`Sync Error (${table})`, err.message || JSON.stringify(err));
+        }
     }
 }
 
@@ -308,7 +328,7 @@ export async function pullFromCloud() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;
 
-    const tables: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'user_progress', 'proof_of_work', 'gear_assets', 'pack_lists'];
+    const tables: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'user_progress', 'proof_of_work', 'gear_assets', 'pack_lists', 'transactions'];
     const results: any = {};
 
     try {

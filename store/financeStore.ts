@@ -11,6 +11,7 @@ interface FinanceState {
     addTransaction: (transaction: Transaction) => void;
     updateTransaction: (id: string, updates: Partial<Transaction>) => void;
     deleteTransaction: (id: string) => void;
+    setTransactions: (transactions: Transaction[]) => void;
     wipeData: () => void;
 
     // Getters / Helpers can be derived in components, but we might add some convenience ones here if needed?
@@ -35,6 +36,10 @@ export const useFinanceStore = create<FinanceState>()(
             deleteTransaction: (id) => set((state) => ({
                 transactions: state.transactions.filter((t) => t.id !== id)
             })),
+
+            setTransactions: (transactions) => set({
+                transactions: transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            }),
 
             wipeData: async () => {
                 set({ transactions: [] });

@@ -150,6 +150,16 @@ export default function RoutinesScreen() {
                         <Text className="text-sm font-medium leading-relaxed" numberOfLines={2} style={{ color: theme.mutedText }}>
                             {item.description || (activeTab === 'public' ? 'Community Collection' : 'Level 2 Collection')}
                         </Text>
+
+                        {/* Teacher Label / Imported Badge */}
+                        {(item.clonedFromUserId || item.originalRoutineId) && (
+                            <View className="flex-row items-center mt-2 bg-indigo-50 self-start px-2 py-1 rounded-md border border-indigo-100">
+                                <Ionicons name="school" size={10} color="#4f46e5" style={{ marginRight: 4 }} />
+                                <Text className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
+                                    Shared by Teacher
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
                     {activeTab === 'mine' ? (
@@ -303,10 +313,9 @@ export default function RoutinesScreen() {
                 contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
                 ListHeaderComponent={
                     <View>
-                        {activeTab === 'mine' && <Heatmap />}
-                        {activeTab === 'public' && isLoadingPublic ? (
-                            <View className="p-8 items-center"><Text className="text-slate-400">Loading community collections...</Text></View>
-                        ) : null}
+                        <View>
+                            {activeTab === 'mine' && <Heatmap />}
+                        </View>
                     </View>
                 }
                 ListEmptyComponent={

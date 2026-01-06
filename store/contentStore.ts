@@ -2,8 +2,10 @@ import { createPlatformStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { deleteFromCloud, mapFromDb, pullFromCloud, pullProfileFromCloud, pushAllToCloud, syncToCloud } from '@/lib/sync';
 import { Alert, Platform } from 'react-native';
+import uuid from 'react-native-uuid';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { useFinanceStore } from './financeStore';
 import { useGearStore } from './gearStore';
 import { AppEvent, AppTheme, Category, ContentBlock, InteractionLog, LearningPath, Person, ProofOfWork, Routine, SessionLog, SyncStatus, UserProfile, UserProgress, UserSettings } from './types';
 
@@ -103,12 +105,12 @@ export const useContentStore = create<ContentState>()(
             routines: [],
             events: [],
             categories: [
-                { id: 'default-cat-1', name: 'Warmups' },
-                { id: 'default-cat-2', name: 'Technical' },
-                { id: 'default-cat-3', name: 'Repertoire' },
-                { id: 'default-cat-4', name: 'Performance' },
-                { id: 'default-cat-5', name: 'Coaching' },
-                { id: 'default-cat-6', name: 'Other' },
+                { id: uuid.v4() as string, name: 'Warmups' },
+                { id: uuid.v4() as string, name: 'Technical' },
+                { id: uuid.v4() as string, name: 'Repertoire' },
+                { id: uuid.v4() as string, name: 'Performance' },
+                { id: uuid.v4() as string, name: 'Coaching' },
+                { id: uuid.v4() as string, name: 'Other' },
             ],
             people: [],
             settings: {
@@ -408,6 +410,7 @@ export const useContentStore = create<ContentState>()(
                         pushAllToCloud('proof_of_work', state.proofs),
                         pushAllToCloud('gear_assets', useGearStore.getState().assets),
                         pushAllToCloud('pack_lists', useGearStore.getState().packLists),
+                        pushAllToCloud('transactions', useFinanceStore.getState().transactions),
                     ]);
 
 
@@ -422,6 +425,8 @@ export const useContentStore = create<ContentState>()(
 
                     if (cloudData) {
                         console.log('[FullSync] Pulled Data:', Object.keys(cloudData).map(k => `${k}: ${cloudData[k]?.length}`));
+
+
 
                         // CLOUD TRUTH LOGIC:
                         // 1. We already PUSHED our changes above (lines 383-395).
@@ -448,6 +453,11 @@ export const useContentStore = create<ContentState>()(
                             cloudData.gear_assets || [],
                             cloudData.pack_lists || []
                         );
+
+                        // 4. Sync Finance Store
+                        if (cloudData.transactions) {
+                            useFinanceStore.getState().setTransactions(cloudData.transactions);
+                        }
                     } else {
                         console.log('[FullSync] No cloud data returned');
                         Alert.alert('Sync Info', 'Unable to reach cloud. Your session may have expired. Please Sign Out and Sign In again.');
@@ -500,12 +510,12 @@ export const useContentStore = create<ContentState>()(
                     routines: [],
                     events: [],
                     categories: [
-                        { id: 'default-cat-1', name: 'Warmups' },
-                        { id: 'default-cat-2', name: 'Technical' },
-                        { id: 'default-cat-3', name: 'Repertoire' },
-                        { id: 'default-cat-4', name: 'Performance' },
-                        { id: 'default-cat-5', name: 'Coaching' },
-                        { id: 'default-cat-6', name: 'Other' },
+                        { id: uuid.v4() as string, name: 'Warmups' },
+                        { id: uuid.v4() as string, name: 'Technical' },
+                        { id: uuid.v4() as string, name: 'Repertoire' },
+                        { id: uuid.v4() as string, name: 'Performance' },
+                        { id: uuid.v4() as string, name: 'Coaching' },
+                        { id: uuid.v4() as string, name: 'Other' },
                     ],
                     people: [],
                     paths: [],
@@ -674,7 +684,7 @@ export const useContentStore = create<ContentState>()(
         {
             name: 'maestro-content-storage',
             storage: createJSONStorage(() => createPlatformStorage()),
-            version: 4,
+            version: 5,
 
             // EXCLUDE realtimeSub from persistence to prevent crashes
             partialize: (state) => {
@@ -706,6 +716,8 @@ export const useContentStore = create<ContentState>()(
                         'cat-6': 'default-cat-6',
                     };
 
+
+
                     state.categories = (state.categories || []).map((c: Category) => {
                         if (idMap[c.id]) {
                             return { ...c, id: idMap[c.id] };
@@ -713,13 +725,37 @@ export const useContentStore = create<ContentState>()(
                         return c;
                     });
 
-                    // Update blocks referencing old category IDs
+
                     state.blocks = (state.blocks || []).map((b: ContentBlock) => {
                         if (b.categoryId && idMap[b.categoryId]) {
                             return { ...b, categoryId: idMap[b.categoryId] };
                         }
                         return b;
                     });
+                }
+                if (version <= 4) {
+                    // Migrate legacy categories (default-cat-X) to UUIDs to fix RLS collisions
+                    const idMap: Record<string, string> = {};
+
+                    // 1. Identify and map legacy IDs
+                    state.categories = (state.categories || []).map((c: Category) => {
+                        if (c.id && c.id.startsWith('default-cat-')) {
+                            const newId = uuid.v4() as string;
+                            idMap[c.id] = newId;
+                            return { ...c, id: newId };
+                        }
+                        return c;
+                    });
+
+                    // 2. Update Blocks referencing those IDs
+                    if (Object.keys(idMap).length > 0) {
+                        state.blocks = (state.blocks || []).map((b: ContentBlock) => {
+                            if (b.categoryId && idMap[b.categoryId]) {
+                                return { ...b, categoryId: idMap[b.categoryId] };
+                            }
+                            return b;
+                        });
+                    }
                 }
                 return state;
             },

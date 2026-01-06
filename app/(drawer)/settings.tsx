@@ -609,30 +609,7 @@ export default function SettingsScreen() {
                             <Text className="text-orange-500 font-black text-lg">Factory Reset App</Text>
                         </TouchableOpacity>
 
-                        {/* Dummy Data Seeder - Dev Tool */}
-                        <TouchableOpacity
-                            onPress={async () => {
-                                if (Platform.OS === 'web') {
-                                    if (!confirm("This will WIPE all existing Finance data and replace it with dummy data. Proceed?")) return;
-                                } else {
-                                    // Add native alert check if needed
-                                }
 
-                                try {
-                                    // Dynamic import to avoid bundling seeder in production if we wanted to hide it, 
-                                    // but for now standard import is fine.
-                                    const { seedFinanceData } = require('../../lib/data-seeder');
-                                    const count = await seedFinanceData();
-                                    alert(`Success! Created ${count} dummy transactions.`);
-                                } catch (e: any) {
-                                    alert('Error: ' + e.message);
-                                }
-                            }}
-                            className="bg-blue-600/10 border border-blue-600/50 p-6 rounded-[24px] items-center mb-4"
-                        >
-                            <Text className="text-blue-500 font-black text-lg">Populate Finance Data</Text>
-                            <Text className="text-blue-500/60 text-xs font-bold mt-1 uppercase">Warning: Wipes Finance Data</Text>
-                        </TouchableOpacity>
 
                         {/* Restore Default Categories */}
                         <TouchableOpacity

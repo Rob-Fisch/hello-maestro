@@ -65,6 +65,7 @@ export default function RoutineEditor() {
     const [title, setTitle] = useState(existingRoutine?.title || '');
     const [description, setDescription] = useState(existingRoutine?.description || '');
     const [isPublic, setIsPublic] = useState(existingRoutine?.isPublic || false);
+    const [expiresAt, setExpiresAt] = useState<string | undefined>(existingRoutine?.expiresAt);
     const [selectedBlocks, setSelectedBlocks] = useState<ContentBlock[]>(
         existingRoutine?.blocks || []
     );
@@ -138,6 +139,11 @@ export default function RoutineEditor() {
             if (Platform.OS === 'web') {
                 if (window.confirm(msg)) {
                     setIsPublic(true);
+                    if (!expiresAt) {
+                        const d = new Date();
+                        d.setDate(d.getDate() + 7);
+                        setExpiresAt(d.toISOString());
+                    }
                 } else {
                     setIsPublic(false);
                 }
@@ -147,12 +153,28 @@ export default function RoutineEditor() {
                     msg,
                     [
                         { text: 'Cancel', style: 'cancel', onPress: () => setIsPublic(false) },
-                        { text: 'Make Public', style: 'destructive', onPress: () => setIsPublic(true) }
+                        {
+                            text: 'Make Public',
+                            style: 'destructive',
+                            onPress: () => {
+                                setIsPublic(true);
+                                if (!expiresAt) {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() + 7);
+                                    setExpiresAt(d.toISOString());
+                                }
+                            }
+                        }
                     ]
                 );
             }
         } else {
             setIsPublic(true);
+            if (!expiresAt) {
+                const d = new Date();
+                d.setDate(d.getDate() + 7);
+                setExpiresAt(d.toISOString());
+            }
         }
     };
 
@@ -173,6 +195,7 @@ export default function RoutineEditor() {
             blocks: selectedBlocks,
             schedule: schedule.type !== 'none' ? schedule : undefined,
             isPublic,
+            expiresAt: isPublic ? expiresAt : undefined, // clear expiry if made private
             createdAt: existingRoutine?.createdAt || new Date().toISOString(),
         };
 
@@ -319,25 +342,71 @@ export default function RoutineEditor() {
 
                         {isPublic && (
                             <View className="mt-4 pt-4 border-t border-stone-100">
-                                <View className="bg-stone-50 p-3 rounded-xl border border-stone-200 mb-3">
-                                    <Text className="text-xs text-stone-500 font-mono" numberOfLines={1}>
-                                        {existingRoutine?.id ? `opusmode.net/routine/${existingRoutine.id}` : 'Save routine to generate link...'}
-                                    </Text>
-                                </View>
-                                <TouchableOpacity
-                                    onPress={async () => {
-                                        if (existingRoutine?.id) {
-                                            await Clipboard.setStringAsync(`https://opusmode.net/routine/${existingRoutine.id}`);
-                                            Alert.alert("Copied", "Link copied to clipboard");
-                                        } else {
-                                            Alert.alert("Save First", "Please save the routine to generate a link.");
-                                        }
-                                    }}
-                                    className="flex-row items-center justify-center bg-indigo-50 py-3 rounded-xl border border-indigo-100"
-                                >
-                                    <Ionicons name="link" size={18} color="#4f46e5" style={{ marginRight: 8 }} />
-                                    <Text className="text-indigo-600 font-bold uppercase text-xs tracking-wide">Copy Link</Text>
-                                </TouchableOpacity>
+                                {existingRoutine && existingRoutine.isPublic ? (
+                                    <>
+                                        <View className="bg-stone-50 p-3 rounded-xl border border-stone-200 mb-3">
+                                            <Text className="text-xs text-stone-500 font-mono" numberOfLines={1}>
+                                                {`opusmode.net/routine/${existingRoutine.id}`}
+                                            </Text>
+                                        </View>
+
+                                        <View className="flex-row items-center justify-between mb-3 px-1">
+                                            <Text className="text-[10px] uppercase font-bold text-stone-400 tracking-wide">
+                                                {existingRoutine.expiresAt
+                                                    ? `Strings snap on ${new Date(existingRoutine.expiresAt).toLocaleDateString()}`
+                                                    : 'Link never expires'}
+                                            </Text>
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    const nextWeek = new Date();
+                                                    nextWeek.setDate(nextWeek.getDate() + 7);
+                                                    // We can't update directly here without saving, so we force a save flow or just update state?
+                                                    // Editor pattern: Update state, user must click Save.
+                                                    // But existingRoutine is from props. 
+                                                    // Optimization: If we update state, the UI below should reflect state, not existingRoutine props.
+                                                    // My bad, let's use the UI to reflect *state* (expiresAt) but the Link requires *saved* state.
+                                                    // Actually, let's keep it simple: "Extend 7 Days" -> Updates local state. User hits Save. Link remains valid.
+                                                    // BUT the UI above checks `existingRoutine.isPublic` to show link.
+
+                                                    // Wait, if I change expiration, the link is still valid (ID doesn't change).
+                                                    // So I should just update the `expiresAt` state variable.
+                                                    // But I need to initialize `expiresAt` state variable first! (See top of file)
+
+                                                    // Since I haven't added the state var yet, let's do that in a separate edit or assumption?
+                                                    // No, I need to add the state variable `expiresAt` at the top of component first.
+                                                    // For now, I will add the logic assuming the state exists, and then add the state.
+
+                                                    const newDate = new Date();
+                                                    newDate.setDate(newDate.getDate() + 7);
+                                                    setExpiresAt(newDate.toISOString());
+                                                    Alert.alert("Extended", "Don't forget to click Save!");
+                                                }}
+                                            >
+                                                <Text className="text-indigo-600 font-bold text-[10px] uppercase">
+                                                    Extend 7 Days
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <TouchableOpacity
+                                            onPress={async () => {
+                                                await Clipboard.setStringAsync(`https://opusmode.net/routine/${existingRoutine.id}`);
+                                                Alert.alert("Copied", "Link copied to clipboard");
+                                            }}
+                                            className="flex-row items-center justify-center bg-indigo-50 py-3 rounded-xl border border-indigo-100"
+                                        >
+                                            <Ionicons name="link" size={18} color="#4f46e5" style={{ marginRight: 8 }} />
+                                            <Text className="text-indigo-600 font-bold uppercase text-xs tracking-wide">Copy Link</Text>
+                                        </TouchableOpacity>
+                                    </>
+                                ) : (
+                                    <View className="bg-amber-50 p-3 rounded-xl border border-amber-200 flex-row items-center">
+                                        <Ionicons name="alert-circle" size={20} color="#d97706" style={{ marginRight: 8 }} />
+                                        <Text className="text-amber-800 text-xs font-bold flex-1 ml-2">
+                                            Save this routine. After the window closes, click "Edit" to access the sharing link.
+                                        </Text>
+                                    </View>
+                                )}
                             </View>
                         )}
                     </View>

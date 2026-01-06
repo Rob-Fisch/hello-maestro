@@ -5,7 +5,7 @@ import { Routine } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import uuid from 'react-native-uuid';
 
@@ -37,6 +37,14 @@ export default function PublicRoutinePage() {
 
             if (rError || !rData) throw rError || new Error("Routine not found");
             if (!rData.is_public) throw new Error("This lesson plan is private.");
+
+            // Expiration Check
+            if (rData.expires_at) {
+                const expiry = new Date(rData.expires_at);
+                if (new Date() > expiry) {
+                    throw new Error("This link has expired.");
+                }
+            }
 
             setRoutine(rData);
 
@@ -97,9 +105,14 @@ export default function PublicRoutinePage() {
             // 2. Add to Local Store (which syncs to backend)
             await addRoutine(newRoutine);
 
-            Alert.alert("Success", "Lesson plan added to your library!", [
-                { text: "Practice Now", onPress: () => router.replace('/(drawer)/routines') }
-            ]);
+            // 3. Navigate away immediately for better feedback
+            // Using replace to prevent going back to "Add" screen on back press
+            router.replace('/(drawer)/routines');
+
+            // Optional: Web Alert if needed, but navigation is usually enough
+            if (Platform.OS === 'web') {
+                // router.replace should work
+            }
 
         } catch (err) {
             Alert.alert("Error", "Could not clone routine.");
@@ -214,24 +227,39 @@ export default function PublicRoutinePage() {
 
             {/* ACTION FOOTER */}
             <View className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-100 shadow-2xl safe-bottom">
-                <TouchableOpacity
-                    onPress={handleClone}
-                    disabled={cloning}
-                    className="bg-indigo-600 w-full py-4 rounded-2xl items-center shadow-lg shadow-indigo-200 flex-row justify-center"
-                >
-                    {cloning ? (
-                        <ActivityIndicator color="white" />
-                    ) : (
-                        <>
-                            <Ionicons name="download-outline" size={24} color="white" style={{ marginRight: 8 }} />
-                            <Text className="text-white font-black text-lg">Add to My Library</Text>
-                        </>
-                    )}
-                </TouchableOpacity>
-                {!profile && (
-                    <Text className="text-center text-slate-400 text-xs mt-3">
-                        You'll need to sign up or log in first.
-                    </Text>
+                {!profile ? (
+                    <View>
+                        <Text className="text-center text-slate-800 font-bold mb-3">
+                            Log in to save this lesson plan
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => {
+                                const redirectUrl = `/routine/${id}`;
+                                router.push(`/auth?redirectTo=${encodeURIComponent(redirectUrl)}`);
+                            }}
+                            className="bg-slate-900 w-full py-4 rounded-2xl items-center shadow-lg shadow-slate-200"
+                        >
+                            <Text className="text-white font-black text-lg">Log In / Sign Up</Text>
+                        </TouchableOpacity>
+                        <Text className="text-center text-slate-400 text-[10px] mt-3 leading-tight px-4">
+                            You must be logged in to OpusMode to add this shared routine to your library.
+                        </Text>
+                    </View>
+                ) : (
+                    <TouchableOpacity
+                        onPress={handleClone}
+                        disabled={cloning}
+                        className="bg-indigo-600 w-full py-4 rounded-2xl items-center shadow-lg shadow-indigo-200 flex-row justify-center"
+                    >
+                        {cloning ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <>
+                                <Ionicons name="download-outline" size={24} color="white" style={{ marginRight: 8 }} />
+                                <Text className="text-white font-black text-lg">Add to My Library</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
                 )}
             </View>
         </View>
