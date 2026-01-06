@@ -174,13 +174,7 @@ export default function HomeScreen() {
                         {/* Logout Button */}
 
 
-                        {/* Help Button */}
-                        <TouchableOpacity
-                            onPress={() => router.push('/modal/help')}
-                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 items-center justify-center"
-                        >
-                            <Ionicons name="help" size={20} color={theme.text} />
-                        </TouchableOpacity>
+
 
                         <TouchableOpacity
                             onPress={() => {

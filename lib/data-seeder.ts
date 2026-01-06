@@ -1,15 +1,11 @@
 import { useFinanceStore } from "@/store/financeStore";
 import { Transaction } from "@/store/types";
-import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
 
 export const seedFinanceData = async () => {
     const { addTransaction, wipeData } = useFinanceStore.getState();
 
-    // Optional: Clear existing data first? Or just append? 
-    // Let's not wipe, just append so they can add more if they want.
-    // Actually, maybe safer to wipe so we don't duplicate if they click twice.
-    // Let's wipe for a clean slate demo.
+    // Wipe for a clean slate demo.
     await wipeData();
 
     // Configuration
@@ -38,24 +34,24 @@ export const seedFinanceData = async () => {
 
         // 1. Fixed Monthly Income (Lessons)
         transactions.push({
-            id: uuidv4(),
+            id: uuid.v4() as string,
             date: formatDate(year, month, 5), // 5th of month
             amount: 1200,
             type: 'income',
             category: 'Lessons',
             description: 'Monthly Student Payments',
-            isRecurring: true
+            createdAt: new Date().toISOString()
         });
 
         // 2. Fixed Monthly Expense (Rent)
         transactions.push({
-            id: uuidv4(),
+            id: uuid.v4() as string,
             date: formatDate(year, month, 1), // 1st of month
             amount: 450,
             type: 'expense',
             category: 'Rehearsal Space',
             description: 'Studio Rent',
-            isRecurring: true
+            createdAt: new Date().toISOString()
         });
 
         // 3. Random Gigs (2-4 per month)
@@ -63,13 +59,13 @@ export const seedFinanceData = async () => {
         for (let g = 0; g < numGigs; g++) {
             const day = Math.floor(Math.random() * 20) + 5; // mid-month
             transactions.push({
-                id: uuidv4(),
+                id: uuid.v4() as string,
                 date: formatDate(year, month, day),
                 amount: Math.floor(Math.random() * 400) + 150, // $150 - $550
                 type: 'income',
                 category: 'Gig Payment',
                 description: getRandom(descriptions.income),
-                isRecurring: false
+                createdAt: new Date().toISOString()
             });
         }
 
@@ -78,13 +74,13 @@ export const seedFinanceData = async () => {
         for (let e = 0; e < numExp; e++) {
             const day = Math.floor(Math.random() * 25) + 1;
             transactions.push({
-                id: uuidv4(),
+                id: uuid.v4() as string,
                 date: formatDate(year, month, day),
                 amount: Math.floor(Math.random() * 100) + 20, // $20 - $120
                 type: 'expense',
                 category: getRandom(categories.expense),
                 description: getRandom(descriptions.expense),
-                isRecurring: false
+                createdAt: new Date().toISOString()
             });
         }
     }

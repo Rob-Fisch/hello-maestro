@@ -91,6 +91,14 @@ function CustomDrawerContent(props: any) {
             {/* Footer Section */}
             <View style={{ borderTopWidth: 1, borderTopColor: theme.border, padding: 20, paddingBottom: 30 }}>
                 <TouchableOpacity
+                    onPress={() => router.push('/modal/help')}
+                    className="flex-row items-center p-2 opacity-70 mb-2"
+                >
+                    <Ionicons name="help-circle-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
+                    <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Help & Support</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
                     onPress={handleLogout}
                     className="flex-row items-center p-2 opacity-70"
                 >

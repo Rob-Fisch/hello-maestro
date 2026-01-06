@@ -587,92 +587,106 @@ export default function SettingsScreen() {
                                             .catch((e) => alert('Error: ' + e.message));
                                     }
                                 } else {
+                                    Alert.alert('Factory Reset', 'This will wipe all data on this device and the cloud but keep your account.', [
+                                        { text: 'Cancel', style: 'cancel' },
+                                        {
+                                            text: 'Reset', style: 'destructive', onPress: async () => {
+                                                try {
+                                                    const { nukeAccount } = useContentStore.getState();
+                                                    await nukeAccount();
+                                                    Alert.alert('Reset Complete', 'App has been clean slate reset.');
+                                                    router.replace('/');
+                                                } catch (e: any) {
+                                                    Alert.alert('Error', e.message);
+                                                }
+                                            }
+                                        }
                                     ]);
                                 }
                             }}
-                        className="bg-orange-600/10 border border-orange-600/50 p-6 rounded-[24px] items-center mb-4"
+                            className="bg-orange-600/10 border border-orange-600/50 p-6 rounded-[24px] items-center mb-4"
                         >
-                        <Text className="text-orange-500 font-black text-lg">Factory Reset App</Text>
-                    </TouchableOpacity>
+                            <Text className="text-orange-500 font-black text-lg">Factory Reset App</Text>
+                        </TouchableOpacity>
 
-                    {/* Dummy Data Seeder - Dev Tool */}
-                    <TouchableOpacity
-                        onPress={async () => {
-                            if (Platform.OS === 'web') {
-                                if (!confirm("This will WIPE all existing Finance data and replace it with dummy data. Proceed?")) return;
-                            } else {
-                                // Add native alert check if needed
-                            }
-
-                            try {
-                                // Dynamic import to avoid bundling seeder in production if we wanted to hide it, 
-                                // but for now standard import is fine.
-                                const { seedFinanceData } = require('../../lib/data-seeder');
-                                const count = await seedFinanceData();
-                                alert(`Success! Created ${count} dummy transactions.`);
-                            } catch (e: any) {
-                                alert('Error: ' + e.message);
-                            }
-                        }}
-                        className="bg-blue-600/10 border border-blue-600/50 p-6 rounded-[24px] items-center mb-4"
-                    >
-                        <Text className="text-blue-500 font-black text-lg">Populate Finance Data</Text>
-                        <Text className="text-blue-500/60 text-xs font-bold mt-1 uppercase">Warning: Wipes Finance Data</Text>
-                    </TouchableOpacity>
-
-                    {/* Restore Default Categories */}
-                    <TouchableOpacity
-                        onPress={() => {
-                            const defaults = [
-                                { id: '1', name: 'Technique' },
-                                { id: '2', name: 'Repertoire' },
-                                { id: '3', name: 'Theory' },
-                                { id: '4', name: 'Improvisation' },
-                                { id: '5', name: 'Sight Reading' },
-                                { id: '6', name: 'Ear Training' },
-                                { id: '7', name: 'Other' },
-                            ];
-
-                            const { addCategory, categories } = useContentStore.getState();
-                            let count = 0;
-                            defaults.forEach(def => {
-                                if (!categories.find(c => c.name === def.name)) {
-                                    addCategory({ id: Date.now().toString() + Math.random(), name: def.name });
-                                    count++;
+                        {/* Dummy Data Seeder - Dev Tool */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                if (Platform.OS === 'web') {
+                                    if (!confirm("This will WIPE all existing Finance data and replace it with dummy data. Proceed?")) return;
+                                } else {
+                                    // Add native alert check if needed
                                 }
-                            });
-                            alert(`Restored ${count} missing categories.`);
-                        }}
-                        className="bg-emerald-600/10 border border-emerald-600/50 p-6 rounded-[24px] items-center mb-4"
-                    >
-                        <Text className="text-emerald-500 font-black text-lg">Restore Default Categories</Text>
-                        <Text className="text-emerald-500/60 text-xs font-bold mt-1 uppercase">Adds missing defaults only</Text>
-                    </TouchableOpacity>
 
-                    <TouchableOpacity
-                        onPress={handleDeleteAccount}
-                        disabled={updating}
-                        className="bg-red-600/10 border border-red-600/50 p-6 rounded-[24px] items-center"
-                    >
-                        <Text className="text-red-500 font-black text-lg">{updating ? 'DELETING...' : 'Delete Account'}</Text>
-                    </TouchableOpacity>
-                    <Text className="text-[10px] text-red-400/60 mt-4 text-center font-bold uppercase tracking-widest">
-                        All cloud and local data will be purged.
+                                try {
+                                    // Dynamic import to avoid bundling seeder in production if we wanted to hide it, 
+                                    // but for now standard import is fine.
+                                    const { seedFinanceData } = require('../../lib/data-seeder');
+                                    const count = await seedFinanceData();
+                                    alert(`Success! Created ${count} dummy transactions.`);
+                                } catch (e: any) {
+                                    alert('Error: ' + e.message);
+                                }
+                            }}
+                            className="bg-blue-600/10 border border-blue-600/50 p-6 rounded-[24px] items-center mb-4"
+                        >
+                            <Text className="text-blue-500 font-black text-lg">Populate Finance Data</Text>
+                            <Text className="text-blue-500/60 text-xs font-bold mt-1 uppercase">Warning: Wipes Finance Data</Text>
+                        </TouchableOpacity>
+
+                        {/* Restore Default Categories */}
+                        <TouchableOpacity
+                            onPress={() => {
+                                const defaults = [
+                                    { id: '1', name: 'Technique' },
+                                    { id: '2', name: 'Repertoire' },
+                                    { id: '3', name: 'Theory' },
+                                    { id: '4', name: 'Improvisation' },
+                                    { id: '5', name: 'Sight Reading' },
+                                    { id: '6', name: 'Ear Training' },
+                                    { id: '7', name: 'Other' },
+                                ];
+
+                                const { addCategory, categories } = useContentStore.getState();
+                                let count = 0;
+                                defaults.forEach(def => {
+                                    if (!categories.find(c => c.name === def.name)) {
+                                        addCategory({ id: Date.now().toString() + Math.random(), name: def.name });
+                                        count++;
+                                    }
+                                });
+                                alert(`Restored ${count} missing categories.`);
+                            }}
+                            className="bg-emerald-600/10 border border-emerald-600/50 p-6 rounded-[24px] items-center mb-4"
+                        >
+                            <Text className="text-emerald-500 font-black text-lg">Restore Default Categories</Text>
+                            <Text className="text-emerald-500/60 text-xs font-bold mt-1 uppercase">Adds missing defaults only</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={handleDeleteAccount}
+                            disabled={updating}
+                            className="bg-red-600/10 border border-red-600/50 p-6 rounded-[24px] items-center"
+                        >
+                            <Text className="text-red-500 font-black text-lg">{updating ? 'DELETING...' : 'Delete Account'}</Text>
+                        </TouchableOpacity>
+                        <Text className="text-[10px] text-red-400/60 mt-4 text-center font-bold uppercase tracking-widest">
+                            All cloud and local data will be purged.
+                        </Text>
+                    </View>
+                </View>
+
+                {/* App Info Footer */}
+                <View className="mt-8 pt-8 border-t items-center mb-20" style={{ borderTopColor: 'rgba(255,255,255,0.05)' }}>
+                    <Text className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                        {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
+                    </Text>
+                    <Text className="text-[10px] mt-1 text-slate-600">
+                        Version {APP_VERSION} (Build {BUILD_NUMBER}) • Cloud Sync Enabled
                     </Text>
                 </View>
-            </View>
 
-            {/* App Info Footer */}
-            <View className="mt-8 pt-8 border-t items-center mb-20" style={{ borderTopColor: 'rgba(255,255,255,0.05)' }}>
-                <Text className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                    {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
-                </Text>
-                <Text className="text-[10px] mt-1 text-slate-600">
-                    Version {APP_VERSION} (Build {BUILD_NUMBER}) • Cloud Sync Enabled
-                </Text>
             </View>
-
-        </View>
         </ScrollView >
     );
 }
