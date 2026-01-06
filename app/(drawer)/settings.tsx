@@ -616,8 +616,37 @@ export default function SettingsScreen() {
                         }}
                         className="bg-blue-600/10 border border-blue-600/50 p-6 rounded-[24px] items-center mb-4"
                     >
-                        <Text className="text-blue-500 font-black text-lg">Populate Dummy Finance Data</Text>
+                        <Text className="text-blue-500 font-black text-lg">Populate Finance Data</Text>
                         <Text className="text-blue-500/60 text-xs font-bold mt-1 uppercase">Warning: Wipes Finance Data</Text>
+                    </TouchableOpacity>
+
+                    {/* Restore Default Categories */}
+                    <TouchableOpacity
+                        onPress={() => {
+                            const defaults = [
+                                { id: '1', name: 'Technique' },
+                                { id: '2', name: 'Repertoire' },
+                                { id: '3', name: 'Theory' },
+                                { id: '4', name: 'Improvisation' },
+                                { id: '5', name: 'Sight Reading' },
+                                { id: '6', name: 'Ear Training' },
+                                { id: '7', name: 'Other' },
+                            ];
+
+                            const { addCategory, categories } = useContentStore.getState();
+                            let count = 0;
+                            defaults.forEach(def => {
+                                if (!categories.find(c => c.name === def.name)) {
+                                    addCategory({ id: Date.now().toString() + Math.random(), name: def.name });
+                                    count++;
+                                }
+                            });
+                            alert(`Restored ${count} missing categories.`);
+                        }}
+                        className="bg-emerald-600/10 border border-emerald-600/50 p-6 rounded-[24px] items-center mb-4"
+                    >
+                        <Text className="text-emerald-500 font-black text-lg">Restore Default Categories</Text>
+                        <Text className="text-emerald-500/60 text-xs font-bold mt-1 uppercase">Adds missing defaults only</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
