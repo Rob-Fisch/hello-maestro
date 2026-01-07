@@ -47,6 +47,7 @@ export default function HelpScreen() {
 
     const tutorials = [
         { id: '1', title: 'Add Activity (Studio)', duration: '1:00', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/OpusMode%20-%20Add%20Activity.mp4' },
+        { id: '2', title: 'Creating a Collection', duration: '0:26', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/Opusmode%20-%20Create%20a%20Collection.mp4' },
     ];
 
     const Step = ({ number, title, description }: { number: number, title: string, description: string }) => (
@@ -97,7 +98,13 @@ export default function HelpScreen() {
                     {tutorials.map((video) => (
                         <TouchableOpacity
                             key={video.id}
-                            onPress={() => setCurrentVideo(video.url)}
+                            onPress={() => {
+                                if (Platform.OS === 'web') {
+                                    window.open(video.url, '_blank');
+                                } else {
+                                    setCurrentVideo(video.url);
+                                }
+                            }}
                             className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-3 flex-row items-center active:bg-slate-100"
                         >
                             <View className="w-12 h-12 bg-white rounded-xl items-center justify-center shadow-sm mr-4 relative">

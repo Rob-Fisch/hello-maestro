@@ -1,6 +1,6 @@
 import { ResizeMode, Video } from 'expo-av';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface VideoPlayerProps {
     source: string;
@@ -40,6 +40,12 @@ export default function VideoPlayer({ source, poster, onClose }: VideoPlayerProp
                 onPlaybackStatusUpdate={status => setStatus(() => status)}
                 onLoadStart={() => setLoading(true)}
                 onLoad={() => setLoading(false)}
+                // @ts-ignore - web only prop
+                onReadyForDisplay={(videoData: any) => {
+                    if (Platform.OS === 'web' && videoData.srcElement) {
+                        videoData.srcElement.style.position = 'initial';
+                    }
+                }}
                 onError={(e) => {
                     setLoading(false);
                     setError(e || 'Unknown error');
@@ -61,9 +67,9 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         justifyContent: 'center',
         alignItems: 'center',
+        overflow: 'hidden',
     },
     video: {
-        alignSelf: 'center',
         width: '100%',
         height: '100%',
     },
