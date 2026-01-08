@@ -213,9 +213,9 @@ export default function CollectionDetail() {
 
     return (
         <View className="flex-1 bg-slate-950">
-            {/* Header */}
-            <View className="px-6 pt-12 pb-6 border-b border-white/10 bg-slate-950">
-                <View className="flex-row justify-between items-start mb-6">
+            {/* Fixed Header (Navigation Only) */}
+            <View className="px-6 pt-12 pb-4 bg-slate-950 z-10">
+                <View className="flex-row justify-between items-start">
                     <TouchableOpacity onPress={() => router.navigate('/routines')} className="p-2 -ml-2">
                         <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
@@ -272,47 +272,6 @@ export default function CollectionDetail() {
                             <Ionicons name="download-outline" size={16} color="#c084fc" />
                             <Text className="text-xs font-bold text-white ml-1.5">Export Set</Text>
                         </TouchableOpacity>
-                    </View>
-                </View>
-
-                <View className="mb-4">
-                    <Text className="text-3xl font-black tracking-tight mb-2 text-white">{routine.title}</Text>
-                    {routine.description && (
-                        <Text className="text-base text-slate-400 leading-relaxed">{routine.description}</Text>
-                    )}
-                </View>
-
-                <View className="flex-row justify-between items-center mt-2">
-                    <View className={`flex-row items-center px-3 py-1.5 rounded-full border ${isPublic ? 'bg-blue-500/20 border-blue-500/30' : 'bg-white/5 border-white/10'} `}>
-                        <Ionicons name={isPublic ? "earth" : "lock-closed"} size={12} color={isPublic ? "#60a5fa" : "#94a3b8"} />
-                        <Text className={`text-xs font-bold ml-1.5 ${isPublic ? 'text-blue-400' : 'text-slate-400'} `}>
-                            {isPublic ? 'Public' : 'Private'}
-                        </Text>
-                    </View>
-
-                    <View className="flex-row gap-2">
-                        <TouchableOpacity onPress={() => setShowHistoryModal(true)} className="flex-row items-center bg-white/10 px-3 py-2 rounded-full border border-white/10">
-                            <Ionicons name="time" size={16} color="#fbbf24" />
-                            <Text className="text-xs font-bold ml-1.5 uppercase text-white">History</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={openLogModal} className="flex-row items-center bg-white px-4 py-2 rounded-full shadow-lg shadow-white/10">
-                            <Ionicons name="checkbox" size={16} color="#059669" />
-                            <Text className="text-xs font-bold text-slate-900 ml-1.5 uppercase">Log Session</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                <View className="mt-8">
-                    <View className="flex-row justify-between mb-2">
-                        <Text className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Progress</Text>
-                        <Text className="text-xs font-bold text-white">{progressPercent}%</Text>
-                    </View>
-                    <View className="h-1 bg-white/10 rounded-full overflow-hidden">
-                        <View
-                            className="h-full bg-white rounded-full"
-                            style={{ width: `${progressPercent}%` }}
-                        />
                     </View>
                 </View>
             </View>
@@ -572,7 +531,51 @@ export default function CollectionDetail() {
                 </View>
             </Modal>
 
-            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView className="flex-1 px-6 pt-0" contentContainerStyle={{ paddingBottom: 100 }}>
+                {/* Scrollable Header Content */}
+                <View className="mb-8 border-b border-white/10 pb-6">
+                    <View className="mb-4">
+                        <Text className="text-3xl font-black tracking-tight mb-2 text-white">{routine.title}</Text>
+                        {routine.description && (
+                            <Text className="text-base text-slate-400 leading-relaxed">{routine.description}</Text>
+                        )}
+                    </View>
+
+                    <View className="flex-row justify-between items-center mt-2">
+                        <View className={`flex-row items-center px-3 py-1.5 rounded-full border ${isPublic ? 'bg-blue-500/20 border-blue-500/30' : 'bg-white/5 border-white/10'} `}>
+                            <Ionicons name={isPublic ? "earth" : "lock-closed"} size={12} color={isPublic ? "#60a5fa" : "#94a3b8"} />
+                            <Text className={`text-xs font-bold ml-1.5 ${isPublic ? 'text-blue-400' : 'text-slate-400'} `}>
+                                {isPublic ? 'Public' : 'Private'}
+                            </Text>
+                        </View>
+
+                        <View className="flex-row gap-2">
+                            <TouchableOpacity onPress={() => setShowHistoryModal(true)} className="flex-row items-center bg-white/10 px-3 py-2 rounded-full border border-white/10">
+                                <Ionicons name="time" size={16} color="#fbbf24" />
+                                <Text className="text-xs font-bold ml-1.5 uppercase text-white">History</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={openLogModal} className="flex-row items-center bg-white px-4 py-2 rounded-full shadow-lg shadow-white/10">
+                                <Ionicons name="checkbox" size={16} color="#059669" />
+                                <Text className="text-xs font-bold text-slate-900 ml-1.5 uppercase">Log Session</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View className="mt-8">
+                        <View className="flex-row justify-between mb-2">
+                            <Text className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Progress</Text>
+                            <Text className="text-xs font-bold text-white">{progressPercent}%</Text>
+                        </View>
+                        <View className="h-1 bg-white/10 rounded-full overflow-hidden">
+                            <View
+                                className="h-full bg-white rounded-full"
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </View>
+                    </View>
+                </View>
+
                 <View className="mb-6 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 max-w-md">
                     <Text className="text-blue-200 font-bold text-xs mb-1">How to Track Progress</Text>
                     <Text className="text-blue-100/60 text-xs leading-relaxed">

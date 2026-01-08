@@ -55,6 +55,9 @@ function mapToDb(data: any): any {
         relatedEventId: 'related_event_id',
         expiresAt: 'expires_at',
         receiptUri: 'receipt_uri',
+        isPublicStagePlot: 'is_public_stage_plot',
+        publicDescription: 'public_description',
+        showSetlist: 'show_setlist',
     };
 
 
@@ -254,6 +257,9 @@ export function mapFromDb(data: any): any {
         related_event_id: 'relatedEventId',
         expires_at: 'expiresAt',
         receipt_uri: 'receiptUri',
+        is_public_stage_plot: 'isPublicStagePlot',
+        public_description: 'publicDescription',
+        show_setlist: 'showSetlist',
     };
 
 

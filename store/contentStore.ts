@@ -91,6 +91,7 @@ interface ContentState {
     initRealtime: () => void;
     cleanupRealtime: () => void;
     handleRealtimeEvent: (payload: any) => void;
+    fixDuplicateCategories: (silent?: boolean) => Promise<void>;
 
     // Parent Proxy / Student Mode
     studentMode: boolean;
@@ -458,6 +459,11 @@ export const useContentStore = create<ContentState>()(
                         if (cloudData.transactions) {
                             useFinanceStore.getState().setTransactions(cloudData.transactions);
                         }
+
+                        // 5. Auto-Fix Duplicates (Silent)
+                        // This prevents the "Offline Default vs Cloud Default" explosion
+                        await get().fixDuplicateCategories(true);
+
                     } else {
                         console.log('[FullSync] No cloud data returned');
                         Alert.alert('Sync Info', 'Unable to reach cloud. Your session may have expired. Please Sign Out and Sign In again.');
@@ -600,6 +606,68 @@ export const useContentStore = create<ContentState>()(
                     });
 
                 set({ realtimeSub: channel });
+            },
+
+            fixDuplicateCategories: async (silent = false) => {
+                const state = get();
+                const { categories, blocks, updateBlock, deleteCategory } = state;
+
+                // 1. Group by name
+                const groups: Record<string, Category[]> = {};
+                categories.forEach(c => {
+                    const name = c.name.trim(); // Normalize
+                    if (!groups[name]) groups[name] = [];
+                    groups[name].push(c);
+                });
+
+                let fixedCount = 0;
+
+                // 2. Process groups
+                for (const name in groups) {
+                    const group = groups[name];
+                    if (group.length > 1) {
+                        // Sort by ID to be deterministic (or keep oldest?)
+                        // Let's keep the one that appears first or maybe the one with most blocks? 
+                        // Simple heuristic: Keep the first one found (often the oldest or synced one).
+                        const [winner, ...losers] = group;
+
+                        console.log(`[FixCats] Merging "${name}": Keeping ${winner.id}, deleting ${losers.length} duplicates.`);
+
+                        for (const loser of losers) {
+                            // Find blocks using this loser category
+                            const affectedBlocks = blocks.filter(b => b.categoryId === loser.id);
+
+                            // Update them to use the winner
+                            for (const block of affectedBlocks) {
+                                // updateBlock handles state update + cloud sync
+                                updateBlock(block.id, { categoryId: winner.id });
+                            }
+
+                            // Delete the loser category
+                            // This deletes from state + cloud
+                            // NOTE: deleteCategory creates a side effect of unsetting categoryId for blocks! 
+                            // We MUST wait for updateBlock to finish? 
+                            // updateBlock updates state synchronously.
+                            // deleteCategory updates state synchronously. 
+                            // BUT deleteCategory (lines 289) does this:
+                            // blocks: state.blocks.map((b) => (b.categoryId === id ? { ...b, categoryId: undefined } : b)),
+
+                            // IF we already updated the blocks to 'winner.id', then `b.categoryId` is NO LONGER `loser.id`.
+                            // So deleteCategory's side effect won't hurt us!
+
+                            deleteCategory(loser.id);
+                            fixedCount++;
+                        }
+                    }
+                }
+
+                if (!silent) {
+                    if (fixedCount > 0) {
+                        Alert.alert('Categories Fixed', `Merged and removed ${fixedCount} duplicate categories.`);
+                    } else {
+                        Alert.alert('All Good', 'No duplicate categories found.');
+                    }
+                }
             },
 
             cleanupRealtime: () => {

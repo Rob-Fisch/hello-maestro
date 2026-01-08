@@ -7,9 +7,9 @@ import { useGearStore } from '@/store/gearStore';
 import { AppEvent, AppEventType, BookingSlot, Person, Routine, Transaction } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 // @ts-ignore
-import * as Clipboard from 'expo-clipboard';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -34,7 +34,15 @@ export default function EventEditor() {
 
     const [title, setTitle] = useState(existingEvent?.title || '');
     const [venue, setVenue] = useState(existingEvent?.venue || '');
-    const [date, setDate] = useState(existingEvent?.date || new Date().toLocaleDateString('en-CA'));
+    const [date, setDate] = useState(() => {
+        if (existingEvent?.date) return existingEvent.date;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const result = `${year}-${month}-${day}`;
+        return result;
+    });
     const [time, setTime] = useState(existingEvent?.time || '20:00');
     const [notes, setNotes] = useState(existingEvent?.notes || '');
     const [totalFee, setTotalFee] = useState(existingEvent?.totalFee || existingEvent?.fee || '');
@@ -668,6 +676,79 @@ interface HeaderProps {
     studentMode: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// TIMEZONE FIX: Helpers to ensure "2026-01-07" stays "Jan 7" everywhere.
+// ---------------------------------------------------------------------------
+
+// Converts "2026-01-07" string -> Date Object (Jan 7, 00:00:00 LOCAL TIME)
+// Using new Date("2026-01-07") defaults to UTC, which is why it often shows as "Yesterday".
+const parseLocalDate = (dateStr: string): Date => {
+    if (!dateStr) return new Date();
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d); // Month is 0-indexed in JS Date constructor
+};
+
+// Converts Date Object -> "2026-01-07" string (Using LOCAL components)
+// Using .toISOString() converts to UTC, which might shift the date.
+const formatLocalDate = (dateObj: Date): string => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+// Helper Component for consistent Date Picking (iOS Modal vs Android Native)
+const DatePickerModal = ({
+    visible,
+    onClose,
+    value,
+    onChange
+}: {
+    visible: boolean;
+    onClose: () => void;
+    value: Date;
+    onChange: (d: Date) => void;
+}) => {
+    if (!visible) return null;
+
+    if (Platform.OS === 'android') {
+        return (
+            <DateTimePicker
+                value={value}
+                mode="date"
+                display="default"
+                onChange={(e, d) => {
+                    onClose();
+                    if (d) onChange(d);
+                }}
+            />
+        );
+    }
+
+    // iOS Modal for Inline Picker
+    return (
+        <Modal visible={visible} transparent animationType="fade">
+            <View className="flex-1 justify-center bg-black/50 p-6">
+                <View className="bg-white rounded-3xl p-4 overflow-hidden shadow-2xl">
+                    <DateTimePicker
+                        value={value}
+                        mode="date"
+                        display="inline"
+                        onChange={(e, d) => {
+                            if (d) onChange(d);
+                        }}
+                        style={{ height: 320, width: '100%' }}
+                        themeVariant="light"
+                    />
+                    <TouchableOpacity onPress={onClose} className="bg-slate-900 p-3 rounded-xl items-center mt-2">
+                        <Text className="text-white font-bold uppercase tracking-wide">Done</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    )
+}
+
 const EditorHeader = ({
     type, setType, title, setTitle, studentName, setStudentName,
     venue, setVenue, isRecurring, setIsRecurring, daysOfWeek, toggleDay,
@@ -683,6 +764,7 @@ const EditorHeader = ({
     showSetlist, setShowSetlist,
     showQrModal, setShowQrModal, eventId, studentMode
 }: HeaderProps) => {
+    const router = useRouter();
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -703,9 +785,8 @@ const EditorHeader = ({
         return opts;
     }, []);
 
-    const onDateChange = (event: any, selectedDate?: Date) => {
-        setShowDatePicker(false);
-        if (selectedDate) setDate(selectedDate.toISOString().split('T')[0]);
+    const onDateChange = (selectedDate?: Date) => {
+        if (selectedDate) setDate(formatLocalDate(selectedDate));
     };
     const onTimeChange = (event: any, selectedTime?: Date) => {
         if (Platform.OS === 'android') setShowTimePicker(false);
@@ -715,13 +796,11 @@ const EditorHeader = ({
             setTime(`${hours}:${minutes}`);
         }
     };
-    const onStartDateChange = (event: any, selectedDate?: Date) => {
-        setShowStartDatePicker(false);
-        if (selectedDate) setStartDate(selectedDate.toISOString().split('T')[0]);
+    const onStartDateChange = (selectedDate?: Date) => {
+        if (selectedDate) setStartDate(formatLocalDate(selectedDate));
     };
-    const onEndDateChange = (event: any, selectedDate?: Date) => {
-        setShowEndDatePicker(false);
-        if (selectedDate) setEndDate(selectedDate.toISOString().split('T')[0]);
+    const onEndDateChange = (selectedDate?: Date) => {
+        if (selectedDate) setEndDate(formatLocalDate(selectedDate));
     };
 
     const getEndTime = () => {
@@ -750,43 +829,65 @@ const EditorHeader = ({
                 ))}
             </View>
 
-            {/* FINANCE STATUS / FEE SECTION (Hidden in Student Mode) */}
-            {!studentMode && (
-                <View className="bg-emerald-50 p-4 rounded-3xl border border-emerald-100 flex-row items-center justify-between mb-6">
-                    <View>
-                        <Text className="text-[10px] uppercase font-black text-emerald-600 mb-1 tracking-widest">Finance Status</Text>
-                        <View className="flex-row items-baseline gap-1">
-                            <Text className={`text-2xl font-black ${financeStatus === 'paid' ? 'text-emerald-700' : 'text-emerald-900'}`}>
-                                {financeStatus === 'paid' ? 'PAID' : financeStatus === 'partial' ? 'PARTIAL' : 'UNPAID'}
-                            </Text>
-                            {financePaidAmount > 0 && (
-                                <Text className="text-xs font-bold text-emerald-600">(${financePaidAmount} collected)</Text>
+            {/* FINANCE STATUS / FEE SECTION (Hidden in Student Mode, and only for Performances) */
+                !studentMode && type === 'performance' && (
+                    isPremium ? (
+                        <View className="bg-emerald-50 p-4 rounded-3xl border border-emerald-100 flex-row items-center justify-between mb-6">
+                            <View>
+                                <Text className="text-[10px] uppercase font-black text-emerald-600 mb-1 tracking-widest">Finance Status</Text>
+                                <View className="flex-row items-baseline gap-1">
+                                    <Text className={`text-2xl font-black ${financeStatus === 'paid' ? 'text-emerald-700' : 'text-emerald-900'}`}>
+                                        {financeStatus === 'paid' ? 'PAID' : financeStatus === 'partial' ? 'PARTIAL' : 'UNPAID'}
+                                    </Text>
+                                    {financePaidAmount > 0 && (
+                                        <Text className="text-xs font-bold text-emerald-600">(${financePaidAmount} collected)</Text>
+                                    )}
+                                </View>
+                            </View>
+
+                            {financeStatus !== 'paid' && (
+                                <TouchableOpacity
+                                    onPress={onLogPayment}
+                                    className="rounded-full shadow-md flex-row items-center justify-center bg-green-600"
+                                    style={{
+                                        backgroundColor: '#16a34a',
+                                        borderRadius: 100, // Force Pill
+                                        paddingHorizontal: 24,
+                                        paddingVertical: 12,
+                                        minWidth: 160, // Give it more heft
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        elevation: 4
+                                    }}
+                                    activeOpacity={0.8}
+                                >
+                                    <Ionicons name="cash-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                                    <Text className="text-white font-bold text-xs uppercase tracking-wide" style={{ color: '#ffffff' }}>Log Payment</Text>
+                                </TouchableOpacity>
                             )}
                         </View>
-                    </View>
+                    ) : (
+                        // LOCKED UPSELL STATE
+                        <View className="bg-slate-50 p-4 rounded-3xl border border-slate-200 flex-row items-center justify-between mb-6">
+                            <View className="flex-row items-center gap-3">
+                                <View className="w-10 h-10 rounded-full bg-slate-200 items-center justify-center">
+                                    <Ionicons name="lock-closed" size={18} color="#64748b" />
+                                </View>
+                                <View>
+                                    <Text className="text-[10px] uppercase font-black text-slate-400 mb-1 tracking-widest">Finance Tracking</Text>
+                                    <Text className="text-lg font-bold text-slate-700">Track Payments</Text>
+                                </View>
+                            </View>
 
-                    {financeStatus !== 'paid' && (
-                        <TouchableOpacity
-                            onPress={onLogPayment}
-                            className="rounded-full shadow-md flex-row items-center justify-center bg-green-600"
-                            style={{
-                                backgroundColor: '#16a34a',
-                                borderRadius: 100, // Force Pill
-                                paddingHorizontal: 24,
-                                paddingVertical: 12,
-                                minWidth: 160, // Give it more heft
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                elevation: 4
-                            }}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name="cash-outline" size={16} color="white" style={{ marginRight: 6 }} />
-                            <Text className="text-white font-bold text-xs uppercase tracking-wide" style={{ color: '#ffffff' }}>Log Payment</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            )}
+                            <TouchableOpacity
+                                onPress={() => router.push('/modal/upgrade?feature=order')}
+                                className="bg-slate-900 px-5 py-3 rounded-full shadow-sm"
+                            >
+                                <Text className="text-white font-black text-xs uppercase tracking-wide">Unlock</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )
+                )}
 
             <View className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-6">
                 <View className="mb-5">
@@ -910,10 +1011,17 @@ const EditorHeader = ({
                                 ) : (
                                     <>
                                         <TouchableOpacity onPress={() => setShowStartDatePicker(true)} className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex-row justify-between items-center">
-                                            <Text className="font-bold text-slate-900 text-xs">{new Date(startDate).toLocaleDateString()}</Text>
+                                            <Text className="font-bold text-slate-900 text-xs">
+                                                {parseLocalDate(startDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
+                                            </Text>
                                             <Text className="text-xs">📅</Text>
                                         </TouchableOpacity>
-                                        {showStartDatePicker && <DateTimePicker value={new Date(startDate)} mode="date" display="default" onChange={onStartDateChange} />}
+                                        <DatePickerModal
+                                            visible={showStartDatePicker}
+                                            value={parseLocalDate(startDate)}
+                                            onClose={() => setShowStartDatePicker(false)}
+                                            onChange={onStartDateChange}
+                                        />
                                     </>
                                 )}
                             </View>
@@ -924,10 +1032,17 @@ const EditorHeader = ({
                                 ) : (
                                     <>
                                         <TouchableOpacity onPress={() => setShowEndDatePicker(true)} className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex-row justify-between items-center">
-                                            <Text className="font-bold text-slate-900 text-xs">{new Date(endDate).toLocaleDateString()}</Text>
+                                            <Text className="font-bold text-slate-900 text-xs">
+                                                {parseLocalDate(endDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
+                                            </Text>
                                             <Text className="text-xs">📅</Text>
                                         </TouchableOpacity>
-                                        {showEndDatePicker && <DateTimePicker value={new Date(endDate)} mode="date" display="default" onChange={onEndDateChange} />}
+                                        <DatePickerModal
+                                            visible={showEndDatePicker}
+                                            value={parseLocalDate(endDate)}
+                                            onClose={() => setShowEndDatePicker(false)}
+                                            onChange={onEndDateChange}
+                                        />
                                     </>
                                 )}
                             </View>
@@ -942,10 +1057,17 @@ const EditorHeader = ({
                             ) : (
                                 <>
                                     <TouchableOpacity onPress={() => setShowDatePicker(true)} className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex-row justify-between items-center">
-                                        <Text className="font-bold text-slate-900">{new Date(date).toLocaleDateString()}</Text>
+                                        <Text className="font-bold text-slate-900">
+                                            {parseLocalDate(date).toLocaleDateString(undefined, { timeZone: 'UTC' })}
+                                        </Text>
                                         <Text>📅</Text>
                                     </TouchableOpacity>
-                                    {showDatePicker && <DateTimePicker value={new Date(date)} mode="date" display="default" onChange={onDateChange} />}
+                                    <DatePickerModal
+                                        visible={showDatePicker}
+                                        value={parseLocalDate(date)}
+                                        onClose={() => setShowDatePicker(false)}
+                                        onChange={onDateChange}
+                                    />
                                 </>
                             )}
                         </View>
@@ -953,14 +1075,14 @@ const EditorHeader = ({
                 )}
 
 
-                {/* FAN ENGAGEMENT SECTION (PRO) - Hidden in Student Mode */}
-                {isPremium && !studentMode && (
+                {/* FAN ENGAGEMENT SECTION (PRO / UPSELL) - Hidden in Student Mode, only for Performances */}
+                {!studentMode && type === 'performance' && (
                     <View className="mb-8 p-5 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden relative">
                         <View className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
 
                         <View className="flex-row items-center mb-4">
-                            <View className="w-10 h-10 rounded-full bg-indigo-500 items-center justify-center mr-3 shadow-lg shadow-indigo-500/30">
-                                <Ionicons name="qr-code" size={20} color="white" />
+                            <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 shadow-lg ${isPremium ? 'bg-indigo-500 shadow-indigo-500/30' : 'bg-slate-700'}`}>
+                                <Ionicons name={isPremium ? "qr-code" : "lock-closed"} size={20} color="white" />
                             </View>
                             <View>
                                 <Text className="font-black text-white text-lg">Digital Stage Plot</Text>
@@ -968,72 +1090,89 @@ const EditorHeader = ({
                             </View>
                         </View>
 
-                        <View className="flex-row items-center justify-between mb-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                            <Text className="text-slate-300 font-bold text-sm">Enable Public Page</Text>
-                            <TouchableOpacity
-                                onPress={() => setIsPublicStagePlot(!isPublicStagePlot)}
-                                className={`w-12 h-7 rounded-full justify-center ${isPublicStagePlot ? 'bg-indigo-500' : 'bg-slate-600'}`}
-                            >
-                                <View className={`w-5 h-5 bg-white rounded-full shadow-sm mx-1 ${isPublicStagePlot ? 'self-end' : 'self-start'}`} />
-                            </TouchableOpacity>
-                        </View>
-
-                        {isPublicStagePlot && (
-                            <View>
-                                <View className="mb-4">
-                                    <Text className="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Public Description</Text>
-                                    <TextInput
-                                        className="bg-slate-800 text-white p-3 rounded-xl border border-slate-700 min-h-[80px]"
-                                        placeholder="Thanks for coming! Tip us below..."
-                                        placeholderTextColor="#64748b"
-                                        multiline
-                                        value={publicDescription}
-                                        onChangeText={setPublicDescription}
-                                    />
+                        {isPremium ? (
+                            <>
+                                <View className="flex-row items-center justify-between mb-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                                    <Text className="text-slate-300 font-bold text-sm">Enable Public Page</Text>
+                                    <TouchableOpacity
+                                        onPress={() => setIsPublicStagePlot(!isPublicStagePlot)}
+                                        className={`w-12 h-7 rounded-full justify-center ${isPublicStagePlot ? 'bg-indigo-500' : 'bg-slate-600'}`}
+                                    >
+                                        <View className={`w-5 h-5 bg-white rounded-full shadow-sm mx-1 ${isPublicStagePlot ? 'self-end' : 'self-start'}`} />
+                                    </TouchableOpacity>
                                 </View>
 
-                                <View className="mb-4">
-                                    <Text className="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Band Website</Text>
-                                    <TextInput
-                                        className="bg-slate-800 text-white p-3 rounded-xl border border-slate-700"
-                                        placeholder="https://myband.com"
-                                        placeholderTextColor="#64748b"
-                                        autoCapitalize="none"
-                                        value={socialLink}
-                                        onChangeText={setSocialLink}
-                                    />
-                                </View>
+                                {isPublicStagePlot && (
+                                    <View>
+                                        <View className="mb-4">
+                                            <Text className="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Public Description</Text>
+                                            <TextInput
+                                                className="bg-slate-800 text-white p-3 rounded-xl border border-slate-700 min-h-[80px]"
+                                                placeholder="Thanks for coming! Tip us below..."
+                                                placeholderTextColor="#64748b"
+                                                multiline
+                                                value={publicDescription}
+                                                onChangeText={setPublicDescription}
+                                            />
+                                        </View>
 
-                                <TouchableOpacity
-                                    onPress={() => setShowSetlist(!showSetlist)}
-                                    className="flex-row items-center mb-6"
-                                >
-                                    <View className={`w-5 h-5 rounded-md border mr-2 items-center justify-center ${showSetlist ? 'bg-indigo-500 border-indigo-500' : 'border-slate-600'}`}>
-                                        {showSetlist && <Ionicons name="checkmark" size={14} color="white" />}
+                                        <View className="mb-4">
+                                            <Text className="text-[10px] uppercase font-black text-slate-500 mb-1 tracking-widest">Band Website</Text>
+                                            <TextInput
+                                                className="bg-slate-800 text-white p-3 rounded-xl border border-slate-700"
+                                                placeholder="https://myband.com"
+                                                placeholderTextColor="#64748b"
+                                                autoCapitalize="none"
+                                                value={socialLink}
+                                                onChangeText={setSocialLink}
+                                            />
+                                        </View>
+
+                                        <TouchableOpacity
+                                            onPress={() => setShowSetlist(!showSetlist)}
+                                            className="flex-row items-center mb-6"
+                                        >
+                                            <View className={`w-5 h-5 rounded-md border mr-2 items-center justify-center ${showSetlist ? 'bg-indigo-500 border-indigo-500' : 'border-slate-600'}`}>
+                                                {showSetlist && <Ionicons name="checkmark" size={14} color="white" />}
+                                            </View>
+                                            <Text className="text-slate-300 text-sm font-bold">Show Setlist on Page</Text>
+                                        </TouchableOpacity>
+
+                                        <View className="flex-row gap-3">
+                                            <TouchableOpacity
+                                                onPress={() => setShowQrModal(true)}
+                                                className="flex-1 bg-white py-3 rounded-xl items-center flex-row justify-center"
+                                            >
+                                                <Ionicons name="qr-code-outline" size={18} color="black" style={{ marginRight: 8 }} />
+                                                <Text className="text-black font-black text-xs uppercase tracking-wide">View QR</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={async () => {
+                                                    const url = eventId ? `https://opusmode.net/fan/${eventId}` : 'Save event first';
+                                                    await Clipboard.setStringAsync(url);
+                                                    Alert.alert("Copied", "Link copied to clipboard.");
+                                                }}
+                                                className="flex-1 bg-slate-800 border border-slate-700 py-3 rounded-xl items-center flex-row justify-center"
+                                            >
+                                                <Ionicons name="link-outline" size={18} color="white" style={{ marginRight: 8 }} />
+                                                <Text className="text-white font-bold text-xs uppercase tracking-wide">Copy Link</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
-                                    <Text className="text-slate-300 text-sm font-bold">Show Setlist on Page</Text>
+                                )}
+                            </>
+                        ) : (
+                            // UPSELL STATE
+                            <View className="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                                <Text className="text-slate-400 text-sm mb-4 leading-relaxed">
+                                    Create a stunning public page for your gig. Share setlists, collect tips, and grow your fanbase with a single QR code.
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={() => router.push('/modal/upgrade?feature=glory')}
+                                    className="bg-white py-3 rounded-xl items-center shadow-lg shadow-white/10"
+                                >
+                                    <Text className="text-black font-black text-xs uppercase tracking-widest">Unlock with Pro</Text>
                                 </TouchableOpacity>
-
-                                <View className="flex-row gap-3">
-                                    <TouchableOpacity
-                                        onPress={() => setShowQrModal(true)}
-                                        className="flex-1 bg-white py-3 rounded-xl items-center flex-row justify-center"
-                                    >
-                                        <Ionicons name="qr-code-outline" size={18} color="black" style={{ marginRight: 8 }} />
-                                        <Text className="text-black font-black text-xs uppercase tracking-wide">View QR</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        onPress={async () => {
-                                            const url = eventId ? `https://opusmode.net/fan/${eventId}` : 'Save event first';
-                                            await Clipboard.setStringAsync(url);
-                                            Alert.alert("Copied", "Link copied to clipboard.");
-                                        }}
-                                        className="flex-1 bg-slate-800 border border-slate-700 py-3 rounded-xl items-center flex-row justify-center"
-                                    >
-                                        <Ionicons name="link-outline" size={18} color="white" style={{ marginRight: 8 }} />
-                                        <Text className="text-white font-bold text-xs uppercase tracking-wide">Copy Link</Text>
-                                    </TouchableOpacity>
-                                </View>
                             </View>
                         )}
                     </View>

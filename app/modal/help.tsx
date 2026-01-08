@@ -48,6 +48,7 @@ export default function HelpScreen() {
     const tutorials = [
         { id: '1', title: 'Add Activity (Studio)', duration: '1:00', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/OpusMode%20-%20Add%20Activity.mp4' },
         { id: '2', title: 'Creating a Collection', duration: '0:26', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/Opusmode%20-%20Create%20a%20Collection.mp4' },
+        { id: '3', title: 'Adding a Musician Contact', duration: '0:40', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/Opusmode%20-%20Adding%20Musician%20Contact.mp4' },
     ];
 
     const Step = ({ number, title, description }: { number: number, title: string, description: string }) => (

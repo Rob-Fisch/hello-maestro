@@ -4,7 +4,7 @@ import { Person, PersonType } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import { router, useGlobalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function PersonEditor() {
@@ -34,18 +34,20 @@ export default function PersonEditor() {
     const [venueLocation, setVenueLocation] = useState('');
 
 
+    const initializedIdRef = useRef<string | null>(null);
+
     // Initial state setup after hydration/mounting
     useEffect(() => {
-        if (existingPerson) {
+        if (existingPerson && initializedIdRef.current !== existingPerson.id) {
+            // Found person, haven't initialized this ID yet -> Initialize
             setFirstName(existingPerson.firstName || '');
             setLastName(existingPerson.lastName || '');
             setType(existingPerson.type || 'student');
             setEmail(existingPerson.email || '');
             setPhone(existingPerson.phone || '');
-            setPhone(existingPerson.phone || '');
+            setVerifiedPhone(existingPerson.verifiedPhone || '');
             setInstrument(existingPerson.instruments?.join(', ') || existingPerson.instrument || '');
             setInstruments(existingPerson.instruments || []);
-            setVerifiedPhone(existingPerson.verifiedPhone || '');
             setNotes(existingPerson.notes || '');
             setSource(existingPerson.source || 'maestro');
 
@@ -54,16 +56,26 @@ export default function PersonEditor() {
             setVenueType(existingPerson.venueType || '');
             setVenueLocation(existingPerson.venueLocation || '');
 
-        } else if (params.importName) {
-            // Populate from params (Import flow)
+            initializedIdRef.current = existingPerson.id;
+
+        } else if (params.importName && !id && !initializedIdRef.current) {
+            // Import flow (only if no ID and not verified)
             setFirstName((params.importFirstName as string) || '');
             setLastName((params.importLastName as string) || '');
             setPhone((params.importPhone as string) || '');
             setEmail((params.importEmail as string) || '');
             setSource('native');
             if (params.importNativeId) setNativeId(params.importNativeId as string);
+
+            initializedIdRef.current = 'new-import';
         }
-    }, [id, existingPerson, params]);
+    }, [existingPerson, id, params]);
+
+    const removeInstrument = (indexToRemove: number) => {
+        const newInstruments = instruments.filter((_, i) => i !== indexToRemove);
+        setInstruments(newInstruments);
+        setInstrument(newInstruments.join(', '));
+    };
 
     const pickContact = async () => {
         try {
@@ -99,7 +111,7 @@ export default function PersonEditor() {
                 if (Platform.OS === 'web') {
                     alert('Free Plan Limit: You can only manage 10 Venues. Upgrade to Premium for unlimited entries.');
                 } else {
-                    Alert.alert('Limit Reached', 'You have reached the limit of 10 Venues on the free plan. Upgrade to add more.');
+                    Alert.alert('Limit Reached', 'You have reached the limit of 10 Venues. Upgrade to add more.');
                 }
                 return;
             }
@@ -248,9 +260,14 @@ export default function PersonEditor() {
                             {/* Visual Confirmation of Tags */}
                             <View className="flex-row flex-wrap gap-2 mb-4">
                                 {instruments.map((inst, index) => (
-                                    <View key={index} className="bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
-                                        <Text className="text-blue-700 text-xs font-bold">{inst}</Text>
-                                    </View>
+                                    <TouchableOpacity
+                                        key={index}
+                                        onPress={() => removeInstrument(index)}
+                                        className="bg-blue-100 px-3 py-1 rounded-full border border-blue-200 flex-row items-center"
+                                    >
+                                        <Text className="text-blue-700 text-xs font-bold mr-1">{inst}</Text>
+                                        <Ionicons name="close-circle" size={14} color="#1d4ed8" />
+                                    </TouchableOpacity>
                                 ))}
                             </View>
                         </>

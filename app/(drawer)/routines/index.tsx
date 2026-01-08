@@ -253,9 +253,9 @@ export default function RoutinesScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: theme.background }}>
-            <View className="px-8 pb-4" style={{ paddingTop: Math.max(insets.top, 20) }}>
-                {/* ROW 1: Navigation & Actions */}
-                <View className="flex-row justify-between items-center mb-6">
+            <View className="px-8 pb-2" style={{ paddingTop: Math.max(insets.top, 20) }}>
+                {/* ROW 1: Navigation & Actions (Fixed) */}
+                <View className="flex-row justify-between items-center mb-2">
                     <View className="flex-row items-center">
                         <TouchableOpacity
                             onPress={() => router.push('/')}
@@ -282,27 +282,6 @@ export default function RoutinesScreen() {
                         </TouchableOpacity>
                     </Link>
                 </View>
-
-                {/* ROW 2: Header & Tabs */}
-                <View className="flex-row justify-between items-end mb-2">
-                    <View>
-                        <View className="flex-row items-center mb-2">
-                            <Text className="text-[10px] font-black uppercase tracking-[3px] text-teal-100">Level 2</Text>
-                        </View>
-                        <Text className="text-4xl font-black tracking-tight leading-tight text-white">
-                            Collections
-                        </Text>
-                    </View>
-                </View>
-
-                {/* Tabs Removed for MVP */}
-                <View className="flex-row gap-4 mt-4 pb-2 border-b border-white/10">
-                    <View
-                        className={`pb-2 border-b-2 border-teal-400`}
-                    >
-                        <Text className={`font-black uppercase tracking-wider text-xs text-white`}>My Collections</Text>
-                    </View>
-                </View>
             </View>
 
 
@@ -310,9 +289,33 @@ export default function RoutinesScreen() {
                 data={displayRoutines}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
-                contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
+                contentContainerStyle={{ padding: 24, paddingBottom: 100, paddingTop: 0 }}
                 ListHeaderComponent={
                     <View>
+                        {/* Header Content (Scrollable) */}
+                        <View className="mt-2 text-white">
+                            {/* ROW 2: Header & Tabs */}
+                            <View className="flex-row justify-between items-end mb-2">
+                                <View>
+                                    <View className="flex-row items-center mb-2">
+                                        <Text className="text-[10px] font-black uppercase tracking-[3px] text-teal-100">Level 2</Text>
+                                    </View>
+                                    <Text className="text-4xl font-black tracking-tight leading-tight text-white">
+                                        Collections
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Tabs Removed for MVP */}
+                            <View className="flex-row gap-4 mt-4 pb-2 border-b border-white/10 mb-8">
+                                <View
+                                    className={`pb-2 border-b-2 border-teal-400`}
+                                >
+                                    <Text className={`font-black uppercase tracking-wider text-xs text-white`}>My Collections</Text>
+                                </View>
+                            </View>
+                        </View>
+
                         <View>
                             {activeTab === 'mine' && <Heatmap />}
                         </View>

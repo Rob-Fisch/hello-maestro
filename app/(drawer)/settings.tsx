@@ -640,6 +640,8 @@ export default function SettingsScreen() {
                             <Text className="text-emerald-500/60 text-xs font-bold mt-1 uppercase">Adds missing defaults only</Text>
                         </TouchableOpacity>
 
+
+
                         <TouchableOpacity
                             onPress={handleDeleteAccount}
                             disabled={updating}
