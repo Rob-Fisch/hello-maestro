@@ -195,10 +195,10 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
                                     <Text className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{slot.status}</Text>
                                 </View>
 
-                                <View className="bg-white border border-slate-200 flex-row items-center px-4 py-2 rounded-xl shadow-sm">
+                                <View className="bg-white border border-slate-200 flex-row items-center px-3 py-2 rounded-xl shadow-sm">
                                     <Text className="text-slate-400 font-bold text-sm mr-1">$</Text>
                                     <TextInput
-                                        className="text-slate-900 font-black text-sm min-w-[50px] text-right"
+                                        className="text-slate-900 font-black text-sm w-20 text-right p-0"
                                         placeholder={event.musicianFee || '0'}
                                         placeholderTextColor="#94a3b8"
                                         value={slot.fee || ''}
