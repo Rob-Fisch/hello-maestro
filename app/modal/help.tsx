@@ -319,6 +319,27 @@ export default function HelpScreen() {
                 </AccordionItem>
 
 
+                <AccordionItem title="Security & AutoFill" icon="shield-checkmark-outline">
+                    <Text className="text-muted-foreground mb-4 leading-relaxed text-sm">
+                        On newer versions of macOS, you may see a system prompt: <Text className="font-bold">"OpusMode wants to use your confidential information stored in Safari Forms AutoFill Encryption Key"</Text>.
+                    </Text>
+                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                        This is a standard security check because OpusMode runs as a distinct app but shares Safari's secure "Keychain" to help you autofill names and emails.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="What happens if I allow it?"
+                        description="Clicking 'Always Allow' grants permission for the app to access your contact card, enabling autofill suggestions for names and emails."
+                    />
+                    <Step
+                        number={2}
+                        title="Can I deny it?"
+                        description="If you click 'Deny', you will have to type names and emails manually without suggestions."
+                    />
+                </AccordionItem>
+
+
                 <View className="mt-12 items-center">
                     <Text className="text-gray-400 text-[10px] font-black uppercase tracking-[2px]">OpusMode Help Center</Text>
                     <Text className="text-muted-foreground mt-2 font-medium text-xs">Built with Zen Architecture • © 2025</Text>

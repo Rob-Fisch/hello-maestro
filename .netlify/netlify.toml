@@ -1,30 +1,87 @@
+headersOrigin = "config"
+redirectsOrigin = "config"
+plugins = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "/Users/robfisch/Documents/OpusMode/dist"
+publishOrigin = "ui"
+commandOrigin = "ui"
+command = "expo export -p web"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[headers]]
+for = "/CurrentVersion.txt"
+
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/index.html"
+
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/sw.js"
+
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/*.json"
+
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
 [[redirects]]
-  from = "/CurrentVersion.txt"
-  to = "/CurrentVersion.txt"
-  status = 200
-  force = true
+from = "/CurrentVersion.txt"
+to = "/CurrentVersion.txt"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+from = "/CurrentVersion.txt"
+to = "/CurrentVersion.txt"
+status = 200.0
+force = true
 
-[[headers]]
-  for = "/CurrentVersion.txt"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+[redirects.query]
 
-[[headers]]
-  for = "/index.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+[redirects.conditions]
 
-[[headers]]
-  for = "/sw.js"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+[redirects.headers]
 
-[[headers]]
-  for = "/*.json"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

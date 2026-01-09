@@ -155,9 +155,17 @@ export default function PersonEditor() {
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
             <ScrollView className="flex-1 p-6" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 100 }}>
-                <Text className="text-3xl font-black mb-8 mt-6 tracking-tight" style={{ color: PAPER_THEME.text }}>
-                    {isEditing ? 'Edit Contact' : 'New Contact'}
-                </Text>
+                <View className="flex-row items-center justify-between mb-8 mt-6">
+                    <Text className="text-3xl font-black tracking-tight" style={{ color: PAPER_THEME.text }}>
+                        {isEditing ? 'Edit Contact' : 'New Contact'}
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => router.push('/modal/help')}
+                        className="p-2 rounded-full bg-stone-100 border border-stone-200"
+                    >
+                        <Ionicons name="help" size={20} color="#78716c" />
+                    </TouchableOpacity>
+                </View>
 
                 {!isEditing && Platform.OS !== 'web' && (
                     <TouchableOpacity onPress={pickContact} className="bg-blue-50 p-4 rounded-2xl flex-row items-center justify-center mb-8 border border-blue-100 shadow-sm">
