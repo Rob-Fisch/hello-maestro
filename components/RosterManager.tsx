@@ -156,115 +156,130 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
 
                     return (
                         <View key={slot.id} className="bg-card border border-border rounded-[32px] mb-4 p-5 shadow-sm">
-                            <View className="flex-row justify-between items-start mb-4">
-                                <TouchableOpacity
-                                    onPress={() => startEditingRole(slot)}
-                                    className="flex-1"
-                                >
+                            {/* ROW 1: ROLE NAME & DELETE */}
+                            <View className="flex-row justify-between items-start mb-3">
+                                <View className="flex-1 mr-3">
                                     {editingSlotId === slot.id ? (
                                         <View className="flex-row items-center gap-2">
                                             <TextInput
-                                                className="flex-1 bg-white border border-blue-100 p-2 rounded-xl font-bold text-foreground text-sm"
+                                                className="flex-1 bg-white border border-blue-100 p-3 rounded-xl font-bold text-foreground text-base"
                                                 value={tempRole}
                                                 onChangeText={setTempRole}
                                                 autoFocus
                                                 onBlur={saveRole}
                                                 onSubmitEditing={saveRole}
                                             />
-                                            <TouchableOpacity onPress={saveRole} className="bg-blue-600 p-2 rounded-lg">
-                                                <Ionicons name="checkmark" size={16} color="white" />
+                                            <TouchableOpacity onPress={saveRole} className="bg-blue-600 p-3 rounded-xl shadow-sm">
+                                                <Ionicons name="checkmark" size={18} color="white" />
                                             </TouchableOpacity>
                                         </View>
                                     ) : (
-                                        <>
-                                            <Text className="text-sm font-black text-foreground uppercase tracking-tight">{slot.role}</Text>
-                                            <View className="flex-row items-center mt-1">
-                                                <View className={`w-2 h-2 rounded-full mr-2 ${slot.status === 'confirmed' ? 'bg-green-500' :
-                                                    slot.status === 'invited' ? 'bg-amber-500' :
-                                                        slot.status === 'open' ? 'bg-blue-500' : 'bg-red-500'
-                                                    }`} />
-                                                <Text className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{slot.status}</Text>
-                                            </View>
-                                        </>
+                                        <TouchableOpacity onPress={() => startEditingRole(slot)}>
+                                            <Text className="text-lg font-black text-foreground uppercase tracking-tight leading-6">{slot.role}</Text>
+                                        </TouchableOpacity>
                                     )}
+                                </View>
+
+                                <TouchableOpacity onPress={() => removeSlot(slot.id)} className="p-2 bg-red-50 rounded-xl">
+                                    <Ionicons name="trash-outline" size={20} color="#ef4444" />
                                 </TouchableOpacity>
-                                <View className="flex-row items-center gap-2">
-                                    <View className="bg-blue-50/50 border border-blue-100 flex-row items-center px-3 py-1.5 rounded-2xl">
-                                        <Text className="text-blue-600 font-black text-xs mr-2">$</Text>
-                                        <TextInput
-                                            className="text-foreground font-black text-xs min-w-[40px]"
-                                            placeholder={event.musicianFee || '0'}
-                                            placeholderTextColor="#475569"
-                                            value={slot.fee || ''}
-                                            onChangeText={(val) => updateSlotFee(slot.id, val)}
-                                            keyboardType="numeric"
-                                        />
-                                    </View>
-                                    <TouchableOpacity onPress={() => removeSlot(slot.id)} className="p-1.5 ml-1 rounded-lg bg-red-50 flex-row items-center">
-                                        <Ionicons name="trash-outline" size={14} color="#ef4444" />
-                                    </TouchableOpacity>
+                            </View>
+
+                            {/* ROW 2: STATUS & FEE */}
+                            <View className="flex-row justify-between items-center mb-5 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                <View className="flex-row items-center">
+                                    <View className={`w-2.5 h-2.5 rounded-full mr-2 ${slot.status === 'confirmed' ? 'bg-green-500 shadow-sm shadow-green-200' :
+                                        slot.status === 'invited' ? 'bg-amber-500 shadow-sm shadow-amber-200' :
+                                            slot.status === 'open' ? 'bg-blue-500 shadow-sm shadow-blue-200' : 'bg-red-500'
+                                        }`} />
+                                    <Text className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{slot.status}</Text>
+                                </View>
+
+                                <View className="bg-white border border-slate-200 flex-row items-center px-4 py-2 rounded-xl shadow-sm">
+                                    <Text className="text-slate-400 font-bold text-sm mr-1">$</Text>
+                                    <TextInput
+                                        className="text-slate-900 font-black text-sm min-w-[50px] text-right"
+                                        placeholder={event.musicianFee || '0'}
+                                        placeholderTextColor="#94a3b8"
+                                        value={slot.fee || ''}
+                                        onChangeText={(val) => updateSlotFee(slot.id, val)}
+                                        keyboardType="numeric"
+                                    />
                                 </View>
                             </View>
 
                             {musician ? (
-                                <View className="flex-row items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                                    <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3 shadow-sm border border-white">
-                                        <Text className="text-blue-600 font-bold">{musician.firstName[0]}{musician.lastName[0]}</Text>
+                                <View className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                    {/* Musician Info Row - Full Width */}
+                                    <View className="flex-row items-center mb-3">
+                                        <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3 shadow-sm border border-white">
+                                            <Text className="text-blue-600 font-bold">{musician.firstName[0]}{musician.lastName[0]}</Text>
+                                        </View>
+                                        <View className="flex-1">
+                                            <Text className="font-bold text-foreground text-base">{musician.firstName} {musician.lastName}</Text>
+                                            <Text className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{musician.instruments.join(', ') || musician.type}</Text>
+                                        </View>
                                     </View>
-                                    <View className="flex-1">
-                                        <Text className="font-bold text-foreground">{musician.firstName} {musician.lastName}</Text>
-                                        <Text className="text-[10px] text-muted-foreground">{musician.instruments.join(', ') || musician.type}</Text>
-                                    </View>
-                                    <View className="flex-row gap-2">
-                                        {slot.status === 'invited' && (
-                                            <>
-                                                <TouchableOpacity
-                                                    onPress={() => {
-                                                        setSelectedMusician(musician);
-                                                        setSelectedSlot(slot);
-                                                        setIsSmsVisible(true);
-                                                    }}
-                                                    className="bg-amber-100 px-3 py-1.5 rounded-xl flex-row items-center"
-                                                >
-                                                    <Ionicons name="mail-outline" size={14} color="#d97706" />
-                                                    <Text className="text-amber-700 font-bold text-[10px] ml-1.5 uppercase">Invite</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    onPress={() => updateSlotStatus(slot.id, 'confirmed')}
-                                                    className="bg-green-100 px-3 py-1.5 rounded-xl flex-row items-center"
-                                                >
-                                                    <Ionicons name="checkmark" size={14} color="#16a34a" />
-                                                    <Text className="text-green-700 font-bold text-[10px] ml-1.5 uppercase">Confirm</Text>
-                                                </TouchableOpacity>
-                                            </>
+
+                                    {/* Action Buttons Container - Explicit Vertical Stack Below Name */}
+                                    <View className="flex-col gap-2">
+                                        {/* Row 1: Status Actions (Invite, Confirm, etc) */}
+                                        {(slot.status === 'invited' || slot.status === 'declined') && (
+                                            <View className="flex-row gap-2">
+                                                {slot.status === 'invited' && (
+                                                    <>
+                                                        <TouchableOpacity
+                                                            onPress={() => {
+                                                                setSelectedMusician(musician);
+                                                                setSelectedSlot(slot);
+                                                                setIsSmsVisible(true);
+                                                            }}
+                                                            className="bg-amber-100 px-3 py-2 rounded-xl flex-row items-center shadow-sm flex-1 justify-center"
+                                                        >
+                                                            <Ionicons name="mail-outline" size={16} color="#d97706" />
+                                                            <Text className="text-amber-700 font-bold text-[10px] ml-1.5 uppercase">Invite</Text>
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            onPress={() => updateSlotStatus(slot.id, 'confirmed')}
+                                                            className="bg-green-100 px-3 py-2 rounded-xl flex-row items-center shadow-sm flex-1 justify-center"
+                                                        >
+                                                            <Ionicons name="checkmark" size={16} color="#16a34a" />
+                                                            <Text className="text-green-700 font-bold text-[10px] ml-1.5 uppercase">Confirm</Text>
+                                                        </TouchableOpacity>
+                                                    </>
+                                                )}
+                                                {slot.status === 'declined' && (
+                                                    <TouchableOpacity
+                                                        onPress={() => {
+                                                            setSelectedMusician(musician);
+                                                            setSelectedSlot(slot);
+                                                            setIsSmsVisible(true);
+                                                        }}
+                                                        className="bg-red-50 px-3 py-2 rounded-xl flex-row items-center border border-red-100 flex-1 justify-center shadow-sm"
+                                                    >
+                                                        <Ionicons name="refresh" size={16} color="#ef4444" />
+                                                        <Text className="text-red-600 font-bold text-[10px] ml-1.5 uppercase">Re-Invite</Text>
+                                                    </TouchableOpacity>
+                                                )}
+                                            </View>
                                         )}
-                                        {slot.status === 'declined' && (
+
+                                        {/* Row 2: Management Actions (Replace, Clear) */}
+                                        <View className="flex-row gap-2">
                                             <TouchableOpacity
-                                                onPress={() => {
-                                                    setSelectedMusician(musician);
-                                                    setSelectedSlot(slot);
-                                                    setIsSmsVisible(true);
-                                                }}
-                                                className="bg-red-50 px-3 py-1.5 rounded-xl flex-row items-center border border-red-100"
+                                                onPress={() => setChangingSlotId(slot.id)}
+                                                className="bg-indigo-50 px-3 py-2 rounded-xl flex-row items-center flex-1 justify-center border border-indigo-100 shadow-sm"
                                             >
-                                                <Ionicons name="refresh" size={14} color="#ef4444" />
-                                                <Text className="text-red-600 font-bold text-[10px] ml-1.5 uppercase">Re-Invite</Text>
+                                                <Ionicons name="swap-horizontal-outline" size={16} color="#4338ca" />
+                                                <Text className="text-indigo-700 font-bold text-[10px] ml-1.5 uppercase">Replace</Text>
                                             </TouchableOpacity>
-                                        )}
-                                        <TouchableOpacity
-                                            onPress={() => setChangingSlotId(slot.id)}
-                                            className="bg-blue-50 px-3 py-1.5 rounded-xl flex-row items-center"
-                                        >
-                                            <Ionicons name="swap-horizontal-outline" size={14} color="#2563eb" />
-                                            <Text className="text-blue-700 font-bold text-[10px] ml-1.5 uppercase">Replace</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() => assignMusician(slot.id, undefined)}
-                                            className="bg-gray-100 px-3 py-1.5 rounded-xl flex-row items-center"
-                                        >
-                                            <Ionicons name="person-remove-outline" size={14} color="#4b5563" />
-                                            <Text className="text-gray-600 font-bold text-[10px] ml-1.5 uppercase">Clear</Text>
-                                        </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() => assignMusician(slot.id, undefined)}
+                                                className="bg-slate-100 px-4 py-2 rounded-xl flex-row items-center border border-slate-200 shadow-sm"
+                                            >
+                                                <Ionicons name="close" size={18} color="#64748b" />
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
                                 </View>
                             ) : null}
