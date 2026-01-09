@@ -1,4 +1,4 @@
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
 export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work' | 'gear_assets' | 'pack_lists' | 'transactions';
@@ -303,9 +303,9 @@ export async function pushAllToCloud(table: TableName, dataArray: any[]) {
     } catch (err: any) {
         console.warn(`[Push Exception] ${table}:`, err);
         if (Platform.OS === 'web') {
-            alert(`Sync Error (${table}): ${err.message || err}`);
+            console.warn(`Sync Error (${table}): ${err.message || err}`);
         } else {
-            Alert.alert(`Sync Error (${table})`, err.message || JSON.stringify(err));
+            console.warn(`Sync Error (${table})`, err.message || JSON.stringify(err));
         }
     }
 }

@@ -2,7 +2,7 @@
   "expo": {
     "name": "OpusMode",
     "slug": "opusmode",
-    "version": "1.2.10",
+    "version": "1.2.11",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "opusmode",
@@ -67,7 +67,7 @@
     },
     "extra": {
       "router": {},
-      "buildNumber": "19"
+      "buildNumber": "20"
     }
   }
 }

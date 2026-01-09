@@ -32,7 +32,9 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
             instruments: [],
             status: 'open',
         };
-        onUpdateSlots([...slots, newSlot]);
+        const newSlots = [...slots, newSlot];
+        onUpdateSlots(newSlots);
+        if (onSave) onSave(newSlots);
         setNewRole('');
         setIsAdding(false);
     };
@@ -44,7 +46,9 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
 
     const saveRole = () => {
         if (!editingSlotId) return;
-        onUpdateSlots(slots.map(s => s.id === editingSlotId ? { ...s, role: tempRole.trim() || s.role } : s));
+        const newSlots = slots.map(s => s.id === editingSlotId ? { ...s, role: tempRole.trim() || s.role } : s);
+        onUpdateSlots(newSlots);
+        if (onSave) onSave(newSlots);
         setEditingSlotId(null);
         setTempRole('');
     };
@@ -71,31 +75,41 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
     };
 
     const updateSlotStatus = (id: string, status: BookingStatus) => {
-        onUpdateSlots(slots.map(s => s.id === id ? { ...s, status } : s));
+        const newSlots = slots.map(s => s.id === id ? { ...s, status } : s);
+        onUpdateSlots(newSlots);
+        if (onSave) onSave(newSlots);
     };
 
     const updateSlotFee = (id: string, fee: string) => {
-        onUpdateSlots(slots.map(s => s.id === id ? { ...s, fee } : s));
+        const newSlots = slots.map(s => s.id === id ? { ...s, fee } : s);
+        onUpdateSlots(newSlots);
+        if (onSave) onSave(newSlots);
     };
 
     const assignMusician = (slotId: string, musicianId: string | undefined) => {
         if (!musicianId) {
             // Removal is immediate
-            onUpdateSlots(slots.map(s => s.id === slotId ? {
+            // Removal is immediate
+            const newSlots = slots.map(s => s.id === slotId ? {
                 ...s,
                 musicianId: undefined,
-                status: 'open',
-                invitedAt: undefined
-            } : s));
+                status: 'open' as const,
+                invitedAt: undefined,
+                inviteId: undefined // Also clear invite data if unassigning
+            } : s);
+            onUpdateSlots(newSlots);
+            if (onSave) onSave(newSlots);
             return;
         }
 
         // Immediate Assignment (keep status 'open' until invited, but assign the ID)
-        onUpdateSlots(slots.map(s => s.id === slotId ? {
+        const newSlots = slots.map(s => s.id === slotId ? {
             ...s,
             musicianId,
-            status: 'open' // Explicitly keep/set to open, presence of musicianId drives UI
-        } : s));
+            status: 'open' as const // Explicitly keep/set to open, presence of musicianId drives UI
+        } : s);
+        onUpdateSlots(newSlots);
+        if (onSave) onSave(newSlots);
     };
 
     const handleConfirmAssignment = (musicianId: string, inviteData?: { inviteId: string; inviteType: 'inquiry' | 'offer'; inviteExpiresAt?: string }) => {

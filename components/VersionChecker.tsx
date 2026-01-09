@@ -17,7 +17,13 @@ export function VersionChecker() {
 
         const checkVersion = async () => {
             try {
-                const response = await fetch('/CurrentVersion.txt?t=' + Date.now());
+                const response = await fetch('/CurrentVersion.txt?t=' + Date.now(), {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
                 if (!response.ok) return;
 
                 const text = await response.text();
