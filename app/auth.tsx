@@ -1,12 +1,13 @@
 import { supabase } from '@/lib/supabase';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { APP_VERSION, BUILD_NUMBER } from '../constants/Version';
+
 
 
 const SLIDE_IMAGES = [
@@ -337,7 +338,8 @@ export default function AuthScreen() {
                 {/* Footer Credits */}
                 <View className="pb-10 items-center">
                     <Text className="text-white/20 text-xs font-bold uppercase tracking-[4px]">Puddle-Proof Technology</Text>
-                    <Text className="text-white/20 text-[10px] mt-2">v{APP_VERSION} (b{BUILD_NUMBER})</Text>
+                    <Text className="text-white/20 text-[10px] mt-2">v{Constants.expoConfig?.version} (b{Constants.expoConfig?.extra?.buildNumber})</Text>
+
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>

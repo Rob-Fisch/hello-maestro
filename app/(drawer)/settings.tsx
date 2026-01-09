@@ -5,11 +5,12 @@ import { useFinanceStore } from '@/store/financeStore';
 import { Category } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
+import Constants from 'expo-constants';
 import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { APP_VERSION, BUILD_NUMBER } from '../../constants/Version';
+
 
 
 export default function SettingsScreen() {
@@ -661,7 +662,8 @@ export default function SettingsScreen() {
                         {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
                     </Text>
                     <Text className="text-[10px] mt-1 text-slate-600">
-                        Version {APP_VERSION} (Build {BUILD_NUMBER}) • Cloud Sync Enabled
+                        Version {Constants.expoConfig?.version} (Build {Constants.expoConfig?.extra?.buildNumber}) • Cloud Sync Enabled
+
                     </Text>
                 </View>
 

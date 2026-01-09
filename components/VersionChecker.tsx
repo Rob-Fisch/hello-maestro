@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { APP_VERSION, BUILD_NUMBER } from '../constants/Version';
+
 
 const CHECK_INTERVAL = 60 * 1000; // Check every 60 seconds
 
@@ -28,8 +29,9 @@ export function VersionChecker() {
 
                     // ...
 
-                    const localVer = APP_VERSION;
-                    const localBuild = BUILD_NUMBER;
+                    const localVer = Constants.expoConfig?.version ?? '1.0.0';
+                    const localBuild = Constants.expoConfig?.extra?.buildNumber ?? '0';
+
 
                     const serverBuildNum = parseInt(serverBuild, 10);
                     const localBuildNum = parseInt(localBuild, 10);
