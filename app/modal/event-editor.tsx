@@ -24,7 +24,7 @@ export default function EventEditor() {
     // Initialize activeId from params.id. If undef (create), it stays undef until first save.
     const [activeId, setActiveId] = useState<string | undefined>(params.id as string | undefined);
 
-    const { routines = [], events = [], people = [], addEvent, updateEvent, profile } = useContentStore();
+    const { routines = [], events = [], people = [], addEvent, updateEvent, deleteEvent, profile } = useContentStore();
     const existingEvent = activeId ? events.find((e) => e.id === activeId) : undefined;
     const isEditing = !!existingEvent; // Derived from activeId now
 
@@ -92,6 +92,7 @@ export default function EventEditor() {
     const [endDate, setEndDate] = useState(existingEvent?.schedule?.endDate || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0]);
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const toggleDay = useCallback((day: number) => {
         setDaysOfWeek(prev => {
@@ -143,10 +144,16 @@ export default function EventEditor() {
     };
 
     const performSave = (shouldExit: boolean = true, slotsOverride?: BookingSlot[]) => {
-        if (!title.trim() || !venue.trim()) {
-            const msg = 'Please enter a title and venue/location';
-            if (Platform.OS === 'web') alert(msg);
-            else Alert.alert('Error', msg);
+        if (!title.trim()) {
+            // For auto-save (shouldExit=false), we might want to be silent if title is empty?
+            // But if user hits "Exit" (which calls performSave(true) implicitly?), we might want to block?
+            // Actually, "Exit" just closes.
+            // Let's stick to simple validation: Title is required.
+            if (shouldExit) {
+                const msg = 'Please enter a title';
+                if (Platform.OS === 'web') alert(msg);
+                else Alert.alert('Error', msg);
+            }
             return;
         }
 
@@ -263,12 +270,11 @@ export default function EventEditor() {
         return () => clearTimeout(timer);
     }, [title, venue, notes, totalFee, musicianFee, studentName, publicDescription, socialLink]);
 
-    // Immediate save for non-text fields (triggered by their setters mostly, but good to have a safety net or specific effects if needed)
-    // Note: The Date/Time pickers currently call their setters. We can add an effect for them too.
+    // Immediate save for non-text fields (pickers, toggles, lists)
     useEffect(() => {
         if (!activeId) return; // Don't trigger on new events until title is set/saved
         performSave(false);
-    }, [date, time, duration, isRecurring, startDate, daysOfWeek, showSetlist, isPublicStagePlot]);
+    }, [date, time, duration, isRecurring, startDate, daysOfWeek, showSetlist, isPublicStagePlot, selectedRoutineIds, selectedGearIds, checkedGearIds]);
 
     // --- HEADER CONFIG ---
 
@@ -313,6 +319,12 @@ export default function EventEditor() {
             relatedEventId: activeId,
             description: t.description || `Payment for ${title}`
         });
+    };
+
+    const handleDelete = () => {
+        if (!activeId) return;
+        deleteEvent(activeId);
+        router.back();
     };
 
 
@@ -399,6 +411,35 @@ export default function EventEditor() {
                         />
 
                         {/* Save Button Container REMOVED for Auto-Save */}
+                        {/* DELETE BUTTON with Inline Confirmation */}
+                        {isEditing && (
+                            <View className="px-6 pb-20 pt-8">
+                                {showDeleteConfirm ? (
+                                    <View className="flex-row gap-3 animate-in fade-in slide-in-from-bottom-2">
+                                        <TouchableOpacity
+                                            onPress={() => setShowDeleteConfirm(false)}
+                                            className="flex-1 p-4 rounded-2xl bg-stone-100 border border-stone-200 items-center justify-center"
+                                        >
+                                            <Text className="text-stone-600 font-bold text-base">Cancel</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={handleDelete}
+                                            className="flex-1 p-4 rounded-2xl bg-red-500 border border-red-600 items-center justify-center shadow-sm shadow-red-200"
+                                        >
+                                            <Text className="text-white font-bold text-base">Confirm Delete</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity
+                                        onPress={() => setShowDeleteConfirm(true)}
+                                        className="p-4 rounded-2xl border border-red-200 bg-red-50 flex-row items-center justify-center gap-2"
+                                    >
+                                        <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                                        <Text className="text-red-500 font-bold text-base">Delete Event</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        )}
                         <View style={{ height: 40 }} />
                     </View>
                 }
