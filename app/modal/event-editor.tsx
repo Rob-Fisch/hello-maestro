@@ -8,9 +8,9 @@ import { AppEvent, AppEventType, BookingSlot, Person, Routine, Transaction } fro
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Clipboard from 'expo-clipboard';
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 // @ts-ignore
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
@@ -250,6 +250,29 @@ export default function EventEditor() {
         setDuration(prev => Math.max(15, prev + amount));
     };
 
+    // --- AUTO-SAVE LOGIC ---
+    // Debounce save for text fields
+    useEffect(() => {
+        // Skip initial render or empty title
+        if (!title.trim()) return;
+
+        const timer = setTimeout(() => {
+            performSave(false);
+        }, 1000); // 1-second debounce
+
+        return () => clearTimeout(timer);
+    }, [title, venue, notes, totalFee, musicianFee, studentName, publicDescription, socialLink]);
+
+    // Immediate save for non-text fields (triggered by their setters mostly, but good to have a safety net or specific effects if needed)
+    // Note: The Date/Time pickers currently call their setters. We can add an effect for them too.
+    useEffect(() => {
+        if (!activeId) return; // Don't trigger on new events until title is set/saved
+        performSave(false);
+    }, [date, time, duration, isRecurring, startDate, daysOfWeek, showSetlist, isPublicStagePlot]);
+
+    // --- HEADER CONFIG ---
+
+
     // --- Finance Integration ---
     const { transactions, addTransaction } = useFinanceStore();
     const [showTransactionEditor, setShowTransactionEditor] = useState(false);
@@ -295,13 +318,27 @@ export default function EventEditor() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
+            <Stack.Screen
+                options={{
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => router.back()} className="p-2 ml-2 flex-row items-center gap-2">
+                            <Ionicons name="log-out-outline" size={24} color="#000" style={{ transform: [{ scaleX: -1 }] }} />
+                            <Text className="text-base font-bold text-black">Exit</Text>
+                        </TouchableOpacity>
+                    ),
+                    headerTitle: "",
+                    headerShadowVisible: false,
+                    headerStyle: { backgroundColor: PAPER_THEME.background },
+                }}
+            />
             <DraggableFlatList
                 data={selectedRoutines}
                 onDragEnd={({ data }) => setSelectedRoutineIds(data.map(r => r.id))}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={true}
-                contentContainerStyle={{ paddingBottom: 100, paddingTop: 24 }}
-                containerStyle={{ flex: 1 }}
+                contentContainerStyle={{ paddingBottom: 100, paddingTop: 120 }} // Increased top padding to clear header
+                containerStyle={{ flex: 1, backgroundColor: '#e7e5e4' }} // Darker Stone 200 for Clear Contrast
+                style={{ backgroundColor: '#e7e5e4' }}
                 ListHeaderComponent={
                     <>
                         <View className="px-6 mb-4">
@@ -341,24 +378,29 @@ export default function EventEditor() {
                     </>
                 }
                 ListFooterComponent={
-                    <EditorFooter
-                        slots={slots} setSlots={setSlots} people={people} type={type}
-                        title={title} venue={venue} isRecurring={isRecurring}
-                        startDate={startDate} date={date} time={time} notes={notes}
-                        setNotes={setNotes}
-                        totalFee={totalFee} setTotalFee={setTotalFee}
-                        musicianFee={musicianFee} setMusicianFee={setMusicianFee}
-                        personSearchQuery={personSearchQuery} setPersonSearchQuery={setPersonSearchQuery}
-                        availablePersonnel={availablePersonnel} searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery} availableRoutines={availableRoutines}
-                        addRoutineToEvent={addRoutineToEvent}
-                        selectedGearIds={selectedGearIds}
-                        setSelectedGearIds={setSelectedGearIds}
-                        checkedGearIds={checkedGearIds}
-                        setCheckedGearIds={setCheckedGearIds}
-                        onSave={saveWithoutExit}
-                        studentMode={studentMode}
-                    />
+                    <View>
+                        <EditorFooter
+                            slots={slots} setSlots={setSlots} people={people} type={type}
+                            title={title} venue={venue} isRecurring={isRecurring}
+                            startDate={startDate} date={date} time={time} notes={notes}
+                            setNotes={setNotes}
+                            totalFee={totalFee} setTotalFee={setTotalFee}
+                            musicianFee={musicianFee} setMusicianFee={setMusicianFee}
+                            personSearchQuery={personSearchQuery} setPersonSearchQuery={setPersonSearchQuery}
+                            availablePersonnel={availablePersonnel} searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery} availableRoutines={availableRoutines}
+                            addRoutineToEvent={addRoutineToEvent}
+                            selectedGearIds={selectedGearIds}
+                            setSelectedGearIds={setSelectedGearIds}
+                            checkedGearIds={checkedGearIds}
+                            setCheckedGearIds={setCheckedGearIds}
+                            onSave={saveWithoutExit}
+                            studentMode={studentMode}
+                        />
+
+                        {/* Save Button Container REMOVED for Auto-Save */}
+                        <View style={{ height: 40 }} />
+                    </View>
                 }
                 renderItem={({ item, drag, isActive }) => (
                     <View className="px-6">
@@ -393,55 +435,6 @@ export default function EventEditor() {
                 }
             />
 
-            {/* Save Button Container - Explicit Styles to Match PersonEditor */}
-            <View
-                style={{
-                    flexDirection: 'row',
-                    gap: 16,
-                    padding: 24,
-                    borderTopWidth: 1,
-                    borderColor: '#e7e5e4',
-                    backgroundColor: 'rgba(255,255,255,0.9)',
-                    paddingBottom: Platform.OS === 'ios' ? 40 : 24
-                }}
-            >
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    style={{
-                        flex: 1,
-                        padding: 16,
-                        borderRadius: 16,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderWidth: 1,
-                        borderColor: '#d6d3d1', // stone-300
-                        backgroundColor: '#e7e5e4' // PAPER_THEME.cancelBtnBg
-                    }}
-                    activeOpacity={0.7}
-                >
-                    <Text style={{ textAlign: 'center', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1, color: '#57534e' }}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={handleSave}
-                    style={{
-                        flex: 1,
-                        padding: 16,
-                        borderRadius: 16,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#c2410c', // PAPER_THEME.saveBtnBg
-                        shadowColor: '#7c2d12', // orange-900
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.2,
-                        shadowRadius: 8,
-                        elevation: 5
-                    }}
-                    activeOpacity={0.7}
-                >
-                    <Text style={{ fontWeight: '900', fontSize: 18, textTransform: 'uppercase', letterSpacing: 1.5, color: '#ffffff' }}>{isEditing ? 'Update' : 'Save'}</Text>
-                </TouchableOpacity>
-            </View>
-
             <TransactionEditor
                 visible={showTransactionEditor}
                 onClose={() => setShowTransactionEditor(false)}
@@ -452,16 +445,10 @@ export default function EventEditor() {
                     type: 'income',
                     category: 'Gig',
                     description: `Payment for ${title}${venue ? ` at ${venue}` : ''}`,
-                    // Add dummy ID/date/createdAt to satisfy type if needed, or let component handle defaults
                     id: '', date: '', createdAt: ''
-                } as any} // Cast to any or Partial if type is strict, but component handles partials? No, logic above expects full Transaction or undefined. 
-            // Actually TransactionEditor expects initialData to be Transaction.
-            // Let's pass a safe partial object or handle it.
-            // Looking at TransactionEditor: `initialData?: Transaction`. 
-            // And it uses `initialData?.amount` etc.
-            // So I can pass a constructed object.
+                } as any}
             />
-        </View >
+        </View>
     );
 }
 

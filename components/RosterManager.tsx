@@ -73,14 +73,12 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
             return;
         }
 
-        const musician = availablePeople.find(p => p.id === musicianId);
-        const slot = slots.find(s => s.id === slotId);
-
-        if (musician && slot) {
-            setSelectedMusician(musician);
-            setSelectedSlot(slot);
-            setIsSmsVisible(true);
-        }
+        // Immediate Assignment (keep status 'open' until invited, but assign the ID)
+        onUpdateSlots(slots.map(s => s.id === slotId ? {
+            ...s,
+            musicianId,
+            status: 'open' // Explicitly keep/set to open, presence of musicianId drives UI
+        } : s));
     };
 
     const handleConfirmAssignment = (musicianId: string, inviteData?: { inviteId: string; inviteType: 'inquiry' | 'offer'; inviteExpiresAt?: string }) => {
@@ -190,9 +188,11 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
                                 <View className="flex-row items-center">
                                     <View className={`w-2.5 h-2.5 rounded-full mr-2 ${slot.status === 'confirmed' ? 'bg-green-500 shadow-sm shadow-green-200' :
                                         slot.status === 'invited' ? 'bg-amber-500 shadow-sm shadow-amber-200' :
-                                            slot.status === 'open' ? 'bg-blue-500 shadow-sm shadow-blue-200' : 'bg-red-500'
+                                            slot.status === 'open' ? (slot.musicianId ? 'bg-purple-500 shadow-sm shadow-purple-200' : 'bg-blue-500 shadow-sm shadow-blue-200') : 'bg-red-500'
                                         }`} />
-                                    <Text className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{slot.status}</Text>
+                                    <Text className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                                        {slot.status === 'open' && slot.musicianId ? 'Assigned' : slot.status}
+                                    </Text>
                                 </View>
 
                                 <View className="bg-white border border-slate-200 flex-row items-center px-3 py-2 rounded-xl shadow-sm">
@@ -224,9 +224,9 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
                                     {/* Action Buttons Container - Explicit Vertical Stack Below Name */}
                                     <View className="flex-col gap-2">
                                         {/* Row 1: Status Actions (Invite, Confirm, etc) */}
-                                        {(slot.status === 'invited' || slot.status === 'declined') && (
+                                        {(slot.status === 'invited' || slot.status === 'declined' || (slot.status === 'open' && slot.musicianId)) && (
                                             <View className="flex-row gap-2">
-                                                {slot.status === 'invited' && (
+                                                {(slot.status === 'invited' || (slot.status === 'open' && slot.musicianId)) && (
                                                     <>
                                                         <TouchableOpacity
                                                             onPress={() => {

@@ -80,25 +80,43 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
         };
 
         if (Platform.OS === 'web') {
+            // Optimistic update: Always close and confirm immediately
+            onConfirm(musician.id, inviteData);
+            onClose();
+
+            const smsUrl = `sms:${selectedPhone}?body=${encodeURIComponent(message)}`;
+
             try {
                 if (navigator.share) {
                     await navigator.share({
                         title: `Gig Invite: ${event.title}`,
                         text: message
                     });
-                    onConfirm(musician.id, inviteData);
-                    onClose();
                 } else {
-                    // Fallback to clipboard for Desktop Web where Share API might be missing
-                    await navigator.clipboard.writeText(`${message}\n\nTo: ${selectedPhone}`);
-                    alert('Message copied to clipboard! You can now paste it into your messaging app.');
-                    onConfirm(musician.id, inviteData);
-                    onClose();
+                    throw new Error('Web Share API not available');
                 }
             } catch (err) {
-                console.log('Error sharing:', err);
-                // If user cancelled share, we might not want to close/confirm, or we might.
-                // For now, let's assume if they cancelled, they might try again.
+                console.log('Share failed or not supported, trying fallback:', err);
+
+                // Fallback 1: Clipboard (Desktop)
+                // Fallback 2: SMS Link (Mobile)
+                // We can try the SMS link first? If it works, great. 
+                // But on Desktop, sms: links might do nothing or open FaceTime.
+                // Let's try clipboard as a safe default for strictly "Web" behavior, 
+                // but since the user is on iPhone PWA, we really want that SMS link.
+
+                // Simple heuristic: If it looks like a mobile/touch device or we want to force it?
+                // Let's just try to open the SMS link. If it fails, we copy to clipboard.
+                try {
+                    window.location.href = smsUrl;
+                } catch (e) {
+                    // Final fallback: Clipboard
+                    navigator.clipboard.writeText(`${message}\n\nTo: ${selectedPhone}`).then(() => {
+                        alert('Could not open SMS app directly. Message copied to clipboard!');
+                    }).catch(() => {
+                        alert('Could not open SMS or copy to clipboard. Please copy manually.');
+                    });
+                }
             }
             return;
         }
@@ -106,17 +124,19 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
         const url = `sms:${selectedPhone}${Platform.OS === 'ios' ? '&' : '?'}body=${encodeURIComponent(message)}`;
 
         try {
-            const supported = await Linking.canOpenURL(url);
-            if (supported) {
-                onConfirm(musician.id, inviteData);
-                await Linking.openURL(url);
-                onClose();
-            } else {
-                Alert.alert('Error', 'SMS is not supported on this device.');
-            }
+            // Optimistically confirm first
+            onConfirm(musician.id, inviteData);
+            onClose();
+
+            // Just try to open it. canOpenURL is flaky for sms: scheme without Info.plist entries
+            await Linking.openURL(url);
         } catch (error) {
             console.error('Failed to open SMS:', error);
-            Alert.alert('Error', 'Could not open the messaging app.');
+            // We already confirmed/closed, so maybe we shouldn't alert? 
+            // Or maybe we should alert but not revert? 
+            // If they can't open SMS, they can manually copy/paste if we offered that, 
+            // but for now let's just alert so they know why the app didn't switch.
+            Alert.alert('Error', 'Could not launch messaging app. You may need to copy the message manually.');
         }
     };
 
