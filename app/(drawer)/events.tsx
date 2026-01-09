@@ -38,7 +38,6 @@ export default function ScheduleScreen() {
 
     // Animation Logic
     const breathingOpacity = useRef(new Animated.Value(0.25)).current;
-    const [activeImageIndex, setActiveImageIndex] = useState(0);
 
     useEffect(() => {
         // Breathing Loop (5s in, 5s out = 10s total)
@@ -58,13 +57,6 @@ export default function ScheduleScreen() {
                 }),
             ])
         ).start();
-
-        // Swap Image every 10 seconds (at the bottom of the breath)
-        const interval = setInterval(() => {
-            setActiveImageIndex(prev => (prev === 0 ? 1 : 0));
-        }, 10000);
-
-        return () => clearInterval(interval);
     }, []);
 
     const { filter, source } = useLocalSearchParams();
@@ -501,7 +493,7 @@ export default function ScheduleScreen() {
                         {/* Hero Image Section - Dark & Moody */}
                         <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40">
                             <Animated.Image
-                                source={activeImageIndex === 0 ? require('@/assets/images/schedule_clock.png') : require('@/assets/images/schedule_calendar.png')}
+                                source={require('@/assets/images/schedule_clock.png')}
                                 style={{
                                     width: '100%',
                                     height: '100%',

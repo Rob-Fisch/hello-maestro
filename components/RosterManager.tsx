@@ -1,7 +1,7 @@
 import { AppEvent, BookingSlot, BookingStatus, Person } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SmsInviteModal } from './SmsInviteModal';
 
 interface RosterManagerProps {
@@ -50,7 +50,24 @@ export function RosterManager({ slots, onUpdateSlots, availablePeople, event, on
     };
 
     const removeSlot = (id: string) => {
-        onUpdateSlots(slots.filter(s => s.id !== id));
+        const proceed = () => {
+            const newSlots = slots.filter(s => s.id !== id);
+            onUpdateSlots(newSlots);
+            if (onSave) onSave(newSlots);
+        };
+
+        if (Platform.OS === 'web') {
+            if (confirm('Are you sure you want to delete this slot?')) proceed();
+        } else {
+            Alert.alert(
+                'Delete Slot',
+                'Are you sure you want to remove this role?',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete', style: 'destructive', onPress: proceed }
+                ]
+            );
+        }
     };
 
     const updateSlotStatus = (id: string, status: BookingStatus) => {
