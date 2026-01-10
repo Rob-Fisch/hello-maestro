@@ -80,10 +80,6 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
         };
 
         if (Platform.OS === 'web') {
-            // Optimistic update: Always close and confirm immediately
-            onConfirm(musician.id, inviteData);
-            onClose();
-
             const smsUrl = `sms:${selectedPhone}?body=${encodeURIComponent(message)}`;
 
             try {
@@ -98,16 +94,9 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
             } catch (err) {
                 console.log('Share failed or not supported, trying fallback:', err);
 
-                // Fallback 1: Clipboard (Desktop)
-                // Fallback 2: SMS Link (Mobile)
-                // We can try the SMS link first? If it works, great. 
-                // But on Desktop, sms: links might do nothing or open FaceTime.
-                // Let's try clipboard as a safe default for strictly "Web" behavior, 
-                // but since the user is on iPhone PWA, we really want that SMS link.
-
-                // Simple heuristic: If it looks like a mobile/touch device or we want to force it?
-                // Let's just try to open the SMS link. If it fails, we copy to clipboard.
+                // Fallback catch-all for web (Clipboard mostly)
                 try {
+                    // Only try direct SMS link if standard share failed and we really want to
                     window.location.href = smsUrl;
                 } catch (e) {
                     // Final fallback: Clipboard
@@ -117,6 +106,10 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
                         alert('Could not open SMS or copy to clipboard. Please copy manually.');
                     });
                 }
+            } finally {
+                // Optimistic update: Always close and confirm after the interaction attempt
+                onConfirm(musician.id, inviteData);
+                onClose();
             }
             return;
         }

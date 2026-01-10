@@ -85,8 +85,8 @@ export function VersionChecker() {
         } catch (e) {
             console.error('[VersionChecker] Error clearing cache:', e);
         } finally {
-            // 3. Hard Reload
-            window.location.reload();
+            // 3. Force Reload by changing URL (bypasses browser cache more reliably than reload())
+            window.location.href = window.location.pathname + '?t=' + Date.now();
         }
     };
 
@@ -130,7 +130,7 @@ export function VersionChecker() {
                                                 const keys = await caches.keys();
                                                 await Promise.all(keys.map(key => caches.delete(key)));
                                             }
-                                            window.location.href = '/?t=' + Date.now();
+                                            window.location.href = window.location.pathname + '?t=' + Date.now();
                                         } else {
                                             // Native
                                             // We can't easily clear everything without AsyncStorage import, 
