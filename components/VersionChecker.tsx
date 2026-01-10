@@ -68,15 +68,30 @@ export function VersionChecker() {
 
     const handleReload = async () => {
         try {
-            // 1. Unregister all service workers to kill PWA cache
             if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.ready;
+                if (registration && registration.waiting) {
+                    // 1. Standard PWA Update Flow
+                    console.log('[VersionChecker] Sending SKIP_WAITING to waiting worker...');
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+                    // Wait for the new worker to take over
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        console.log('[VersionChecker] Controller changed. Reloading...');
+                        window.location.reload();
+                    });
+                    return;
+                }
+
+                // If no waiting worker, or not ready, try to unregister everything (Nuclear Option)
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (const registration of registrations) {
                     await registration.unregister();
                     console.log('[VersionChecker] SW Unregistered');
                 }
             }
-            // 2. Clear caches if possible (optional but thorough)
+
+            // 2. Clear caches
             if ('caches' in window) {
                 const keys = await caches.keys();
                 await Promise.all(keys.map(key => caches.delete(key)));
@@ -85,8 +100,11 @@ export function VersionChecker() {
         } catch (e) {
             console.error('[VersionChecker] Error clearing cache:', e);
         } finally {
-            // 3. Force Reload by changing URL (bypasses browser cache more reliably than reload())
-            window.location.href = window.location.pathname + '?t=' + Date.now();
+            // 3. Fallback: Force Reload if the nice flow didn't trigger
+            // Give a small delay to let unregister happen if we went that path
+            setTimeout(() => {
+                window.location.href = window.location.pathname + '?t=' + Date.now();
+            }, 500);
         }
     };
 

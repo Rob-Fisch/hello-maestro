@@ -62,9 +62,26 @@ function run() {
     fs.writeFileSync(CURRENT_VERSION_TXT_PATH, txtContent);
     console.log(`Generated public/CurrentVersion.txt: ${txtContent}`);
 
-    // 6. Git Stage
+    // 6. Update public/sw.js (CRITICAL for PWA Update Detection)
+    const SW_PATH = path.join(__dirname, '..', 'public', 'sw.js');
+    if (fs.existsSync(SW_PATH)) {
+        let swContent = fs.readFileSync(SW_PATH, 'utf8');
+        // Regex to match "const VERSION = '...';"
+        const versionRegex = /const VERSION = '.*?';/;
+        const newVersionLine = `const VERSION = '${version} (Build ${newBuildNumberString})';`;
+
+        if (versionRegex.test(swContent)) {
+            swContent = swContent.replace(versionRegex, newVersionLine);
+            fs.writeFileSync(SW_PATH, swContent);
+            console.log(`Updated public/sw.js to: ${newVersionLine}`);
+        } else {
+            console.warn('WARNING: Could not find VERSION line in public/sw.js to update.');
+        }
+    }
+
+    // 7. Git Stage
     try {
-        execSync(`git add ${APP_JSON_PATH} ${PACKAGE_JSON_PATH} ${CURRENT_VERSION_TXT_PATH}`);
+        execSync(`git add ${APP_JSON_PATH} ${PACKAGE_JSON_PATH} ${CURRENT_VERSION_TXT_PATH} ${SW_PATH}`);
         console.log('Staged files to git.');
     } catch (e) {
         console.warn('Failed to stage files to git:', e.message);
