@@ -1,6 +1,6 @@
 // Basic Service Worker for OpusMode PWA
 const CACHE_NAME = 'opusmode-v1';
-const VERSION = '1.2.11 (Build 24)'; // Updated automatically
+const VERSION = '1.2.11 (Build 25)'; // Updated automatically
 
 self.addEventListener('install', (event) => {
     // skipWaiting() forces the waiting ServiceWorker to become the active ServiceWorker.
