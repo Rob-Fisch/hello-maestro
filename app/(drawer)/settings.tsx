@@ -179,8 +179,15 @@ export default function SettingsScreen() {
         };
 
         if (Platform.OS === 'web') {
-            if (confirm("CRITICAL: This will permanently delete ALL your data (Roadmaps, Routines, Contacts, etc). This cannot be undone. Are you absolutely sure?")) {
-                if (confirm("LAST CHANCE: Are you really sure?")) {
+            const msg1 = "CRITICAL: DELETE ACCOUNT?\n\n" +
+                "This will PERMANENTLY DELETE ALL YOUR DATA:\n" +
+                "• All Roadmaps & Routines\n" +
+                "• All Contacts & Students\n" +
+                "• All Progress & History\n\n" +
+                "This action CANNOT be undone. Are you absolutely sure?";
+
+            if (confirm(msg1)) {
+                if (confirm("LAST CHANCE: Are you really sure you want to delete your entire account?")) {
                     performDelete();
                 }
             }
@@ -578,7 +585,15 @@ export default function SettingsScreen() {
                         <TouchableOpacity
                             onPress={() => {
                                 if (Platform.OS === 'web') {
-                                    if (confirm('Factory Reset: This will wipe all data on this device and the cloud but keep your account. Are you sure?')) {
+                                    const msg = "FACTORY RESET: Wipe App Data?\n\n" +
+                                        "WHAT IT DOES: Wipes all local data and resets the app to a fresh installed state.\n\n" +
+                                        "WHAT TO EXPECT:\n" +
+                                        "• All local data (Roadmaps, Routines, Contacts, etc.) will be deleted.\n" +
+                                        "• You will be logged out.\n" +
+                                        "• Your ACCOUNT remains safe on the server (you can log back in elsewhere).\n\n" +
+                                        "Are you sure?";
+
+                                    if (window.confirm(msg)) {
                                         const { nukeAccount } = useContentStore.getState();
                                         nukeAccount()
                                             .then(() => {
@@ -609,6 +624,43 @@ export default function SettingsScreen() {
                         >
                             <Text className="text-orange-500 font-black text-lg">Factory Reset App</Text>
                         </TouchableOpacity>
+
+                        {/* PWA Hard Reset (For Troubleshooting) */}
+                        {Platform.OS === 'web' && (
+                            <TouchableOpacity
+                                onPress={() => {
+                                    const msg = "HARD RESET: Repair App Data?\n\n" +
+                                        "WHAT IT DOES: Clears local storage, removes 'ghost' data inconsistencies, and forces a fresh reload from the server.\n\n" +
+                                        "WHAT TO EXPECT:\n" +
+                                        "• You will be logged out.\n" +
+                                        "• Any unsynced 'offline' work will be lost.\n" +
+                                        "• The app will reload immediately.\n\n" +
+                                        "Press OK to proceed.";
+
+                                    if (window.confirm(msg)) {
+                                        const performReset = async () => {
+                                            try {
+                                                localStorage.clear();
+                                                sessionStorage.clear();
+                                                if ('serviceWorker' in navigator) {
+                                                    const registrations = await navigator.serviceWorker.getRegistrations();
+                                                    for (const registration of registrations) await registration.unregister();
+                                                }
+                                                if ('caches' in window) {
+                                                    const keys = await caches.keys();
+                                                    await Promise.all(keys.map(key => caches.delete(key)));
+                                                }
+                                                window.location.href = '/?t=' + Date.now();
+                                            } catch (e) { console.error(e); }
+                                        };
+                                        performReset();
+                                    }
+                                }}
+                                className="bg-blue-600/10 border border-blue-600/50 p-4 rounded-[24px] items-center mb-4"
+                            >
+                                <Text className="text-blue-500 font-black text-sm">Troubleshoot: Hard Reset PWA</Text>
+                            </TouchableOpacity>
+                        )}
 
 
 
