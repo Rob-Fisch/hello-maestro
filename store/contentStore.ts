@@ -430,18 +430,21 @@ export const useContentStore = create<ContentState>()(
 
 
                         // CLOUD TRUTH LOGIC:
-                        // 1. We already PUSHED our changes above (lines 383-395).
+                        // 1. We already PUSHED our changes above.
                         // 2. So the Cloud now has our local "Offline Work".
                         // 3. We can safely OVERWRITE local with Cloud, because Cloud = Local + Remote.
+                        // 4. FILTER: Exclude Soft-Deleted items (Tombstones) so they vanish from the App.
+                        const active = (list: any[]) => (list || []).filter(item => !item.deletedAt);
+
                         set({
-                            blocks: cloudData.blocks || [],
-                            routines: cloudData.routines || [],
-                            events: cloudData.events || [],
-                            categories: cloudData.categories || [],
-                            people: cloudData.people || [],
-                            paths: cloudData.learning_paths || [],
-                            progress: cloudData.user_progress || [],
-                            proofs: cloudData.proof_of_work || [],
+                            blocks: active(cloudData.blocks),
+                            routines: active(cloudData.routines),
+                            events: active(cloudData.events),
+                            categories: active(cloudData.categories),
+                            people: active(cloudData.people),
+                            paths: active(cloudData.learning_paths),
+                            progress: active(cloudData.user_progress),
+                            proofs: active(cloudData.proof_of_work),
                             profile: cloudProfile || state.profile,
                             syncStatus: 'synced'
                         });

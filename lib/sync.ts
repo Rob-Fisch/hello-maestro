@@ -58,6 +58,7 @@ function mapToDb(data: any): any {
         isPublicStagePlot: 'is_public_stage_plot',
         publicDescription: 'public_description',
         showSetlist: 'show_setlist',
+        deletedAt: 'deleted_at',
     };
 
 
@@ -108,24 +109,25 @@ export async function syncToCloud(table: TableName, data: any) {
 
 
 /**
- * Specifically for deletions
+ * Specifically for deletions (Soft Delete)
  */
 export async function deleteFromCloud(table: TableName, id: string) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
     try {
+        // Soft Delete: Mark as deleted instead of removing row
         const { error } = await supabase
             .from(table)
-            .delete()
+            .update({ deleted_at: new Date().toISOString() })
             .eq('id', id)
             .eq('user_id', session.user.id);
 
         if (error) {
-            console.warn(`[Sync Delete Error] ${table}:`, error.message);
+            console.warn(`[Sync Soft-Delete Error] ${table}:`, error.message);
         }
     } catch (err) {
-        console.warn(`[Sync Delete Exception] ${table}:`, err);
+        console.warn(`[Sync Soft-Delete Exception] ${table}:`, err);
     }
 }
 
@@ -260,6 +262,7 @@ export function mapFromDb(data: any): any {
         is_public_stage_plot: 'isPublicStagePlot',
         public_description: 'publicDescription',
         show_setlist: 'showSetlist',
+        deleted_at: 'deletedAt',
     };
 
 
