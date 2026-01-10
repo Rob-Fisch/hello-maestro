@@ -100,11 +100,7 @@ export default function HelpScreen() {
                         <TouchableOpacity
                             key={video.id}
                             onPress={() => {
-                                if (Platform.OS === 'web') {
-                                    window.open(video.url, '_blank');
-                                } else {
-                                    setCurrentVideo(video.url);
-                                }
+                                setCurrentVideo(video.url);
                             }}
                             className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-3 flex-row items-center active:bg-slate-100"
                         >
@@ -362,7 +358,7 @@ export default function HelpScreen() {
                     )}
                 </View>
             </Modal>
-        </View>
+        </View >
     );
 }
 
