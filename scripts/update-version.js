@@ -57,10 +57,10 @@ function run() {
     fs.writeFileSync(PACKAGE_JSON_PATH, JSON.stringify(packageJson, null, 2) + '\n');
     console.log(`Updated package.json: ${version}`);
 
-    // 5. Generate public/CurrentVersion.txt
-    const txtContent = `${version} (Build ${newBuildNumberString})`;
-    fs.writeFileSync(CURRENT_VERSION_TXT_PATH, txtContent);
-    console.log(`Generated public/CurrentVersion.txt: ${txtContent}`);
+    // 5. Generate public/CurrentVersion.txt - REMOVED (Deprecated)
+    // const txtContent = `${version} (Build ${newBuildNumberString})`;
+    // fs.writeFileSync(CURRENT_VERSION_TXT_PATH, txtContent);
+    // console.log(`Generated public/CurrentVersion.txt: ${txtContent}`);
 
     // 6. Update public/sw.js (CRITICAL for PWA Update Detection)
     const SW_PATH = path.join(__dirname, '..', 'public', 'sw.js');
@@ -81,7 +81,7 @@ function run() {
 
     // 7. Git Stage
     try {
-        execSync(`git add ${APP_JSON_PATH} ${PACKAGE_JSON_PATH} ${CURRENT_VERSION_TXT_PATH} ${SW_PATH}`);
+        execSync(`git add ${APP_JSON_PATH} ${PACKAGE_JSON_PATH} ${SW_PATH}`);
         console.log('Staged files to git.');
     } catch (e) {
         console.warn('Failed to stage files to git:', e.message);

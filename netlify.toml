@@ -1,20 +1,7 @@
 [[redirects]]
-  from = "/CurrentVersion.txt"
-  to = "/CurrentVersion.txt"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[[headers]]
-  for = "/CurrentVersion.txt"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
 
 [[headers]]
   for = "/index.html"

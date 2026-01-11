@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -13,54 +12,48 @@ export function VersionChecker() {
     } | null>(null);
 
     useEffect(() => {
-        if (Platform.OS !== 'web') return;
+        if (Platform.OS !== 'web' || !('serviceWorker' in navigator)) return;
 
-        const checkVersion = async () => {
+        const checkForUpdate = async () => {
             try {
-                const response = await fetch('/CurrentVersion.txt?t=' + Date.now(), {
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                });
-                if (!response.ok) return;
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (!registration) return;
 
-                const text = await response.text();
-                // Expected format: "1.2.2 (Build 2)"
-                const match = text.trim().match(/^(\d+\.\d+\.\d+) \(Build (\d+)\)$/);
+                // 1. Trigger a check against the server
+                await registration.update();
 
-                if (match) {
-                    const [_, serverVer, serverBuild] = match;
-
-                    // ...
-
-                    const localVer = Constants.expoConfig?.version ?? '1.0.0';
-                    const localBuild = Constants.expoConfig?.extra?.buildNumber ?? '0';
-
-
-                    const serverBuildNum = parseInt(serverBuild, 10);
-                    const localBuildNum = parseInt(localBuild, 10);
-
-                    // Logic: If version string is different OR build number is higher
-                    if (localVer !== serverVer || serverBuildNum > localBuildNum) {
-                        console.log(`[VersionChecker] Update found! Local: ${localVer} (${localBuild}) -> Server: ${serverVer} (${serverBuild})`);
-                        setUpdateAvailable({
-                            local: `${localVer} (b${localBuild})`,
-                            server: `${serverVer} (b${serverBuild})`
-                        });
-                    }
+                // 2. See if one is already waiting
+                if (registration.waiting) {
+                    console.log('[VersionChecker] Found waiting worker (from initial check)');
+                    setUpdateAvailable({ local: 'Current', server: 'New Version Ready' });
+                    return;
                 }
+
+                // 3. Listen for new workers installing
+                // reference: https://whatwebcando.today/articles/handling-service-worker-updates/
+                registration.onupdatefound = () => {
+                    const newWorker = registration.installing;
+                    if (!newWorker) return;
+
+                    console.log('[VersionChecker] New worker installing...');
+                    newWorker.onstatechange = () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('[VersionChecker] New worker installed & waiting!');
+                            setUpdateAvailable({ local: 'Current', server: 'New Version Ready' });
+                        }
+                    };
+                };
             } catch (e) {
-                console.warn('[VersionChecker] Failed to check version:', e);
+                console.warn('[VersionChecker] SW Check failed:', e);
             }
         };
 
-        // Check immediately
-        checkVersion();
+        // Check on mount
+        checkForUpdate();
 
-        // Then periodically
-        const interval = setInterval(checkVersion, CHECK_INTERVAL);
+        // Check periodically (e.g. every hour or when tab works)
+        // For active users, checking every minute is probably aggressive but fine for now
+        const interval = setInterval(checkForUpdate, CHECK_INTERVAL);
         return () => clearInterval(interval);
     }, []);
 
