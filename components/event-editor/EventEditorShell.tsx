@@ -110,6 +110,7 @@ export default function EventEditorShell() {
             {isGigMode ? (
                 <GigEditor
                     values={values}
+                    eventId={activeId}
                     onChange={handleChange}
                     isSaving={isSaving}
                 />

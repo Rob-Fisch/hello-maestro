@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
-export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work' | 'gear_assets' | 'pack_lists' | 'transactions';
+export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work' | 'gear_assets' | 'pack_lists' | 'transactions' | 'songs' | 'set_lists';
 
 /**
  * Helper to map camelCase local types to snake_case DB columns
@@ -59,6 +59,11 @@ function mapToDb(data: any): any {
         publicDescription: 'public_description',
         showSetlist: 'show_setlist',
         deletedAt: 'deleted_at',
+        // Songs
+        durationSeconds: 'duration_seconds',
+        lastSyncedAt: 'last_synced_at',
+        // Set Lists
+        items: 'items',
     };
 
 
@@ -342,7 +347,7 @@ export async function pullFromCloud() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;
 
-    const tables: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'user_progress', 'proof_of_work', 'gear_assets', 'pack_lists', 'transactions'];
+    const tables: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'user_progress', 'proof_of_work', 'gear_assets', 'pack_lists', 'transactions', 'songs', 'set_lists'];
     const results: any = {};
 
     try {

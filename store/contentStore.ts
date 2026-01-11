@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useFinanceStore } from './financeStore';
 import { useGearStore } from './gearStore';
-import { AppEvent, AppTheme, Category, ContentBlock, InteractionLog, LearningPath, Person, ProofOfWork, Routine, SessionLog, SyncStatus, UserProfile, UserProgress, UserSettings } from './types';
+import { AppEvent, AppTheme, Category, ContentBlock, InteractionLog, LearningPath, Person, ProofOfWork, Routine, SessionLog, SetList, Song, SyncStatus, UserProfile, UserProgress, UserSettings } from './types';
 
 // Platform-specific storage for Zustand persistence
 
@@ -18,6 +18,8 @@ interface ContentState {
     events: AppEvent[];
     categories: Category[];
     people: Person[];
+    songs: Song[];
+    setLists: SetList[];
     addBlock: (block: ContentBlock) => void;
     updateBlock: (id: string, updates: Partial<ContentBlock>) => void;
     deleteBlock: (id: string) => void;
@@ -37,6 +39,16 @@ interface ContentState {
     settings: UserSettings;
     updateSettings: (updates: Partial<UserSettings>) => void;
     setTheme: (theme: AppTheme) => void;
+
+    // Song Actions
+    addSong: (song: Song) => void;
+    updateSong: (id: string, updates: Partial<Song>) => void;
+    deleteSong: (id: string) => void;
+
+    // Set List Actions
+    addSetList: (setList: SetList) => void;
+    updateSetList: (id: string, updates: Partial<SetList>) => void;
+    deleteSetList: (id: string) => void;
 
     // Pathfinder Actions
     paths: LearningPath[];
@@ -117,6 +129,8 @@ export const useContentStore = create<ContentState>()(
                 { id: uuid.v4() as string, name: 'Other' },
             ],
             people: [],
+            songs: [],
+            setLists: [],
             settings: {
                 includeTOC: true,
                 messageTemplates: ['Hey {name}, looking forward to our session at {time}!'],
@@ -398,6 +412,51 @@ export const useContentStore = create<ContentState>()(
                 syncToCloud('proof_of_work', proof);
             },
 
+            // --- SONG ACTIONS ---
+            addSong: (song) => {
+                set((state) => ({ songs: [...state.songs, song] }));
+                syncToCloud('songs', song);
+            },
+            updateSong: (id, updates) => {
+                set((state) => ({
+                    songs: state.songs.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+                }));
+                const updated = get().songs.find(s => s.id === id);
+                if (updated) syncToCloud('songs', updated);
+            },
+            deleteSong: (id) => {
+                set((state) => {
+                    const item = state.songs.find(i => i.id === id);
+                    const newPending = item ? [...state.pendingDeletions, { id, table: 'songs' }] : state.pendingDeletions;
+                    return {
+                        songs: state.songs.filter((s) => s.id !== id),
+                        pendingDeletions: newPending as { table: TableName, id: string }[]
+                    };
+                });
+                deleteFromCloud('songs', id);
+            },
+
+            // --- SET LIST ACTIONS ---
+            addSetList: (setList) => {
+                set((state) => ({ setLists: [...state.setLists, setList] }));
+                syncToCloud('set_lists', setList);
+            },
+            updateSetList: (id, updates) => {
+                set((state) => ({
+                    setLists: state.setLists.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+                }));
+                const updated = get().setLists.find(s => s.id === id);
+                if (updated) syncToCloud('set_lists', updated);
+            },
+            deleteSetList: (id) => {
+                set((state) => {
+                    const item = state.setLists.find(i => i.id === id);
+                    if (item) pendingDeletions.push({ id, table: 'set_lists' });
+                    return { setLists: state.setLists.filter((s) => s.id !== id) };
+                });
+                deleteFromCloud('set_lists', id);
+            },
+
             fullSync: async () => {
                 const state = get();
                 if (!state.profile) {
@@ -448,6 +507,8 @@ export const useContentStore = create<ContentState>()(
                         pushAllToCloud('gear_assets', useGearStore.getState().assets),
                         pushAllToCloud('pack_lists', useGearStore.getState().packLists),
                         pushAllToCloud('transactions', useFinanceStore.getState().transactions),
+                        pushAllToCloud('songs', state.songs),
+                        pushAllToCloud('set_lists', state.setLists),
                     ]);
 
 
@@ -491,6 +552,8 @@ export const useContentStore = create<ContentState>()(
                             paths: active(cloudData.learning_paths), // No deletions for paths yet?
                             progress: active(cloudData.user_progress),
                             proofs: active(cloudData.proof_of_work),
+                            songs: active(cloudData.songs, 'songs'),
+                            setLists: active(cloudData.set_lists, 'set_lists'),
                             profile: cloudProfile || state.profile,
                             syncStatus: 'synced',
                             // Re-apply pending deletions if sync cleared them? No, we updated state above.

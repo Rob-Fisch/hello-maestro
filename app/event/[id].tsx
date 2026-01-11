@@ -155,6 +155,7 @@ export default function EventDashboard() {
 
                 {/* ACTION BAR */}
                 <View className="flex-row gap-3 mb-8">
+                    {/* Share Button (Keep Existing) */}
                     {event.isPublicStagePlot && (
                         <TouchableOpacity
                             onPress={() => {
@@ -166,9 +167,6 @@ export default function EventDashboard() {
                                         prompt('Copy this link:', url);
                                     }
                                 } else {
-                                    // Use imported Sharing or React Native Share
-                                    // simpler to just use generic alert for now if Share not imported
-                                    // But let's assume we can use Share API
                                     const { Share } = require('react-native');
                                     Share.share({ message: `Check out my gig: ${event.title}`, url });
                                 }
@@ -180,7 +178,14 @@ export default function EventDashboard() {
                         </TouchableOpacity>
                     )}
 
-                    {/* Placeholder for other actions like "Clone" */}
+                    {/* Set List Button */}
+                    <TouchableOpacity
+                        onPress={() => router.push(`/live/${event.id}`)}
+                        className="flex-1 bg-neutral-900 py-3 rounded-2xl flex-row items-center justify-center shadow-lg shadow-neutral-500/20"
+                    >
+                        <Ionicons name="list" size={20} color="white" />
+                        <Text className="text-white font-bold ml-2">Set List</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* DASHBOARD WIDGETS */}

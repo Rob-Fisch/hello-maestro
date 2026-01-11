@@ -1,9 +1,11 @@
 
 import { EventFormValues } from '@/hooks/useEventForm';
-import { AppEventType, BookingSlot } from '@/store/types';
+import { useContentStore } from '@/store/contentStore';
+import { AppEventType, BookingSlot, SetList } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import SetListBuilder from '../setlist/SetListBuilder';
 import FinanceModule from './FinanceModule';
 import { WebDatePicker, WebTimePicker } from './FormComponents';
 import RosterEngine from './RosterEngine';
@@ -11,16 +13,30 @@ import StagePlotConfig from './StagePlotConfig';
 
 interface GigEditorProps {
     values: EventFormValues;
+    eventId?: string;
     onChange: <K extends keyof EventFormValues>(field: K, value: EventFormValues[K]) => void;
     isSaving: boolean;
 }
 
-export default function GigEditor({ values, onChange, isSaving }: GigEditorProps) {
-    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'stageplot'>('logistics');
+export default function GigEditor({ values, eventId, onChange, isSaving }: GigEditorProps) {
+    const { setLists, addSetList, updateSetList } = useContentStore();
+    const linkedSetList = eventId ? setLists.find(sl => sl.eventId === eventId) : undefined;
+    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'stageplot' | 'setlist'>('logistics');
+
+    const handleSaveSetList = (setList: SetList) => {
+        if (linkedSetList) {
+            updateSetList(linkedSetList.id, setList);
+            alert('Set List Updated');
+        } else {
+            addSetList({ ...setList, eventId });
+            alert('Set List Created');
+        }
+    };
 
     const Tabs = [
         { id: 'logistics', label: 'Logistics', icon: 'location' },
         { id: 'roster', label: 'Roster', icon: 'people' },
+        { id: 'setlist', label: 'Set List', icon: 'list' },
         { id: 'finance', label: 'Finance', icon: 'cash' },
         { id: 'stageplot', label: 'Stage Plot', icon: 'map' },
     ];
@@ -156,7 +172,7 @@ export default function GigEditor({ values, onChange, isSaving }: GigEditorProps
                     </View>
                 )}
 
-                {/* ROSTER TAB - To be implemented in next step */}
+                {/* ROSTER TAB */}
                 {activeTab === 'roster' && (
                     <RosterEngine
                         slots={values.slots || []}
@@ -164,6 +180,26 @@ export default function GigEditor({ values, onChange, isSaving }: GigEditorProps
                         onFormChange={onChange}
                         event={values as any}
                     />
+                )}
+
+                {/* SET LIST TAB */}
+                {activeTab === 'setlist' && (
+                    eventId ? (
+                        <SetListBuilder
+                            existingSetList={linkedSetList}
+                            eventId={eventId}
+                            onSave={handleSaveSetList}
+                            onCancel={() => setActiveTab('logistics')}
+                        />
+                    ) : (
+                        <View className="bg-amber-50 p-6 rounded-3xl border border-amber-100 items-center">
+                            <Ionicons name="alert-circle" size={48} color="#d97706" />
+                            <Text className="text-amber-800 font-bold text-lg mt-4 text-center">Save Event First</Text>
+                            <Text className="text-amber-700 text-center mt-2">
+                                Please save this event to create a set list for it.
+                            </Text>
+                        </View>
+                    )
                 )}
 
                 {/* FINANCE TAB */}

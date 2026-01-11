@@ -306,3 +306,38 @@ export interface Transaction {
     receiptUri?: string;     // Link to a receipt image
     createdAt: string;
 }
+
+export interface Song {
+    id: string;
+    title: string;
+    artist: string;
+    key?: string;
+    bpm?: number;
+    durationSeconds?: number;
+    links: { label: string; url: string }[];
+    notes?: string;
+    tags?: string[];
+    createdAt: string;
+    deletedAt?: string;
+}
+
+export type SetListItemType = 'song' | 'break';
+
+export interface SetListItem {
+    id: string; // Unique ID for this item in the set
+    type: SetListItemType;
+    songId?: string; // If type === 'song'
+    label?: string;  // If type === 'break' (e.g. "Intermission")
+    note?: string;   // Ride the cymbal hard here
+    durationSeconds?: number; // Override or manual duration
+}
+
+export interface SetList {
+    id: string;
+    title: string;
+    description?: string;
+    eventId?: string; // Optional link to a specific gig
+    items: SetListItem[];
+    createdAt: string;
+    deletedAt?: string;
+}

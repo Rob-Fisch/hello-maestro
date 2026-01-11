@@ -14,6 +14,10 @@ export default function GigsScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
+    const goToLiveMode = (eventId: string) => {
+        router.push(`/live/${eventId}`);
+    };
+
     // Track usage on mount
     useMemo(() => {
         trackModuleUsage('gigs');
@@ -117,14 +121,23 @@ export default function GigsScreen() {
                             {/* Mini List of Next few */}
                             <View className="mt-4 space-y-3">
                                 {next7Days.slice(0, 3).map(gig => (
-                                    <View key={gig.id} className="flex-row items-center">
-                                        <Text className="text-[10px] font-bold text-rose-300 w-12 uppercase">
-                                            {gig.schedule?.type === 'recurring' ? 'Wkly' : new Date(gig.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                        </Text>
-                                        <View className="h-1.5 w-1.5 rounded-full bg-rose-500 mr-2" />
-                                        <Text className="text-sm font-bold text-white flex-1 truncate" numberOfLines={1}>
-                                            {gig.title}
-                                        </Text>
+                                    <View key={gig.id} className="flex-row items-center justify-between">
+                                        <View className="flex-row items-center flex-1 mr-2">
+                                            <Text className="text-[10px] font-bold text-rose-300 w-12 uppercase">
+                                                {gig.schedule?.type === 'recurring' ? 'Wkly' : new Date(gig.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            </Text>
+                                            <View className="h-1.5 w-1.5 rounded-full bg-rose-500 mr-2" />
+                                            <Text className="text-sm font-bold text-white flex-1 truncate" numberOfLines={1}>
+                                                {gig.title}
+                                            </Text>
+                                        </View>
+
+                                        <TouchableOpacity
+                                            onPress={() => goToLiveMode(gig.id)}
+                                            className="bg-rose-500 px-3 py-1.5 rounded-full"
+                                        >
+                                            <Text className="text-[10px] font-black uppercase text-white">Live</Text>
+                                        </TouchableOpacity>
                                     </View>
                                 ))}
                             </View>

@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'scout', icon: 'telescope-outline', label: 'Scout', path: '/scout' },
     // { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
     { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
+    { name: 'songs', icon: 'mic-outline', label: 'Song Library', path: '/songs' },
     { name: 'finance', icon: 'wallet-outline', label: 'Finance', path: '/finance' },
     // Compass removed for V3 Consolidation
     { name: 'settings', icon: 'settings-outline', label: 'Settings', path: '/settings' },

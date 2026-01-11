@@ -93,8 +93,9 @@ export default function RootLayout() {
     const inGigGroup = segments[0] === 'gig';
     const inFanGroup = segments[0] === 'fan';
     const inRoutineGroup = segments[0] === 'routine';
+    const inLiveGroup = segments[0] === 'live'; // Allow public access to /live
 
-    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup) {
+    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup) {
       router.replace('/auth');
     } else if (profile && inAuthGroup) {
       router.replace('/');
