@@ -480,14 +480,9 @@ export default function ScheduleScreen() {
                         </Text>
                     </View>
                     <View className="flex-row gap-2">
-                        <Link href="/modal/event-editor-v2" asChild>
-                            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center bg-indigo-500 shadow-lg shadow-indigo-500/20">
-                                <Text className="text-white font-black text-xs">V2</Text>
-                            </TouchableOpacity>
-                        </Link>
                         <Link href="/modal/event-editor" asChild>
-                            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white">
-                                <Ionicons name="add" size={28} color="black" />
+                            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center bg-indigo-600 shadow-lg shadow-indigo-500/20">
+                                <Ionicons name="add" size={28} color="white" />
                             </TouchableOpacity>
                         </Link>
                     </View>

@@ -28,6 +28,17 @@ export default function EventDashboard() {
     const dateObj = new Date(event.date);
     const dateFormatted = dateObj.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
+    const formatTime = (timeStr: string) => {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        const h = parseInt(hours, 10);
+        if (isNaN(h)) return timeStr;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        return `${h12}:${minutes} ${ampm}`;
+    };
+    const timeFormatted = formatTime(event.time);
+
     // Roster Stats
     // HYDRATION: Fallback if slots are missing but personnelIds exist (Visual Fix only)
     let slots = event.slots || [];
@@ -102,7 +113,7 @@ export default function EventDashboard() {
                     ),
                     headerRight: () => (
                         <TouchableOpacity
-                            onPress={() => router.push({ pathname: '/modal/event-editor-v2', params: { id: event.id, type: event.type } })}
+                            onPress={() => router.push({ pathname: '/modal/event-editor', params: { id: event.id, type: event.type } })}
                             className="bg-indigo-600 px-4 py-2 rounded-full flex-row items-center shadow-sm shadow-indigo-200"
                         >
                             <Ionicons name="create" size={16} color="white" />
@@ -145,7 +156,7 @@ export default function EventDashboard() {
 
                     <View className="flex-row items-center mb-1">
                         <Ionicons name="calendar-outline" size={18} color="#64748b" />
-                        <Text className="text-slate-600 font-bold ml-2 text-lg">{dateFormatted} @ {event.time}</Text>
+                        <Text className="text-slate-600 font-bold ml-2 text-lg">{dateFormatted} @ {timeFormatted}</Text>
                     </View>
                     <View className="flex-row items-center">
                         <Ionicons name="location-outline" size={18} color="#64748b" />

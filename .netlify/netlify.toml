@@ -27,12 +27,6 @@ command = "expo export -p web"
 [build.services]
 
 [[headers]]
-for = "/CurrentVersion.txt"
-
-[headers.values]
-Cache-Control = "public, max-age=0, must-revalidate"
-
-[[headers]]
 for = "/index.html"
 
 [headers.values]
@@ -42,7 +36,7 @@ Cache-Control = "public, max-age=0, must-revalidate"
 for = "/sw.js"
 
 [headers.values]
-Cache-Control = "public, max-age=0, must-revalidate"
+Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[headers]]
 for = "/*.json"
@@ -55,18 +49,6 @@ from = "/CurrentVersion.txt"
 to = "/CurrentVersion.txt"
 status = 200.0
 force = false
-
-[redirects.query]
-
-[redirects.conditions]
-
-[redirects.headers]
-
-[[redirects]]
-from = "/CurrentVersion.txt"
-to = "/CurrentVersion.txt"
-status = 200.0
-force = true
 
 [redirects.query]
 

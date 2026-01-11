@@ -7,7 +7,7 @@ import { Linking, SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, V
 export default function LiveGigMode() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { events, setLists, songs } = useContentStore();
+    const { events, setLists, songs, profile } = useContentStore();
 
     const event = events.find(e => e.id === id);
     const setList = setLists.find(sl => sl.eventId === id);
@@ -90,13 +90,18 @@ export default function LiveGigMode() {
                 ) : (
                     // STAGE HEADER
                     <View className="px-5 py-4 flex-row justify-between items-center">
-                        <TouchableOpacity
-                            onPress={() => router.back()}
-                            className="flex-row items-center opacity-70"
-                        >
-                            <Ionicons name="chevron-back" size={24} color="white" />
-                            <Text className="text-white ml-1 font-bold">Exit Stage</Text>
-                        </TouchableOpacity>
+                        {profile ? (
+                            <TouchableOpacity
+                                onPress={() => router.back()}
+                                className="flex-row items-center opacity-70"
+                            >
+                                <Ionicons name="chevron-back" size={24} color="white" />
+                                <Text className="text-white ml-1 font-bold">Exit Stage</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            // Placeholder for public view alignment
+                            <View />
+                        )}
 
                         <View className="flex-row items-center bg-gray-100/10 rounded-lg p-1 mr-4">
                             <TouchableOpacity onPress={() => setViewMode('stage')} className="px-3 py-1 bg-neutral-800 rounded-md">
@@ -261,6 +266,23 @@ export default function LiveGigMode() {
                         </TouchableOpacity>
                     );
                 })}
+
+                {/* Branding Footer */}
+                <View className="py-12 items-center">
+                    {viewMode === 'print' ? (
+                        <View className="flex-row items-center opacity-50">
+                            <Text className="text-slate-400 font-bold text-xs uppercase tracking-widest">Created with OpusMode.net</Text>
+                        </View>
+                    ) : (
+                        !profile && (
+                            <TouchableOpacity onPress={() => Linking.openURL('https://opusmode.net')} className="items-center">
+                                <Text className="text-neutral-600 font-bold text-xs uppercase tracking-widest mb-2">Powered by</Text>
+                                <Text className="text-indigo-400 font-black text-xl tracking-tighter">OpusMode</Text>
+                                <Text className="text-neutral-500 text-[10px] mt-1">Live Sync • Set Lists • Band Management</Text>
+                            </TouchableOpacity>
+                        )
+                    )}
+                </View>
             </ScrollView>
         </View>
     );

@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 
+import FeatureCarousel from '@/components/home/FeatureCarousel';
+
 export default function HomeScreen() {
     const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage, sessionLogs, progress, settings } = useContentStore();
 
@@ -65,63 +67,7 @@ export default function HomeScreen() {
     const upcomingEventsCount = countEventsInRange(startOfWeek, endOfWeek);
 
 
-    const mainModules = [
-        {
-            title: 'Studio',
-            subtitle: 'Creative Hub',
-            icon: 'layers-outline',
-            path: '/studio',
-            color: 'text-indigo-400',
-            bg: 'bg-indigo-500/20',
-            description: 'Levels 1 & 2'
-        },
-        {
-            title: 'Performance Management',
-            subtitle: 'Contracts & Sets',
-            icon: 'musical-notes-outline',
-            path: '/gigs',
-            color: 'text-rose-400',
-            bg: 'bg-rose-500/20',
-            description: 'Bookings & Logistics'
-        },
-        {
-            title: 'Schedule',
-            subtitle: 'Calendar',
-            icon: 'calendar-outline',
-            path: '/events',
-            color: 'text-blue-400',
-            bg: 'bg-blue-500/20',
-            description: 'Gigs, Rehearsals'
-        },
-        {
-            title: 'Contacts',
-            subtitle: 'People & Roster',
-            icon: 'people-outline',
-            path: '/people',
-            color: 'text-purple-400',
-            bg: 'bg-purple-500/20',
-            description: 'Bandmates, Venues'
-        },
 
-        {
-            title: 'Scout',
-            subtitle: 'AI Intel',
-            icon: 'telescope-outline',
-            path: '/scout',
-            color: 'text-orange-400',
-            bg: 'bg-orange-500/20',
-            description: 'Lead Gen & Prompts'
-        },
-        {
-            title: 'Settings',
-            subtitle: 'Config & Help',
-            icon: 'settings-outline',
-            path: '/settings',
-            color: 'text-slate-400',
-            bg: 'bg-slate-500/20',
-            description: 'Preferences, FAQ'
-        },
-    ];
 
     const [isLogoExpanded, setIsLogoExpanded] = useState(false);
 
@@ -265,73 +211,11 @@ export default function HomeScreen() {
                 <View className="h-[1px] w-full mb-8 opacity-10 bg-white" />
 
                 {/* ONBOARDING: START HERE (Visible if no roles selected) */}
-                {(!settings?.roles || settings.roles.length === 0) && (
-                    <TouchableOpacity
-                        onPress={() => router.push('/modal/onboarding')}
-                        className="w-full bg-indigo-600/20 border border-indigo-500/50 p-6 rounded-[32px] mb-8 relative overflow-hidden"
-                    >
-                        <View className="absolute right-0 bottom-0 opacity-10 transform translate-x-4 translate-y-4">
-                            <Ionicons name="sparkles" size={120} color="#818cf8" />
-                        </View>
-
-                        <View className="flex-row items-center mb-2">
-                            <View className="bg-indigo-500 rounded-full px-3 py-1 mr-3">
-                                <Text className="text-white text-[10px] font-black uppercase tracking-wider">New</Text>
-                            </View>
-                            <Text className="text-indigo-300 font-bold uppercase tracking-widest text-xs">Getting Started</Text>
-                        </View>
-
-                        <Text className="text-2xl font-black text-white mb-2">Start Here</Text>
-                        <Text className="text-indigo-200/80 leading-relaxed max-w-[80%]">
-                            Tell us your role and goals, and we'll tailor OpusMode to your workflow.
-                        </Text>
-
-                        <View className="flex-row items-center mt-4">
-                            <Text className="text-indigo-400 font-bold mr-2">Begin Setup</Text>
-                            <Ionicons name="arrow-forward" size={16} color="#818cf8" />
-                        </View>
-                    </TouchableOpacity>
-                )}
+                {/* REMOVED LEGACY START HERE CARD */}
 
 
 
-                {/* SECTION 2: STUDIO & TOOLS (Switchboard Grid) */}
-                <Text className="text-2xl font-black tracking-tight mb-6 text-white">
-                    Studio & Tools
-                </Text>
-
-                <View className="flex-row flex-wrap justify-between">
-                    {mainModules.map((item, index) => (
-                        <TouchableOpacity
-                            key={item.title}
-                            onPress={() => router.push(item.path as any)}
-                            activeOpacity={0.7}
-                            className="w-[48%] mb-4 p-4 rounded-[32px] border shadow-sm relative overflow-hidden h-[140px] justify-between"
-                            style={{ backgroundColor: theme.card, borderColor: theme.border }}
-                        >
-                            {/* Watermark/Graphic */}
-                            <View className="absolute -right-4 -bottom-4 opacity-[0.07] transform rotate-[-10deg]">
-                                <Ionicons name={item.icon as any} size={90} color="white" />
-                            </View>
-
-                            <View>
-                                {/* Colored Icon Box */}
-                                <View className={`w-12 h-12 rounded-2xl items-center justify-center mb-3 ${item.bg}`}>
-                                    <Ionicons name={item.icon as any} size={22} color="white" />
-                                </View>
-                                <Text className="text-sm font-black tracking-tight leading-4 text-white z-10 pr-2">
-                                    {item.title}
-                                </Text>
-                            </View>
-
-                            {/* Small decorative indicator */}
-                            <View className="flex-row items-center opacity-40">
-                                <Text className="text-[9px] uppercase font-bold text-white mr-1">Open</Text>
-                                <Ionicons name="arrow-forward" size={10} color="white" />
-                            </View>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+                <FeatureCarousel />
 
                 {/* FREE TIER SYNC WARNING - MOVED HERE */}
                 {profile && !profile.isPremium && syncStatus === 'synced' && (

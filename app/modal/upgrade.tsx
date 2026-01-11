@@ -3,7 +3,7 @@ import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, Easing, Image, LayoutChangeEvent, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Dimensions, Easing, Image, LayoutChangeEvent, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -38,6 +38,16 @@ const SLIDES = [
         color: '#fb7185', // Rose
         bg: 'bg-rose-950', // Deep Red
         blob: 'bg-rose-700'
+    },
+    {
+        id: 'business',
+        title: 'THE BUSINESS',
+        subtitle: 'PASSION TO PROFIT',
+        image: require('../../assets/images/finance_profit.png'),
+        icon: 'cash',
+        color: '#10b981', // Emerald
+        bg: 'bg-emerald-950',
+        blob: 'bg-emerald-700'
     },
     {
         id: 'scout',
@@ -100,6 +110,14 @@ export default function UpgradeModal() {
                     }
                 }
             ]
+        );
+    };
+
+    const handleRestore = () => {
+        Alert.alert(
+            "Restore Purchases",
+            "Checking for active subscriptions...",
+            [{ text: "OK", onPress: () => Alert.alert("Restore Complete", "No active subscriptions found in this demo.") }]
         );
     };
 
@@ -267,9 +285,19 @@ export default function UpgradeModal() {
                             )}
                         </View>
                     ))}
-                    <Text className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Restore</Text>
-                    <Text className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Terms</Text>
-                    <Text className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Privacy</Text>
+
+                    {/* Legal Footer */}
+                    <View className="flex-row justify-center gap-6 mt-8 opacity-60">
+                        <TouchableOpacity onPress={handleRestore}>
+                            <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Restore Purchase</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => Linking.openURL('https://opusmode.net/terms')}>
+                            <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Terms</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => Linking.openURL('https://opusmode.net/privacy')}>
+                            <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Privacy</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
             </ScrollView>

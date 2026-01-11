@@ -5,7 +5,7 @@ import { useContentStore } from '@/store/contentStore';
 import { AppEvent, BookingSlot, Person } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 
 import uuid from 'react-native-uuid';
@@ -179,8 +179,25 @@ export default function RosterEngine({ slots, onChange, onFormChange, event }: R
                         {assignedMusician ? (
                             <TouchableOpacity
                                 onPress={() => {
-                                    setActiveSlotId(item.id);
-                                    setInviteModalVisible(true);
+                                    if (item.status === 'invited') {
+                                        if (Platform.OS === 'web') {
+                                            if (confirm(`Mark ${assignedMusician.firstName} as Confirmed?`)) {
+                                                updateSlot(item.id, { status: 'confirmed' });
+                                            }
+                                        } else {
+                                            Alert.alert(
+                                                'Confirm Musician',
+                                                `Mark ${assignedMusician.firstName} as fully confirmed?`,
+                                                [
+                                                    { text: 'Cancel', style: 'cancel' },
+                                                    { text: 'Confirm', onPress: () => updateSlot(item.id, { status: 'confirmed' }) }
+                                                ]
+                                            );
+                                        }
+                                    } else {
+                                        setActiveSlotId(item.id);
+                                        setInviteModalVisible(true);
+                                    }
                                 }}
                                 className={`w-10 h-10 rounded-full items-center justify-center border ${statusBg}`}
                             >
