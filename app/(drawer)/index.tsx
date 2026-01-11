@@ -9,7 +9,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 
 export default function HomeScreen() {
-    const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage, sessionLogs, progress } = useContentStore();
+    const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage, sessionLogs, progress, settings } = useContentStore();
 
     const router = useRouter();
     const navigation = useNavigation();
@@ -113,7 +113,7 @@ export default function HomeScreen() {
             description: 'Lead Gen & Prompts'
         },
         {
-            title: 'System',
+            title: 'Settings',
             subtitle: 'Config & Help',
             icon: 'settings-outline',
             path: '/settings',
@@ -263,6 +263,36 @@ export default function HomeScreen() {
 
                 {/* DIVIDER */}
                 <View className="h-[1px] w-full mb-8 opacity-10 bg-white" />
+
+                {/* ONBOARDING: START HERE (Visible if no roles selected) */}
+                {(!settings?.roles || settings.roles.length === 0) && (
+                    <TouchableOpacity
+                        onPress={() => router.push('/modal/onboarding')}
+                        className="w-full bg-indigo-600/20 border border-indigo-500/50 p-6 rounded-[32px] mb-8 relative overflow-hidden"
+                    >
+                        <View className="absolute right-0 bottom-0 opacity-10 transform translate-x-4 translate-y-4">
+                            <Ionicons name="sparkles" size={120} color="#818cf8" />
+                        </View>
+
+                        <View className="flex-row items-center mb-2">
+                            <View className="bg-indigo-500 rounded-full px-3 py-1 mr-3">
+                                <Text className="text-white text-[10px] font-black uppercase tracking-wider">New</Text>
+                            </View>
+                            <Text className="text-indigo-300 font-bold uppercase tracking-widest text-xs">Getting Started</Text>
+                        </View>
+
+                        <Text className="text-2xl font-black text-white mb-2">Start Here</Text>
+                        <Text className="text-indigo-200/80 leading-relaxed max-w-[80%]">
+                            Tell us your role and goals, and we'll tailor OpusMode to your workflow.
+                        </Text>
+
+                        <View className="flex-row items-center mt-4">
+                            <Text className="text-indigo-400 font-bold mr-2">Begin Setup</Text>
+                            <Ionicons name="arrow-forward" size={16} color="#818cf8" />
+                        </View>
+                    </TouchableOpacity>
+                )}
+
 
 
                 {/* SECTION 2: STUDIO & TOOLS (Switchboard Grid) */}

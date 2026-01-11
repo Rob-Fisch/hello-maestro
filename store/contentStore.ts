@@ -118,6 +118,8 @@ export const useContentStore = create<ContentState>()(
                 includeTOC: true,
                 messageTemplates: ['Hey {name}, looking forward to our session at {time}!'],
                 theme: 'vibrant',
+                roles: [],
+                goals: [],
             },
             paths: [],
             progress: [],

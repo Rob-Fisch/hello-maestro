@@ -153,6 +153,8 @@ export interface UserSettings {
     includeTOC: boolean;
     messageTemplates: string[];
     theme: AppTheme;
+    roles?: string[]; // e.g. "Band Leader", "Sideman", "Teacher", "Student"
+    goals?: string[]; // e.g. "Get Organized", "Practice More"
 }
 
 export interface UserProfile {
