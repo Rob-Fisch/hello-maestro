@@ -67,7 +67,12 @@ function mapToDb(data: any): any {
     const mapped: any = {};
     for (const key in data) {
         const dbKey = mapping[key] || key;
-        mapped[dbKey] = data[key];
+        const value = data[key];
+        // CRITICAL: Do not send null/undefined for deletedAt, otherwise we resurrect zombies!
+        // We generally want to avoid sending nulls to allow DB defaults or existing values (like soft deletes) to persist.
+        if (value !== undefined && value !== null) {
+            mapped[dbKey] = value;
+        }
     }
     return mapped;
 }

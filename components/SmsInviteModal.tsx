@@ -1,5 +1,6 @@
 import { AppEvent, BookingSlot, Person } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
+import * as SMS from 'expo-sms';
 import React, { useState } from 'react';
 import { Alert, Linking, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -39,8 +40,6 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
 
             let link = `https://opusmode.net/gig/${inviteId}`;
 
-
-
             let actionText = '';
             // Determine Fee to show
             const feeToShow = slot.fee ? slot.fee : (event.musicianFee && event.musicianFee !== '0') ? event.musicianFee : null;
@@ -58,12 +57,7 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
         }
     }, [visible, event, musician, slot, inviteType, offerDuration, inviteId]);
 
-    const sendSms = async () => {
-        if (!selectedPhone) {
-            Alert.alert('No Number', 'This musician does not have a phone number saved.');
-            return;
-        }
-
+    const handleConfirm = () => {
         // Calculate expiration if applicable
         let expiresAt: string | undefined = undefined;
         if (inviteType === 'offer' && offerDuration !== 'custom') {
@@ -79,9 +73,19 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
             inviteExpiresAt: expiresAt
         };
 
+        onConfirm(musician.id, inviteData);
+        onClose();
+    };
+
+
+    const sendSms = async () => {
+        if (!selectedPhone) {
+            Alert.alert('No Number', 'This musician does not have a phone number saved.');
+            return;
+        }
+
         if (Platform.OS === 'web') {
             const smsUrl = `sms:${selectedPhone}?body=${encodeURIComponent(message)}`;
-
             try {
                 if (navigator.share) {
                     await navigator.share({
@@ -89,53 +93,42 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
                         text: message
                     });
                 } else {
-                    throw new Error('Web Share API not available');
+                    window.location.href = smsUrl;
                 }
             } catch (err) {
-                console.log('Share failed or not supported, trying fallback:', err);
-
-                // Fallback catch-all for web (Clipboard mostly)
-                try {
-                    // Only try direct SMS link if standard share failed and we really want to
-                    window.location.href = smsUrl;
-                } catch (e) {
-                    // Final fallback: Clipboard
-                    navigator.clipboard.writeText(`${message}\n\nTo: ${selectedPhone}`).then(() => {
-                        alert('Could not open SMS app directly. Message copied to clipboard!');
-                    }).catch(() => {
-                        alert('Could not open SMS or copy to clipboard. Please copy manually.');
-                    });
-                }
+                // Fallback copy
+                navigator.clipboard.writeText(`${message}\n\nTo: ${selectedPhone}`).then(() => {
+                    alert('Message copied to clipboard (SMS link failed).');
+                });
             } finally {
-                // Optimistic update: Always close and confirm after the interaction attempt
-                onConfirm(musician.id, inviteData);
-                onClose();
+                handleConfirm();
             }
             return;
         }
 
-        const url = `sms:${selectedPhone}${Platform.OS === 'ios' ? '&' : '?'}body=${encodeURIComponent(message)}`;
-
+        // Native Implementation with expo-sms
         try {
-            // Optimistically confirm first
-            onConfirm(musician.id, inviteData);
-            onClose();
-
-            // Just try to open it. canOpenURL is flaky for sms: scheme without Info.plist entries
-            await Linking.openURL(url);
+            const isAvailable = await SMS.isAvailableAsync();
+            if (isAvailable) {
+                // Determine Recipient
+                const { result } = await SMS.sendSMSAsync(
+                    [selectedPhone],
+                    message
+                );
+                // result can be 'sent', 'cancelled', 'unknown'
+                // Regardless of result, we treat the invite as "generated" and let the user handle the rest.
+                handleConfirm();
+            } else {
+                // Fallback to Linking if expo-sms fails availability check
+                const url = `sms:${selectedPhone}${Platform.OS === 'ios' ? '&' : '?'}body=${encodeURIComponent(message)}`;
+                await Linking.openURL(url);
+                handleConfirm();
+            }
         } catch (error) {
-            console.error('Failed to open SMS:', error);
-            // We already confirmed/closed, so maybe we shouldn't alert? 
-            // Or maybe we should alert but not revert? 
-            // If they can't open SMS, they can manually copy/paste if we offered that, 
-            // but for now let's just alert so they know why the app didn't switch.
-            Alert.alert('Error', 'Could not launch messaging app. You may need to copy the message manually.');
+            console.error('SMS Error:', error);
+            Alert.alert('Error', 'Could not open SMS composer. Please copy manually.');
+            // Still confirm? Maybe not if it failed hard.
         }
-    };
-
-    const confirmWithoutSms = () => {
-        onConfirm(musician.id);
-        onClose();
     };
 
     return (
@@ -224,7 +217,10 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
 
                     <View className="flex-row gap-4">
                         <TouchableOpacity
-                            onPress={confirmWithoutSms}
+                            onPress={() => {
+                                onConfirm(musician.id);
+                                onClose();
+                            }}
                             className="flex-1 bg-gray-100 p-5 rounded-3xl items-center"
                         >
                             <Text className="text-gray-600 font-black text-lg text-center">Assign only</Text>
@@ -238,11 +234,6 @@ export function SmsInviteModal({ visible, onClose, onConfirm, event, musician, s
                             <Text className="text-white font-black text-lg ml-3">Invite via SMS</Text>
                         </TouchableOpacity>
                     </View>
-                    {Platform.OS === 'web' && (
-                        <Text className="text-center text-gray-400 text-xs mt-4 px-4 leading-relaxed">
-                            <Text className="font-bold">Note:</Text> This will open your device's share menu (e.g., Messages, WhatsApp). You may need to select the contact again in that app.
-                        </Text>
-                    )}
                 </View>
             </View>
         </Modal>

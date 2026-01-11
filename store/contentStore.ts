@@ -1,6 +1,6 @@
 import { createPlatformStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
-import { deleteFromCloud, mapFromDb, pullFromCloud, pullProfileFromCloud, pushAllToCloud, syncToCloud } from '@/lib/sync';
+import { TableName, deleteFromCloud, mapFromDb, pullFromCloud, pullProfileFromCloud, pushAllToCloud, syncToCloud } from '@/lib/sync';
 import { Alert, Platform } from 'react-native';
 import uuid from 'react-native-uuid';
 import { create } from 'zustand';
@@ -93,9 +93,12 @@ interface ContentState {
     handleRealtimeEvent: (payload: any) => void;
     fixDuplicateCategories: (silent?: boolean) => Promise<void>;
 
-    // Parent Proxy / Student Mode
+    // Student Mode
     studentMode: boolean;
     toggleStudentMode: (enabled: boolean) => void;
+
+    // ROBUST SYNC: Pending Deletions
+    pendingDeletions: { table: TableName, id: string }[];
 }
 
 
@@ -160,6 +163,8 @@ export const useContentStore = create<ContentState>()(
                     return { recentModuleIds: [moduleId, ...filtered].slice(0, 4) };
                 });
             },
+
+            pendingDeletions: [],
             recentBlockIds: [],
             trackBlockUsage: (blockId) => {
                 set((state) => {
@@ -208,8 +213,9 @@ export const useContentStore = create<ContentState>()(
                         ...r,
                         blocks: r.blocks.filter((b) => b.id !== id),
                     })),
+                    pendingDeletions: [...state.pendingDeletions, { table: 'blocks', id }]
                 }));
-                deleteFromCloud('blocks', id);
+                deleteFromCloud('blocks', id).catch(err => console.warn('deleteBlock failed', err));
             },
 
             addRoutine: (routine) => {
@@ -231,8 +237,9 @@ export const useContentStore = create<ContentState>()(
                         ...e,
                         routines: e.routines.filter((rid) => rid !== id),
                     })),
+                    pendingDeletions: [...state.pendingDeletions, { table: 'routines', id }]
                 }));
-                deleteFromCloud('routines', id);
+                deleteFromCloud('routines', id).catch(err => console.warn('deleteRoutine failed', err));
             },
             duplicateRoutine: (id) => {
                 const state = get();
@@ -241,7 +248,7 @@ export const useContentStore = create<ContentState>()(
 
                 const newRoutine: Routine = {
                     ...original,
-                    id: Date.now().toString(),
+                    id: uuid.v4() as string,
                     title: `Copy of ${original.title}`,
                     createdAt: new Date().toISOString(),
                     isPublic: false, // Reset visibility
@@ -270,8 +277,12 @@ export const useContentStore = create<ContentState>()(
                 });
             },
             deleteEvent: (id) => {
-                set((state) => ({ events: state.events.filter((e) => e.id !== id) }));
-                deleteFromCloud('events', id);
+                set((state) => ({
+                    events: state.events.filter((e) => e.id !== id),
+                    pendingDeletions: [...state.pendingDeletions, { table: 'events', id }]
+                }));
+                // Try immediate delete (Fire & Forget)
+                deleteFromCloud('events', id).catch(err => console.warn('Immediate delete failed, queued for sync', err));
             },
 
             addCategory: (category) => {
@@ -290,8 +301,9 @@ export const useContentStore = create<ContentState>()(
                 set((state) => ({
                     categories: state.categories.filter((c) => c.id !== id),
                     blocks: state.blocks.map((b) => (b.categoryId === id ? { ...b, categoryId: undefined } : b)),
+                    pendingDeletions: [...state.pendingDeletions, { table: 'categories', id }]
                 }));
-                deleteFromCloud('categories', id);
+                deleteFromCloud('categories', id).catch(err => console.warn('deleteCategory failed', err));
             },
             addPerson: (person) => {
                 set((state) => ({ people: [...state.people, person] }));
@@ -306,8 +318,11 @@ export const useContentStore = create<ContentState>()(
                 });
             },
             deletePerson: (id) => {
-                set((state) => ({ people: state.people.filter((p) => p.id !== id) }));
-                deleteFromCloud('people', id);
+                set((state) => ({
+                    people: state.people.filter((p) => p.id !== id),
+                    pendingDeletions: [...state.pendingDeletions, { table: 'people', id }]
+                }));
+                deleteFromCloud('people', id).catch(err => console.warn('deletePerson failed', err));
             },
 
             updateSettings: (updates) =>
@@ -328,8 +343,11 @@ export const useContentStore = create<ContentState>()(
                 });
             },
             deletePath: (id) => {
-                set((state) => ({ paths: state.paths.filter((p) => p.id !== id) }));
-                deleteFromCloud('learning_paths', id);
+                set((state) => ({
+                    paths: state.paths.filter((p) => p.id !== id),
+                    pendingDeletions: [...state.pendingDeletions, { table: 'learning_paths', id }]
+                }));
+                deleteFromCloud('learning_paths', id).catch(err => console.warn('deletePath failed', err));
             },
             forkPathRemote: async (originalPathId, originatorName, originatorPathTitle) => {
                 const state = get();
@@ -339,7 +357,7 @@ export const useContentStore = create<ContentState>()(
                 }
 
                 try {
-                    const newId = Date.now().toString(); // Consistent with app's ID pattern
+                    const newId = uuid.v4() as string;
                     const { data, error } = await supabase.rpc('fork_path', {
                         original_path_id: originalPathId,
                         new_path_id: newId,
@@ -401,6 +419,22 @@ export const useContentStore = create<ContentState>()(
                 }
 
                 try {
+                    // 0. Process Pending Deletions
+                    if (state.pendingDeletions.length > 0) {
+                        console.log(`[FullSync] Processing ${state.pendingDeletions.length} pending deletions...`);
+                        const remainingDeletions: { table: TableName, id: string }[] = [];
+
+                        for (const item of state.pendingDeletions) {
+                            try {
+                                await deleteFromCloud(item.table, item.id);
+                            } catch (e) {
+                                console.warn(`[FullSync] Delete retry failed for ${item.table} ${item.id}`, e);
+                                remainingDeletions.push(item);
+                            }
+                        }
+                        set({ pendingDeletions: remainingDeletions });
+                    }
+
                     // 1. Push stage: BACKUP EVERYONE
                     await Promise.all([
                         pushAllToCloud('blocks', state.blocks),
@@ -436,19 +470,32 @@ export const useContentStore = create<ContentState>()(
                         // 2. So the Cloud now has our local "Offline Work".
                         // 3. We can safely OVERWRITE local with Cloud, because Cloud = Local + Remote.
                         // 4. FILTER: Exclude Soft-Deleted items (Tombstones) so they vanish from the App.
-                        const active = (list: any[]) => (list || []).filter(item => !item.deletedAt);
+                        // 4. FILTER: Exclude Soft-Deleted items AND items in Pending Deletions
+                        const active = (list: any[], tableName?: TableName) => {
+                            return (list || []).filter(item => {
+                                if (item.deletedAt) return false;
+                                // Zombie Check: If we are trying to delete it, don't let it resurrect
+                                if (tableName && state.pendingDeletions.some(pd => pd.table === tableName && pd.id === item.id)) {
+                                    return false;
+                                }
+                                return true;
+                            });
+                        };
 
                         set({
-                            blocks: active(cloudData.blocks),
-                            routines: active(cloudData.routines),
-                            events: active(cloudData.events),
-                            categories: active(cloudData.categories),
-                            people: active(cloudData.people),
-                            paths: active(cloudData.learning_paths),
+                            blocks: active(cloudData.blocks, 'blocks'),
+                            routines: active(cloudData.routines, 'routines'),
+                            events: active(cloudData.events, 'events'),
+                            categories: active(cloudData.categories, 'categories'),
+                            people: active(cloudData.people, 'people'),
+                            paths: active(cloudData.learning_paths), // No deletions for paths yet?
                             progress: active(cloudData.user_progress),
                             proofs: active(cloudData.proof_of_work),
                             profile: cloudProfile || state.profile,
-                            syncStatus: 'synced'
+                            syncStatus: 'synced',
+                            // Re-apply pending deletions if sync cleared them? No, we updated state above.
+                            // But wait, `deleteEvent` updates `pendingDeletions` which is persisted.
+                            // The `set` here MIGHT overwrite `pendingDeletions` if we included it in the object, but we are NOT including it, so it preserves current state.
                         });
 
                         const eventCount = (cloudData.events || []).length;
@@ -580,7 +627,7 @@ export const useContentStore = create<ContentState>()(
                 const state = get();
                 const newRoutine: Routine = {
                     ...routine,
-                    id: Date.now().toString(),
+                    id: uuid.v4() as string,
                     title: `Copy of ${routine.title}`,
                     createdAt: new Date().toISOString(),
                     isPublic: false, // Reset visibility

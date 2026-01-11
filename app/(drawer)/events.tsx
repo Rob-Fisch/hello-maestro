@@ -286,7 +286,7 @@ export default function ScheduleScreen() {
                 <TouchableOpacity
                     className="p-5"
                     onPress={() => {
-                        const pathname = isRoutine ? '/modal/routine-editor' : '/modal/event-editor';
+                        const pathname = isRoutine ? '/modal/routine-editor' : '/event/[id]';
                         const relatedId = isRoutine ? (item.originalItem as Routine).id : (item.originalItem as AppEvent).id;
                         router.push({ pathname, params: { id: relatedId } });
                     }}
@@ -479,11 +479,18 @@ export default function ScheduleScreen() {
                             Schedule
                         </Text>
                     </View>
-                    <Link href="/modal/event-editor" asChild>
-                        <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white">
-                            <Ionicons name="add" size={28} color="black" />
-                        </TouchableOpacity>
-                    </Link>
+                    <View className="flex-row gap-2">
+                        <Link href="/modal/event-editor-v2" asChild>
+                            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center bg-indigo-500 shadow-lg shadow-indigo-500/20">
+                                <Text className="text-white font-black text-xs">V2</Text>
+                            </TouchableOpacity>
+                        </Link>
+                        <Link href="/modal/event-editor" asChild>
+                            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white">
+                                <Ionicons name="add" size={28} color="black" />
+                            </TouchableOpacity>
+                        </Link>
+                    </View>
                 </View>
             </View>
 
