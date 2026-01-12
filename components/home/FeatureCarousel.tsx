@@ -100,12 +100,12 @@ const SLIDES = [
         screenshot: require('../../assets/images/finance_dashboard.png')
     },
     {
-        id: 'scout',
-        title: 'Meet Scout AI',
+        id: 'coach',
+        title: 'Meet Your AI Coach',
         narrative: 'Your 24/7 agent. Find venues, draft booking emails, and get career advice instantly.',
-        ctaFree: 'Ask Scout',
-        ctaPro: 'Ask Scout',
-        route: '/scout',
+        ctaFree: 'Ask Coach',
+        ctaPro: 'Ask Coach',
+        route: '/coach',
         icon: 'telescope-outline',
         color: 'bg-amber-500',
         textColor: 'text-amber-400',

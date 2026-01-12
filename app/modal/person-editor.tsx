@@ -154,17 +154,85 @@ export default function PersonEditor() {
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
+            {/* Header */}
+            <View className="bg-white px-4 py-3 border-b border-stone-200 flex-row justify-between items-center z-10 shadow-sm" style={{ paddingTop: Platform.OS === 'ios' ? 60 : 16 }}>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="flex-row items-center ml-0 py-2 pr-4 pl-2"
+                >
+                    <Text className="text-base font-medium text-red-500">Cancel</Text>
+                </TouchableOpacity>
+
+                <View className="flex-row items-center gap-2 pr-2">
+                    <TouchableOpacity
+                        onPress={() => router.push('/modal/help')}
+                        className="p-2 rounded-full bg-stone-50 mr-2"
+                    >
+                        <Ionicons name="help-circle-outline" size={24} color="#78716c" />
+                    </TouchableOpacity>
+
+                    {/* Save (Stay) */}
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (!firstName.trim()) {
+                                Alert.alert('Error', 'Please enter a first name');
+                                return;
+                            }
+                            // Save logic (duplicate) - Refactor ideal but sticking to inline for speed/safety
+                            if (type === 'venue_manager' && !isEditing) {
+                                const currentCount = people.filter(p => p.type === 'venue_manager').length;
+                                if (currentCount >= 10) {
+                                    if (Platform.OS === 'web') alert('Limit Reached');
+                                    else Alert.alert('Limit Reached', 'You have reached the limit of 10 Venues.');
+                                    return;
+                                }
+                            }
+
+                            const personData: Person = {
+                                id: id || Date.now().toString(),
+                                firstName: firstName.trim(),
+                                lastName: lastName.trim(),
+                                type,
+                                email: email.trim() || undefined,
+                                phone: phone.trim() || undefined,
+                                verifiedPhone: verifiedPhone.trim() || undefined,
+                                instruments: instruments.length > 0 ? instruments : (instrument ? [instrument] : []),
+                                notes: notes.trim() || undefined,
+                                source,
+                                nativeId,
+                                venueName: type === 'venue_manager' ? venueName : undefined,
+                                venueType: type === 'venue_manager' ? venueType : undefined,
+                                venueLocation: type === 'venue_manager' ? venueLocation : undefined,
+                                createdAt: existingPerson?.createdAt || new Date().toISOString(),
+                            };
+
+                            if (isEditing && id) updatePerson(id, personData);
+                            else addPerson(personData);
+
+                            Alert.alert('Saved', 'Contact saved.');
+                        }}
+                        className="flex-row items-center px-3 py-2 rounded-full bg-stone-100"
+                    >
+                        <Ionicons name="save-outline" size={18} color="#57534e" />
+                        <Text className="font-bold ml-1 text-xs text-stone-500">Save</Text>
+                    </TouchableOpacity>
+
+                    {/* Save & Exit */}
+                    <TouchableOpacity
+                        onPress={handleSave}
+                        className="flex-row items-center px-3 py-2 rounded-full shadow-sm bg-stone-800"
+                    >
+                        <Ionicons name="exit-outline" size={18} color="white" style={{ transform: [{ scaleX: -1 }] }} />
+                        <Text className="text-white font-bold ml-1 text-xs">Save & Exit</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <ScrollView className="flex-1 p-6" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 100 }}>
                 <View className="flex-row items-center justify-between mb-8 mt-6">
                     <Text className="text-3xl font-black tracking-tight" style={{ color: PAPER_THEME.text }}>
                         {isEditing ? 'Edit Contact' : 'New Contact'}
                     </Text>
-                    <TouchableOpacity
-                        onPress={() => router.push('/modal/help')}
-                        className="p-2 rounded-full bg-stone-100 border border-stone-200"
-                    >
-                        <Ionicons name="help" size={20} color="#78716c" />
-                    </TouchableOpacity>
                 </View>
 
                 {!isEditing && Platform.OS !== 'web' && (
@@ -351,22 +419,7 @@ export default function PersonEditor() {
 
             </ScrollView>
 
-            <View className="flex-row gap-4 p-6 border-t border-stone-200 bg-white/90" style={{ paddingBottom: Platform.OS === 'ios' ? 40 : 24 }}>
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="flex-1 p-4 rounded-2xl items-center justify-center border border-stone-300"
-                    style={{ backgroundColor: PAPER_THEME.cancelBtnBg }}
-                >
-                    <Text className="text-center font-bold uppercase tracking-wide" style={{ color: PAPER_THEME.cancelBtnText }}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={handleSave}
-                    className="flex-1 p-4 rounded-2xl shadow-lg items-center justify-center shadow-orange-900/20"
-                    style={{ backgroundColor: PAPER_THEME.saveBtnBg }}
-                >
-                    <Text className="font-black text-lg uppercase tracking-wider" style={{ color: PAPER_THEME.saveBtnText }}>{isEditing ? 'Update' : 'Save'}</Text>
-                </TouchableOpacity>
-            </View>
+
         </KeyboardAvoidingView>
     );
 }

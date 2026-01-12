@@ -66,16 +66,9 @@ export default function EventEditorShell() {
                     headerLeft: () => (
                         <TouchableOpacity
                             onPress={handleCancel}
-                            className="flex-row items-center ml-[-8px] py-2 pr-4"
+                            className="flex-row items-center ml-0 py-2 pr-4 pl-2" // Removed negative margin, added left padding
                         >
-                            <Ionicons
-                                name="chevron-back"
-                                size={24}
-                                color={isDirty ? "#ef4444" : "#64748b"}
-                            />
-                            <Text className={`text-base font-medium ml-[-4px] ${isDirty ? 'text-red-500' : 'text-slate-600'}`}>
-                                {isDirty ? "Cancel" : "Back"}
-                            </Text>
+                            <Text className="text-base font-medium text-red-500">Cancel</Text>
                         </TouchableOpacity>
                     ),
                     headerTitle: '', // Keep title clear
@@ -83,10 +76,20 @@ export default function EventEditorShell() {
                     headerStyle: { backgroundColor: PAPER_THEME.background },
                     headerRight: () => (
                         <View className="flex-row items-center gap-2 pr-2">
-                            {/* Save (Stay) */}
+                            {/* Save (Stay) - Restored for intermediate saves */}
                             <TouchableOpacity
                                 onPress={() => {
-                                    save().catch(err => console.error('[Shell] Save Error:', err));
+                                    save().then((id) => {
+                                        // Optional: Show a subtle toast or indicator?
+                                        // For now, the user just stays on screen.
+                                        // If it was a new event, we might need to url replace to include ID? 
+                                        // But the hook handles state. The URL param might be stale but internal state has ID.
+                                        // In GigEditor, we pass `activeId`. This `activeId` const comes from params.
+                                        // We might need to update the route if it was a create!
+                                        if (id && !activeId) {
+                                            router.replace({ pathname: '/modal/event-editor', params: { id, type: values.type } } as any);
+                                        }
+                                    }).catch(err => console.error('[Shell] Save Error:', err));
                                 }}
                                 className={`flex-row items-center px-3 py-2 rounded-full ${isDirty ? 'bg-indigo-50' : 'bg-slate-100 opacity-50'}`}
                                 disabled={!isDirty || isSaving}
@@ -101,10 +104,10 @@ export default function EventEditorShell() {
                                 )}
                             </TouchableOpacity>
 
-                            {/* Done (Save & Exit) */}
+                            {/* Save & Exit (Door) */}
                             <TouchableOpacity
                                 onPress={() => {
-                                    if (!isDirty) {
+                                    if (!isDirty && existingEvent) {
                                         router.back();
                                         return;
                                     }
@@ -112,11 +115,11 @@ export default function EventEditorShell() {
                                         if (id) router.back();
                                     }).catch(err => console.error('[Shell] Save Error:', err));
                                 }}
-                                className={`flex-row items-center px-3 py-2 rounded-full shadow-sm ${(!isDirty || isDirty) ? 'bg-indigo-600' : 'bg-slate-300'}`}
-                            // Always active "Done" acts as Exit if clean, Save & Exit if dirty
+                                className={`flex-row items-center px-4 py-2 rounded-full shadow-sm ${(!isDirty && !existingEvent) ? 'bg-slate-300' : 'bg-indigo-600'}`} // Disabled if clean & new (cannot exit empty new)
+                                disabled={!isDirty && !existingEvent}
                             >
-                                <Ionicons name="checkmark" size={18} color="white" />
-                                <Text className="text-white font-bold ml-1 text-xs">Done</Text>
+                                <Ionicons name="exit-outline" size={20} color="white" style={{ transform: [{ scaleX: -1 }] }} />
+                                <Text className="text-white font-bold ml-1 text-sm">Save & Exit</Text>
                             </TouchableOpacity>
                         </View>
                     )

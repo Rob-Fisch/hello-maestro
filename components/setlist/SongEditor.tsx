@@ -53,19 +53,35 @@ export default function SongEditor({ initialSong, onSave, onCancel }: SongEditor
         >
             <View className="flex-1 bg-slate-50">
                 {/* Header */}
-                <View className="bg-white px-6 pt-12 pb-4 border-b border-slate-200 flex-row justify-between items-center shadow-sm z-10">
-                    <TouchableOpacity onPress={onCancel}>
-                        <Text className="text-slate-600 text-base">Cancel</Text>
-                    </TouchableOpacity>
-                    <Text className="text-lg font-bold text-slate-800">
-                        {initialSong.title ? 'Edit Song' : 'New Song'}
-                    </Text>
+                <View className="bg-white px-4 py-3 border-b border-slate-200 flex-row justify-between items-center z-10 shadow-sm" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 16 }}>
                     <TouchableOpacity
-                        onPress={() => isValid ? onSave(song) : Alert.alert('Missing Title', 'Please enter a song title.')}
-                        className={!isValid ? 'opacity-50' : ''}
+                        onPress={onCancel}
+                        className="flex-row items-center ml-0 py-2 pr-4 pl-2"
                     >
-                        <Text className="text-indigo-600 font-bold text-base">Save</Text>
+                        <Text className="text-base font-medium text-red-500">Cancel</Text>
                     </TouchableOpacity>
+
+                    <View className="flex-row items-center gap-2 pr-2">
+                        {/* Save (Stay) - Treating as Save/Close for creation context to avoid dupes */}
+                        <TouchableOpacity
+                            onPress={() => isValid ? onSave(song) : Alert.alert('Missing Title', 'Please enter a song title.')}
+                            className={`flex-row items-center px-3 py-2 rounded-full ${!isValid ? 'opacity-50' : ''} bg-slate-100`}
+                            disabled={!isValid}
+                        >
+                            <Ionicons name="save-outline" size={18} color="#57534e" />
+                            <Text className="font-bold ml-1 text-xs text-stone-500">Save</Text>
+                        </TouchableOpacity>
+
+                        {/* Save & Exit */}
+                        <TouchableOpacity
+                            onPress={() => isValid ? onSave(song) : Alert.alert('Missing Title', 'Please enter a song title.')}
+                            className={`flex-row items-center px-3 py-2 rounded-full shadow-sm bg-slate-800 ${!isValid ? 'opacity-50' : ''}`}
+                            disabled={!isValid}
+                        >
+                            <Ionicons name="exit-outline" size={18} color="white" style={{ transform: [{ scaleX: -1 }] }} />
+                            <Text className="text-white font-bold ml-1 text-xs">Save & Exit</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <ScrollView className="flex-1 p-6">

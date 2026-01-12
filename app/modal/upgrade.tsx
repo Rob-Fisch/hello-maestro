@@ -50,9 +50,9 @@ const SLIDES = [
         blob: 'bg-emerald-700'
     },
     {
-        id: 'scout',
-        title: 'THE SCOUT',
-        subtitle: 'AI AGENT',
+        id: 'coach',
+        title: 'THE COACH',
+        subtitle: 'AI STRATEGY',
         image: require('../../assets/images/scout_vision.png'), // New generated image
         icon: 'telescope',
         color: '#8b5cf6', // Violet

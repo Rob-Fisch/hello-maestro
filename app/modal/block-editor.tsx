@@ -202,6 +202,56 @@ export default function BlockEditor() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
+            {/* Header */}
+            <View className="bg-white px-4 py-3 border-b border-stone-200 flex-row justify-between items-center z-10 shadow-sm" style={{ paddingTop: Platform.OS === 'ios' ? 60 : 16 }}>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="flex-row items-center ml-0 py-2 pr-4 pl-2"
+                >
+                    <Text className="text-base font-medium text-red-500">Cancel</Text>
+                </TouchableOpacity>
+
+                <View className="flex-row items-center gap-2 pr-2">
+                    {/* Save (Stay) */}
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (!title.trim()) {
+                                if (Platform.OS === 'web') alert('Please enter a title');
+                                else Alert.alert('Error', 'Please enter a title');
+                                return;
+                            }
+                            const blockData: ContentBlock = {
+                                id: id || Date.now().toString(),
+                                title,
+                                type,
+                                categoryId,
+                                content,
+                                tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+                                mediaUri,
+                                linkUrl: linkUrl.trim() || undefined,
+                                createdAt: existingBlock?.createdAt || new Date().toISOString(),
+                            };
+                            if (isEditing && id) updateBlock(id, blockData);
+                            else addBlock(blockData);
+                            Alert.alert('Saved', 'Activity saved.');
+                        }}
+                        className="flex-row items-center px-3 py-2 rounded-full bg-stone-100"
+                    >
+                        <Ionicons name="save-outline" size={18} color="#57534e" />
+                        <Text className="font-bold ml-1 text-xs text-stone-500">Save</Text>
+                    </TouchableOpacity>
+
+                    {/* Save & Exit */}
+                    <TouchableOpacity
+                        onPress={handleSave}
+                        className="flex-row items-center px-3 py-2 rounded-full shadow-sm bg-stone-800"
+                    >
+                        <Ionicons name="exit-outline" size={18} color="white" style={{ transform: [{ scaleX: -1 }] }} />
+                        <Text className="text-white font-bold ml-1 text-xs">Save & Exit</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <ScrollView
                 className="flex-1 px-6 pt-6"
                 keyboardShouldPersistTaps="handled"
@@ -553,26 +603,7 @@ export default function BlockEditor() {
                 </View>
             </ScrollView>
 
-            {/* Fixed Action Buttons at the bottom */}
-            <View className="flex-row gap-4 p-6 border-t border-stone-200" style={{ backgroundColor: '#fafaf9' }}>
-                <Pressable
-                    onPress={() => router.back()}
-                    style={({ pressed }) => ({
-                        opacity: pressed ? 0.6 : 1,
-                        backgroundColor: PAPER_THEME.cancelBtnBg
-                    })}
-                    className="flex-1 p-4 rounded-2xl border border-stone-300"
-                >
-                    <Text className="text-center font-bold" style={{ color: PAPER_THEME.cancelBtnText }}>Cancel</Text>
-                </Pressable>
-                <TouchableOpacity
-                    onPress={handleSave}
-                    className="flex-1 p-4 rounded-2xl shadow-sm items-center justify-center shadow-orange-900/20"
-                    style={{ backgroundColor: PAPER_THEME.saveBtnBg }}
-                >
-                    <Text className="font-black text-center text-base uppercase tracking-wider" style={{ color: PAPER_THEME.saveBtnText }}>Save Activity</Text>
-                </TouchableOpacity>
-            </View>
+
         </View>
     );
 }

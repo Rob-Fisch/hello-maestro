@@ -54,7 +54,7 @@ const PRESET_GENRES = ['Jazz', 'Classical', 'Rock', 'Pop', 'Folk', 'Blues', 'R&B
 
 import * as Clipboard from 'expo-clipboard';
 
-export default function ScoutScreen() {
+export default function CoachScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
     const router = useRouter(); // Hooks must be used inside the component
@@ -129,8 +129,8 @@ export default function ScoutScreen() {
                             <Ionicons name="menu" size={26} color={theme.text} />
                         </TouchableOpacity>
                         <View className="flex-1">
-                            <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>Scout</Text>
-                            <Text className="font-bold text-xs uppercase tracking-widest opacity-60" style={{ color: theme.text }}>AI Lead Generation</Text>
+                            <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>AI Coach</Text>
+                            <Text className="font-bold text-xs uppercase tracking-widest opacity-60" style={{ color: theme.text }}>AI Career Strategy</Text>
                         </View>
                     </View>
                 </View>
@@ -235,7 +235,7 @@ export default function ScoutScreen() {
                 <PremiumGate
                     featureName="Unlock Intelligence"
                     description="Upgrade to generate unlimited, high-precision prompts for your career."
-                    buttonText="Unlock Scout"
+                    buttonText="Unlock AI Coach"
                     featureId="scout_generate"
                 >
                     <View>

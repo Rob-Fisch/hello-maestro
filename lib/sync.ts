@@ -64,13 +64,18 @@ function mapToDb(data: any): any {
         lastSyncedAt: 'last_synced_at',
         // Set Lists
         items: 'items',
+        // originalSetListId: 'original_set_list_id', // DB Column missing/cached? Disabling to fix sync.
     };
 
 
 
 
     const mapped: any = {};
+    const ignoredKeys = ['originalSetListId']; // Keys to exclude from cloud sync (e.g. missing DB columns)
+
     for (const key in data) {
+        if (ignoredKeys.includes(key)) continue;
+
         const dbKey = mapping[key] || key;
         const value = data[key];
         // CRITICAL: Do not send null/undefined for deletedAt, otherwise we resurrect zombies!
@@ -104,15 +109,17 @@ export async function syncToCloud(table: TableName, data: any) {
             .upsert(payload, { onConflict: 'id' });
 
         if (error) {
-            console.warn(`[Sync Error] ${table}:`, error.message);
-            // Alert user so they know data isn't saving!
-            // import { Alert } from 'react-native'; // Ensure this is imported at top or used from checking Platform
-            // But this function is in lib/sync.ts, simple console.warn might be hidden.
-            // Let's re-throw or validly log.
-            // Actually, let's just use console for now but make it error so it shows in red
             console.error(`[Sync Error] ${table}:`, error.message);
+            // Alert user so they know data isn't saving!
+            if (Platform.OS !== 'web') {
+                // require to avoid circular dependency or import issues if strict
+                const { Alert } = require('react-native');
+                Alert.alert('Sync Failed', `Your changes to ${table} could not be saved to the cloud.\n\n${error.message}`);
+            } else {
+                alert(`Sync Failed: Your changes to ${table} could not be saved to the cloud.\n\n${error.message}`);
+            }
         }
-    } catch (err) {
+    } catch (err: any) {
         console.warn(`[Sync Exception] ${table}:`, err);
     }
 }
@@ -273,6 +280,7 @@ export function mapFromDb(data: any): any {
         public_description: 'publicDescription',
         show_setlist: 'showSetlist',
         deleted_at: 'deletedAt',
+        // original_set_list_id: 'originalSetListId',
     };
 
 

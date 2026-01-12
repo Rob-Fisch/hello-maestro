@@ -56,7 +56,7 @@
 | 3 | | | | | | | |
 | 4 | | | | | | | |
 
-### 7. Gig Hound (AI Research)
+### 7. AI Coach
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Gig Hunt** | No (Locked) | Yes | Yes | Instantly find venues booking your genre in any city. | Find venues. | |

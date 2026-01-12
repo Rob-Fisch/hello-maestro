@@ -155,7 +155,7 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
         const setList = saveLogic();
         if (setList) {
             onSave(setList);
-            onCancel(); // Check if onSave implicitly closes? Usually GigEditor might not, but here we act as "Done"
+            onCancel(); // This MUST close the modal. The parent GigEditor passes `setActiveTab('logistics')` or similar to close.
         }
     };
 
@@ -174,13 +174,9 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
     return (
         <View className="flex-1 bg-white">
             <View className="flex-1 bg-slate-50">
-                {/* Header */}
                 <View className="bg-white px-4 py-3 border-b border-slate-200 flex-row justify-between items-center z-10">
-                    <TouchableOpacity onPress={handleBack} className="flex-row items-center w-16">
-                        <Ionicons name="chevron-back" size={24} color={isDirty ? "#ef4444" : "#64748b"} />
-                        <Text className={isDirty ? "text-red-500 font-medium ml-1" : "text-slate-600 font-medium ml-1"}>
-                            {isDirty ? "Cancel" : "Back"}
-                        </Text>
+                    <TouchableOpacity onPress={handleBack} className="p-2 ml-0 flex-row items-center">
+                        <Text className="text-red-500 text-base font-medium">Cancel</Text>
                     </TouchableOpacity>
 
                     <TextInput
@@ -194,18 +190,21 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
                     <View className="flex-row items-center gap-2">
                         <TouchableOpacity
                             onPress={handleSave}
-                            className="flex-row items-center bg-indigo-50 px-3 py-2 rounded-full"
+                            disabled={!isDirty} // Disable save if clean
+                            className={`flex-row items-center px-3 py-2 rounded-full ${isDirty ? 'bg-indigo-50' : 'bg-slate-100 opacity-50'}`}
                         >
-                            <Ionicons name="save-outline" size={18} color="#4f46e5" />
-                            <Text className="text-indigo-600 font-bold ml-1 text-xs">Save</Text>
+                            <Ionicons name="save-outline" size={18} color={isDirty ? "#4f46e5" : "#94a3b8"} />
+                            <Text className={`font-bold ml-1 text-xs ${isDirty ? 'text-indigo-600' : 'text-slate-400'}`}>Save</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            onPress={handleSaveAndExit}
+                            onPress={() => {
+                                handleSaveAndExit();
+                            }}
                             className="flex-row items-center bg-indigo-600 px-3 py-2 rounded-full shadow-sm"
                         >
-                            <Ionicons name="checkmark" size={18} color="white" />
-                            <Text className="text-white font-bold ml-1 text-xs">Done</Text>
+                            <Ionicons name="exit-outline" size={18} color="white" style={{ transform: [{ scaleX: -1 }] }} />
+                            <Text className="text-white font-bold ml-1 text-xs">Save & Exit</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

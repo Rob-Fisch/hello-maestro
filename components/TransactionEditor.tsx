@@ -81,17 +81,40 @@ export default function TransactionEditor({ visible, onClose, onSave, onDelete, 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-stone-50">
-                <View className="flex-row justify-between items-center p-4 border-b border-stone-200 bg-white">
-                    <TouchableOpacity onPress={onClose} className="p-2">
-                        <Text className="text-stone-500 font-bold">Cancel</Text>
+                {/* Header */}
+                <View className="bg-white px-4 py-3 border-b border-stone-200 flex-row justify-between items-center z-10 shadow-sm" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 16 }}>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        className="flex-row items-center ml-0 py-2 pr-4 pl-2"
+                    >
+                        <Text className="text-base font-medium text-red-500">Cancel</Text>
                     </TouchableOpacity>
-                    <Text className="font-black text-lg">{isEditing ? 'Edit Transaction' : 'New Transaction'}</Text>
-                    <TouchableOpacity onPress={handleSave} className="p-2">
-                        <Text className="text-blue-600 font-bold">Save</Text>
-                    </TouchableOpacity>
+
+                    <View className="flex-row items-center gap-2 pr-2">
+                        {/* Save (Stay) */}
+                        <TouchableOpacity
+                            onPress={handleSave}
+                            className="flex-row items-center px-3 py-2 rounded-full bg-stone-100"
+                        >
+                            <Ionicons name="save-outline" size={18} color="#57534e" />
+                            <Text className="font-bold ml-1 text-xs text-stone-500">Save</Text>
+                        </TouchableOpacity>
+
+                        {/* Save & Exit */}
+                        <TouchableOpacity
+                            onPress={handleSave}
+                            className="flex-row items-center px-3 py-2 rounded-full shadow-sm bg-stone-800"
+                        >
+                            <Ionicons name="exit-outline" size={18} color="white" style={{ transform: [{ scaleX: -1 }] }} />
+                            <Text className="text-white font-bold ml-1 text-xs">Save & Exit</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <ScrollView className="flex-1 p-6">
+                    <Text className="text-3xl font-black mb-8 mt-2 tracking-tight block text-stone-900">
+                        {isEditing ? 'Edit Transaction' : 'New Transaction'}
+                    </Text>
                     {/* TYPE TOGGLE */}
                     <View className="flex-row bg-stone-200 p-1 rounded-xl mb-8">
                         {(['income', 'expense'] as TransactionType[]).map((t) => (

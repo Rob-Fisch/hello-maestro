@@ -193,7 +193,7 @@ export default function GigsScreen() {
 
                 {/* Block 3: Scout / Pro Upsell */}
                 <TouchableOpacity
-                    onPress={() => router.push('/scout')}
+                    onPress={() => router.push('/coach')}
                     activeOpacity={0.8}
                     className="p-6 rounded-[32px] border shadow-sm overflow-hidden relative mb-10"
                     style={{ backgroundColor: '#1e1b4b', borderColor: '#312e81' }} // Indigo-950 theme
@@ -208,7 +208,7 @@ export default function GigsScreen() {
                         <View className="flex-1 mr-4">
                             <View className="flex-row items-center mb-3">
                                 <Ionicons name="telescope" size={20} color="#a5b4fc" />
-                                <Text className="text-[#a5b4fc] font-black uppercase tracking-widest text-xs ml-2">OpusMode Scout</Text>
+                                <Text className="text-[#a5b4fc] font-black uppercase tracking-widest text-xs ml-2">OpusMode AI Coach</Text>
                             </View>
                             <Text className="text-2xl font-black text-white mb-2 tracking-tight">
                                 Find new opportunities
@@ -218,7 +218,7 @@ export default function GigsScreen() {
                             </Text>
 
                             <View className="flex-row items-center bg-white/10 self-start px-4 py-2 rounded-full border border-white/20">
-                                <Text className="text-white font-bold text-sm mr-2">Launch Scout</Text>
+                                <Text className="text-white font-bold text-sm mr-2">Launch Coach</Text>
                                 <Ionicons name="arrow-forward" size={14} color="white" />
                             </View>
                         </View>

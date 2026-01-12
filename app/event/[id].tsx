@@ -107,8 +107,7 @@ export default function EventDashboard() {
                             }}
                             className="flex-row items-center p-2 -ml-2"
                         >
-                            <Ionicons name="chevron-back" size={24} color="#64748b" />
-                            <Text className="text-slate-600 font-bold text-base ml-1">Back</Text>
+                            <Ionicons name="arrow-back" size={24} color="#64748b" />
                         </TouchableOpacity>
                     ),
                     headerRight: () => (

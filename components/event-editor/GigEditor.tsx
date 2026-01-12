@@ -47,10 +47,11 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
     const handleSaveSetList = (setList: SetList) => {
         if (linkedSetList) {
             updateSetList(linkedSetList.id, setList);
-            alert('Set List Updated');
+            // alert('Set List Updated'); // REMOVED: Too noisy for minor updates
         } else {
             addSetList({ ...setList, eventId });
-            alert('Set List Created');
+            // Subtle feedback instead of alert, or just nothing as the UI will update
+            alert('Set List Linked');
         }
     };
 

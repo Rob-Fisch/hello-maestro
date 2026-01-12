@@ -126,6 +126,77 @@ export default function AssetEditor() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: PAPER_THEME.background }}>
+            {/* Header */}
+            <View className="bg-white px-4 py-3 border-b border-stone-200 flex-row justify-between items-center z-10 shadow-sm" style={{ paddingTop: Platform.OS === 'ios' ? 60 : 16 }}>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="flex-row items-center ml-0 py-2 pr-4 pl-2"
+                >
+                    <Text className="text-base font-medium text-red-500">Cancel</Text>
+                </TouchableOpacity>
+
+                <View className="flex-row items-center gap-2 pr-2">
+                    {/* Save (Stay) */}
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (!name.trim()) {
+                                Alert.alert("Missing Information", "Please enter at least a name for this gear.");
+                                return;
+                            }
+                            const assetData: Partial<GearAsset> = {
+                                name: name.trim(),
+                                category,
+                                brand: brand.trim(),
+                                model: model.trim(),
+                                serialNumber: serialNumber.trim(),
+                                manufactureYear: manufactureYear.trim(),
+                                status,
+                                isWishlist,
+                                notes: notes.trim(),
+                                financials: {
+                                    purchasePrice: purchasePrice.trim(),
+                                    currentValue: currentValue.trim(),
+                                    purchaseLocation: purchaseLocation.trim(),
+                                    purchaseDate: purchaseDate.trim(),
+                                },
+                                loanDetails: (status === 'On Loan (To)' || status === 'On Loan (From)') ? {
+                                    personName: loanPerson.trim(),
+                                    notes: loanNotes.trim()
+                                } : undefined,
+                                updatedAt: new Date().toISOString()
+                            };
+
+                            if (existingAsset) {
+                                updateAsset(existingAsset.id, assetData);
+                            } else {
+                                const newAsset: GearAsset = {
+                                    ...assetData as GearAsset,
+                                    id: Date.now().toString(),
+                                    media: { photoUris: [] },
+                                    createdAt: new Date().toISOString(),
+                                    updatedAt: new Date().toISOString()
+                                };
+                                addAsset(newAsset);
+                            }
+                            Alert.alert('Saved', 'Gear saved.');
+                        }}
+                        className="flex-row items-center px-3 py-2 rounded-full bg-stone-100"
+                    >
+                        <Ionicons name="save-outline" size={18} color="#57534e" />
+                        <Text className="font-bold ml-1 text-xs text-stone-500">Save</Text>
+                    </TouchableOpacity>
+
+                    {/* Save & Exit */}
+                    <TouchableOpacity
+                        onPress={handleSave}
+                        className="flex-row items-center px-3 py-2 rounded-full shadow-sm bg-stone-800"
+                    >
+                        <Ionicons name="exit-outline" size={18} color="white" style={{ transform: [{ scaleX: -1 }] }} />
+                        <Text className="text-white font-bold ml-1 text-xs">Save & Exit</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 24, paddingBottom: 120 }}>
                 <View className="px-6 mb-8">
                     <Text className="text-3xl font-black tracking-tight" style={{ color: PAPER_THEME.text }}>
@@ -229,26 +300,7 @@ export default function AssetEditor() {
                 <View className="h-[20px]" />
             </ScrollView>
 
-            {/* Bottom Actions */}
-            <View className="flex-row gap-4 p-6 border-t border-stone-200 bg-white/90 absolute bottom-0 left-0 right-0" style={{ paddingBottom: Platform.OS === 'ios' ? 40 : 24 }}>
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="flex-1 p-4 rounded-2xl border border-stone-300 items-center justify-center"
-                    style={{ backgroundColor: PAPER_THEME.cancelBtnBg }}
-                >
-                    <Text className="text-center font-bold uppercase tracking-wide" style={{ color: PAPER_THEME.cancelBtnText }}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={handleSave}
-                    className="flex-1 p-4 rounded-2xl shadow-lg flex-row justify-center items-center shadow-orange-900/20"
-                    style={{ backgroundColor: PAPER_THEME.saveBtnBg }}
-                >
-                    <Ionicons name="checkmark-circle" size={20} color={PAPER_THEME.saveBtnText} />
-                    <Text className="font-black text-lg uppercase tracking-wider ml-2" style={{ color: PAPER_THEME.saveBtnText }}>
-                        {isEditing ? 'Update' : 'Save'}
-                    </Text>
-                </TouchableOpacity>
-            </View>
+
         </View>
     );
 }
