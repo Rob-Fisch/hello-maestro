@@ -19,6 +19,8 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
     const [title, setTitle] = useState(existingSetList?.title || 'New Set List');
     const [items, setItems] = useState<SetListItem[]>(existingSetList?.items || []);
 
+    const [isDirty, setIsDirty] = useState(false);
+
     // Song Picker Modal
     const [showSongPicker, setShowSongPicker] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +56,7 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
             durationSeconds: songOrBreak === 'break' ? 600 : 0
         };
         setItems([...items, newItem]);
+        setIsDirty(true);
         setShowSongPicker(false);
     };
 
@@ -83,6 +86,7 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
         const newItems = [...items];
         newItems.splice(index, 1);
         setItems(newItems);
+        setIsDirty(true);
     };
 
     const moveItem = (index: number, direction: 'up' | 'down') => {
@@ -93,12 +97,34 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
         const swapIndex = direction === 'up' ? index - 1 : index + 1;
         [newItems[index], newItems[swapIndex]] = [newItems[swapIndex], newItems[index]];
         setItems(newItems);
+        setIsDirty(true);
     };
 
-    const handleSave = () => {
+    const handleBack = () => {
+        if (isDirty) {
+            if (Platform.OS === 'web') {
+                if (confirm('Discard unsaved changes?')) {
+                    onCancel();
+                }
+            } else {
+                Alert.alert(
+                    'Discard Changes?',
+                    'You have unsaved changes. Are you sure you want to discard them?',
+                    [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Discard', style: 'destructive', onPress: onCancel }
+                    ]
+                );
+            }
+        } else {
+            onCancel();
+        }
+    };
+
+    const saveLogic = () => {
         if (!title.trim()) {
             Alert.alert('Missing Title', 'Please give your set list a name.');
-            return;
+            return null;
         }
 
         const setList: SetList = {
@@ -108,7 +134,29 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
             items,
             createdAt: existingSetList?.createdAt || new Date().toISOString(),
         };
-        onSave(setList);
+        // In a real app we might return the ID or something, but here we just return the object
+        return setList;
+    };
+
+    const handleSave = () => {
+        const setList = saveLogic();
+        if (setList) {
+            onSave(setList);
+            setIsDirty(false); // Reset dirty state, but stay on screen
+
+            if (Platform.OS !== 'web') {
+                // Optional toast or feedback
+                // Alert.alert('Saved', 'Changes saved successfully.');
+            }
+        }
+    };
+
+    const handleSaveAndExit = () => {
+        const setList = saveLogic();
+        if (setList) {
+            onSave(setList);
+            onCancel(); // Check if onSave implicitly closes? Usually GigEditor might not, but here we act as "Done"
+        }
     };
 
     if (isCreatingSong && newSongInitialState) {
@@ -128,40 +176,36 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
             <View className="flex-1 bg-slate-50">
                 {/* Header */}
                 <View className="bg-white px-4 py-3 border-b border-slate-200 flex-row justify-between items-center z-10">
-                    <TouchableOpacity onPress={onCancel} className="flex-row items-center">
-                        <Ionicons name="chevron-back" size={20} color="#64748b" />
-                        <Text className="text-slate-600 ml-1">Back</Text>
+                    <TouchableOpacity onPress={handleBack} className="flex-row items-center w-16">
+                        <Ionicons name="chevron-back" size={24} color={isDirty ? "#ef4444" : "#64748b"} />
+                        <Text className={isDirty ? "text-red-500 font-medium ml-1" : "text-slate-600 font-medium ml-1"}>
+                            {isDirty ? "Cancel" : "Back"}
+                        </Text>
                     </TouchableOpacity>
 
                     <TextInput
-                        className="font-bold text-lg text-center flex-1 mx-2"
+                        className="font-bold text-lg text-center flex-1 mx-2 bg-slate-50 p-2 rounded-lg border border-transparent focus:border-indigo-200 focus:bg-white"
                         value={title}
-                        onChangeText={setTitle}
+                        onChangeText={(t) => { setTitle(t); setIsDirty(true); }}
                         placeholder="Set List Name"
+                        placeholderTextColor="#94a3b8"
                     />
 
-                    <View className="flex-row items-center">
-                        <TouchableOpacity onPress={async () => {
-                            const url = `https://opusmode.net/live/${eventId}`;
-                            const message = `Set List: ${title}`;
-
-                            if (Platform.OS === 'web') {
-                                if (navigator.share) {
-                                    navigator.share({ title: message, url });
-                                } else {
-                                    navigator.clipboard.writeText(url);
-                                    alert('Link copied to clipboard!');
-                                }
-                            } else {
-                                const { Share } = require('react-native');
-                                Share.share({ message: `${message}\n${url}` });
-                            }
-                        }} className="mr-3 p-2 bg-indigo-50 rounded-full">
-                            <Ionicons name="share-outline" size={20} color="#4f46e5" />
+                    <View className="flex-row items-center gap-2">
+                        <TouchableOpacity
+                            onPress={handleSave}
+                            className="flex-row items-center bg-indigo-50 px-3 py-2 rounded-full"
+                        >
+                            <Ionicons name="save-outline" size={18} color="#4f46e5" />
+                            <Text className="text-indigo-600 font-bold ml-1 text-xs">Save</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={handleSave}>
-                            <Text className="text-indigo-600 font-bold">Save</Text>
+                        <TouchableOpacity
+                            onPress={handleSaveAndExit}
+                            className="flex-row items-center bg-indigo-600 px-3 py-2 rounded-full shadow-sm"
+                        >
+                            <Ionicons name="checkmark" size={18} color="white" />
+                            <Text className="text-white font-bold ml-1 text-xs">Done</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -301,6 +345,6 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
                     </ScrollView>
                 </View>
             </Modal>
-        </View>
+        </View >
     );
 }

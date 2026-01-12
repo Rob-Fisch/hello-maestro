@@ -4,7 +4,7 @@ import { useContentStore } from '@/store/contentStore';
 import { AppEventType, BookingSlot, SetList } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import SetListBuilder from '../setlist/SetListBuilder';
 import FinanceModule from './FinanceModule';
 import { WebDatePicker, WebTimePicker } from './FormComponents';
@@ -22,6 +22,27 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
     const { setLists, addSetList, updateSetList } = useContentStore();
     const linkedSetList = eventId ? setLists.find(sl => sl.eventId === eventId) : undefined;
     const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'stageplot' | 'setlist'>('logistics');
+
+    // Import Setlist Logic
+    const [showImportModal, setShowImportModal] = useState(false);
+    // Filter for Master Setlists (no eventId)
+    // Note: In a real app we might want to fetch this only when modal opens or have it in store
+    const { setLists: allSetLists } = useContentStore();
+    const masterSetLists = allSetLists.filter(sl => !sl.eventId && !sl.deletedAt);
+
+    const handleImport = (masterList: SetList) => {
+        // Create a copy (Fork)
+        const newSetList: SetList = {
+            id: Platform.OS === 'web' ? crypto.randomUUID() : require('react-native-uuid').v4(),
+            title: masterList.title, // Keep same name initially
+            eventId: eventId,
+            originalSetListId: masterList.id,
+            items: masterList.items.map(item => ({ ...item, id: Platform.OS === 'web' ? crypto.randomUUID() : require('react-native-uuid').v4() })), // New IDs for items
+            createdAt: new Date().toISOString()
+        };
+        handleSaveSetList(newSetList);
+        setShowImportModal(false);
+    };
 
     const handleSaveSetList = (setList: SetList) => {
         if (linkedSetList) {
@@ -182,24 +203,51 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
                     />
                 )}
 
-                {/* SET LIST TAB */}
-                {activeTab === 'setlist' && (
-                    eventId ? (
-                        <SetListBuilder
-                            existingSetList={linkedSetList}
-                            eventId={eventId}
-                            onSave={handleSaveSetList}
-                            onCancel={() => setActiveTab('logistics')}
-                        />
-                    ) : (
-                        <View className="bg-amber-50 p-6 rounded-3xl border border-amber-100 items-center">
-                            <Ionicons name="alert-circle" size={48} color="#d97706" />
-                            <Text className="text-amber-800 font-bold text-lg mt-4 text-center">Save Event First</Text>
-                            <Text className="text-amber-700 text-center mt-2">
-                                Please save this event to create a set list for it.
-                            </Text>
+                {/* SET LIST TAB - EMPTY STATE ONLY */}
+                {/* The actual SetListBuilder is now rendered outside the ScrollView */}
+                {activeTab === 'setlist' && !eventId && (
+                    <View className="bg-amber-50 p-6 rounded-3xl border border-amber-100 items-center">
+                        <Ionicons name="alert-circle" size={48} color="#d97706" />
+                        <Text className="text-amber-800 font-bold text-lg mt-4 text-center">Save Event First</Text>
+                        <Text className="text-amber-700 text-center mt-2">
+                            Please save this event to create a set list for it.
+                        </Text>
+                    </View>
+                )}
+
+                {/* IMPORT SETLIST MODAL TRIGGER (Only if eventId exists but no setlist linked yet) */}
+                {activeTab === 'setlist' && eventId && !linkedSetList && (
+                    <View className="items-center justify-center py-10">
+                        <View className="mb-6 items-center">
+                            <Ionicons name="list" size={64} color="#e2e8f0" />
+                            <Text className="text-slate-400 font-bold text-lg mt-4">No Set List Yet</Text>
                         </View>
-                    )
+
+                        <TouchableOpacity
+                            onPress={() => setShowImportModal(true)}
+                            className="bg-indigo-600 px-6 py-4 rounded-xl flex-row items-center mb-4 shadow-sm w-full max-w-xs justify-center"
+                        >
+                            <Ionicons name="download-outline" size={20} color="white" style={{ marginRight: 8 }} />
+                            <Text className="text-white font-bold text-base">Import from Library</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                // Default create new empty
+                                addSetList({
+                                    id: Platform.OS === 'web' ? crypto.randomUUID() : require('react-native-uuid').v4(),
+                                    title: `${values.title} Set List`,
+                                    eventId: eventId,
+                                    items: [],
+                                    createdAt: new Date().toISOString()
+                                });
+                            }}
+                            className="bg-white border border-slate-200 px-6 py-4 rounded-xl flex-row items-center w-full max-w-xs justify-center"
+                        >
+                            <Ionicons name="add-circle-outline" size={20} color="#64748b" style={{ marginRight: 8 }} />
+                            <Text className="text-slate-600 font-bold text-base">Create from Scratch</Text>
+                        </TouchableOpacity>
+                    </View>
                 )}
 
                 {/* FINANCE TAB */}
@@ -213,6 +261,77 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
                 )}
 
             </ScrollView>
+
+            {/* FULL SCREEN SETLIST BUILDER - Modal to cover parent header */}
+            <Modal
+                visible={activeTab === 'setlist' && !!eventId && !!linkedSetList}
+                animationType="slide"
+                presentationStyle="fullScreen"
+                onRequestClose={() => setActiveTab('logistics')}
+            >
+                {/* Wrap in View to handle safe areas if needed, but builder handles it mostly */}
+                <View className="flex-1 bg-white">
+                    {/* Safe fallback for dismiss if builder crashes or something */}
+                    {linkedSetList && (
+                        <SetListBuilder
+                            existingSetList={linkedSetList}
+                            eventId={eventId}
+                            onSave={(sl) => {
+                                handleSaveSetList(sl);
+                                // Don't close immediately? Or do we? 
+                                // The builder has a Save button. 
+                                // Usually users expect to stay in editor *or* save and close.
+                                // Existing logic was in-place editor. 
+                                // Let's keep it open to allow multiple edits, or close? 
+                                // The User's previous flow was "Save" -> Alert "Set List Updated".
+                                // If it's a modal, usually Save closes it. 
+                                // But let's check SetListBuilder logic. It calls onSave.
+                                // I will stick to current behavior: Alert, stay open? 
+                                // Actually better UX for Modal is Save & Close.
+                                // Let's try closing after save for better flow.
+                                // setActiveTab('logistics'); // Optional: redirect back to tabs
+                            }}
+                            onCancel={() => setActiveTab('logistics')}
+                        />
+                    )}
+                </View>
+            </Modal>
+            {/* IMPORT MODAL */}
+            <Modal visible={showImportModal} animationType="fade" transparent>
+                <View className="flex-1 bg-black/50 justify-center items-center p-4">
+                    <View className="bg-white w-full max-w-md rounded-2xl overflow-hidden max-h-[80%]">
+                        <View className="p-4 border-b border-slate-100 flex-row justify-between items-center">
+                            <Text className="font-bold text-lg">Import Set List</Text>
+                            <TouchableOpacity onPress={() => setShowImportModal(false)}>
+                                <Ionicons name="close" size={24} color="#64748b" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <FlatList
+                            data={masterSetLists}
+                            keyExtractor={item => item.id}
+                            contentContainerStyle={{ padding: 16 }}
+                            ListEmptyComponent={
+                                <Text className="text-center text-slate-500 py-8">No templates found in Library.</Text>
+                            }
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    onPress={() => handleImport(item)}
+                                    className="p-4 border border-slate-200 rounded-xl mb-3 bg-slate-50 hover:bg-slate-100 active:bg-slate-200"
+                                >
+                                    <View className="flex-row items-center">
+                                        <Ionicons name="document-text-outline" size={20} color="#4f46e5" style={{ marginRight: 12 }} />
+                                        <View>
+                                            <Text className="font-bold text-slate-800">{item.title}</Text>
+                                            <Text className="text-xs text-slate-500">{item.items.length} items</Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }

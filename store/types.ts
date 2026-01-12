@@ -337,6 +337,7 @@ export interface SetList {
     title: string;
     description?: string;
     eventId?: string; // Optional link to a specific gig
+    originalSetListId?: string; // If forked/imported, points to master
     items: SetListItem[];
     createdAt: string;
     deletedAt?: string;

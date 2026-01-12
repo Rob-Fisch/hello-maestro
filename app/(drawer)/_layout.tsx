@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'scout', icon: 'telescope-outline', label: 'Scout', path: '/scout' },
     // { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
     { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
+    { name: 'setlists', icon: 'list-outline', label: 'Set Lists', path: '/setlists' },
     { name: 'songs', icon: 'mic-outline', label: 'Song Library', path: '/songs' },
     { name: 'finance', icon: 'wallet-outline', label: 'Finance', path: '/finance' },
     // Compass removed for V3 Consolidation
@@ -147,9 +148,7 @@ export default function DrawerLayout() {
                             paddingHorizontal: 10,
                             marginVertical: 4,
                         },
-                        sceneContainerStyle: {
-                            backgroundColor: theme.background,
-                        }
+                        // sceneContainerStyle removed to fix type error
                     }}
                 >
                     {NAV_ITEMS.map((item) => {
