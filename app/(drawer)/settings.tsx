@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 export default function SettingsScreen() {
-    const { categories, addCategory, updateCategory, deleteCategory, settings, updateSettings, profile, setProfile, trackModuleUsage, setTheme } = useContentStore();
+    const { categories, addCategory, updateCategory, deleteCategory, settings, updateSettings, profile, setProfile, trackModuleUsage, setTheme, lastSyncedAt } = useContentStore();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
@@ -480,7 +480,7 @@ export default function SettingsScreen() {
 
 
                 {/* Support & FAQ Section */}
-                <View className="mb-12">
+                <View className="mb-8">
                     <Text className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">Support</Text>
                     <View className="p-6 rounded-[32px] border shadow-sm bg-blue-900/10 border-blue-500/20">
                         <Text className="mb-6 font-medium text-slate-300 leading-relaxed">
@@ -501,6 +501,34 @@ export default function SettingsScreen() {
                                 </View>
                             </View>
                             <Ionicons name="chevron-forward" size={20} color="#64748b" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* About & Legal Section */}
+                <View className="mb-12">
+                    <Text className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">About & Legal</Text>
+                    <View className="p-4 rounded-[32px] border shadow-sm" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                        <TouchableOpacity onPress={() => router.push('/modal/about')} className="p-4 flex-row items-center justify-between border-b border-white/5">
+                            <View className="flex-row items-center">
+                                <Ionicons name="musical-notes" size={18} color="#f472b6" className="mr-3" />
+                                <Text className="text-slate-300 font-bold">About OpusMode</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={16} color="#64748b" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.push('/modal/privacy')} className="p-4 flex-row items-center justify-between border-b border-white/5">
+                            <View className="flex-row items-center">
+                                <Ionicons name="shield-checkmark" size={18} color="#34d399" className="mr-3" />
+                                <Text className="text-slate-300 font-bold">Privacy Policy</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={16} color="#64748b" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.push('/modal/terms')} className="p-4 flex-row items-center justify-between">
+                            <View className="flex-row items-center">
+                                <Ionicons name="document-text" size={18} color="#60a5fa" className="mr-3" />
+                                <Text className="text-slate-300 font-bold">Terms of Service</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={16} color="#64748b" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -545,7 +573,7 @@ export default function SettingsScreen() {
                                     onPress={() => router.push('/modal/upgrade')}
                                     className="bg-white p-4 rounded-2xl items-center flex-row justify-center"
                                 >
-                                    <Text className="text-black font-black text-base mr-2">Upgrade for $19.99/yr</Text>
+                                    <Text className="text-black font-black text-base mr-2">Upgrade to Pro</Text>
                                     <Ionicons name="arrow-forward" size={18} color="black" />
                                 </TouchableOpacity>
                             </View>
@@ -582,116 +610,12 @@ export default function SettingsScreen() {
                             These actions are permanent and cannot be reversed. Please be careful.
                         </Text>
 
-                        <TouchableOpacity
-                            onPress={() => {
-                                if (Platform.OS === 'web') {
-                                    const msg = "FACTORY RESET: Wipe App Data?\n\n" +
-                                        "WHAT IT DOES: Wipes all local data and resets the app to a fresh installed state.\n\n" +
-                                        "WHAT TO EXPECT:\n" +
-                                        "• All local data (Roadmaps, Routines, Contacts, etc.) will be deleted.\n" +
-                                        "• You will be logged out.\n" +
-                                        "• Your ACCOUNT remains safe on the server (you can log back in elsewhere).\n\n" +
-                                        "Are you sure?";
 
-                                    if (window.confirm(msg)) {
-                                        const { nukeAccount } = useContentStore.getState();
-                                        nukeAccount()
-                                            .then(() => {
-                                                alert('Reset Complete: App has been clean slate reset.');
-                                                router.replace('/');
-                                            })
-                                            .catch((e) => alert('Error: ' + e.message));
-                                    }
-                                } else {
-                                    Alert.alert('Factory Reset', 'This will wipe all data on this device and the cloud but keep your account.', [
-                                        { text: 'Cancel', style: 'cancel' },
-                                        {
-                                            text: 'Reset', style: 'destructive', onPress: async () => {
-                                                try {
-                                                    const { nukeAccount } = useContentStore.getState();
-                                                    await nukeAccount();
-                                                    Alert.alert('Reset Complete', 'App has been clean slate reset.');
-                                                    router.replace('/');
-                                                } catch (e: any) {
-                                                    Alert.alert('Error', e.message);
-                                                }
-                                            }
-                                        }
-                                    ]);
-                                }
-                            }}
-                            className="bg-orange-600/10 border border-orange-600/50 p-6 rounded-[24px] items-center mb-4"
-                        >
-                            <Text className="text-orange-500 font-black text-lg">Factory Reset App</Text>
-                        </TouchableOpacity>
-
-                        {/* PWA Hard Reset (For Troubleshooting) */}
-                        {Platform.OS === 'web' && (
-                            <TouchableOpacity
-                                onPress={() => {
-                                    const msg = "HARD RESET: Repair App Data?\n\n" +
-                                        "WHAT IT DOES: Clears local storage, removes 'ghost' data inconsistencies, and forces a fresh reload from the server.\n\n" +
-                                        "WHAT TO EXPECT:\n" +
-                                        "• You will be logged out.\n" +
-                                        "• Any unsynced 'offline' work will be lost.\n" +
-                                        "• The app will reload immediately.\n\n" +
-                                        "Press OK to proceed.";
-
-                                    if (window.confirm(msg)) {
-                                        const performReset = async () => {
-                                            try {
-                                                localStorage.clear();
-                                                sessionStorage.clear();
-                                                if ('serviceWorker' in navigator) {
-                                                    const registrations = await navigator.serviceWorker.getRegistrations();
-                                                    for (const registration of registrations) await registration.unregister();
-                                                }
-                                                if ('caches' in window) {
-                                                    const keys = await caches.keys();
-                                                    await Promise.all(keys.map(key => caches.delete(key)));
-                                                }
-                                                window.location.href = '/?t=' + Date.now();
-                                            } catch (e) { console.error(e); }
-                                        };
-                                        performReset();
-                                    }
-                                }}
-                                className="bg-blue-600/10 border border-blue-600/50 p-4 rounded-[24px] items-center mb-4"
-                            >
-                                <Text className="text-blue-500 font-black text-sm">Troubleshoot: Hard Reset PWA</Text>
-                            </TouchableOpacity>
-                        )}
 
 
 
                         {/* Restore Default Categories */}
-                        <TouchableOpacity
-                            onPress={() => {
-                                const defaults = [
-                                    { id: '1', name: 'Technique' },
-                                    { id: '2', name: 'Repertoire' },
-                                    { id: '3', name: 'Theory' },
-                                    { id: '4', name: 'Improvisation' },
-                                    { id: '5', name: 'Sight Reading' },
-                                    { id: '6', name: 'Ear Training' },
-                                    { id: '7', name: 'Other' },
-                                ];
 
-                                const { addCategory, categories } = useContentStore.getState();
-                                let count = 0;
-                                defaults.forEach(def => {
-                                    if (!categories.find(c => c.name === def.name)) {
-                                        addCategory({ id: Date.now().toString() + Math.random(), name: def.name });
-                                        count++;
-                                    }
-                                });
-                                alert(`Restored ${count} missing categories.`);
-                            }}
-                            className="bg-emerald-600/10 border border-emerald-600/50 p-6 rounded-[24px] items-center mb-4"
-                        >
-                            <Text className="text-emerald-500 font-black text-lg">Restore Default Categories</Text>
-                            <Text className="text-emerald-500/60 text-xs font-bold mt-1 uppercase">Adds missing defaults only</Text>
-                        </TouchableOpacity>
 
 
 
@@ -715,8 +639,19 @@ export default function SettingsScreen() {
                     </Text>
                     <Text className="text-[10px] mt-1 text-slate-600">
                         Version {Constants.expoConfig?.version} (Build {Constants.expoConfig?.extra?.buildNumber}) • Cloud Sync Enabled
-
                     </Text>
+                    {lastSyncedAt && (
+                        <Text className="text-[10px] mt-1 text-slate-700 font-medium">
+                            Last Synced: {new Date(lastSyncedAt).toLocaleString('en-US', {
+                                month: 'numeric',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            }).replace(',', '-')}
+                        </Text>
+                    )}
                 </View>
 
             </View>

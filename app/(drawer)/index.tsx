@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import FeatureGrid from '@/components/home/FeatureGrid';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 
-import FeatureCarousel from '@/components/home/FeatureCarousel';
 
 export default function HomeScreen() {
     const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage, sessionLogs, progress, settings } = useContentStore();
@@ -93,9 +93,29 @@ export default function HomeScreen() {
         ).start();
     }, []);
 
+    // Rotating Suggestions for Empty State
+    const [suggestionIndex, setSuggestionIndex] = useState(0);
+    const SUGGESTIONS = [
+        "Schedule is empty.",
+        "Add a Gig?",
+        "Plan a Rehearsal?",
+        "Book a Lesson?"
+    ];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSuggestionIndex((prev) => (prev + 1) % SUGGESTIONS.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <ScrollView className="flex-1 p-6" style={{ backgroundColor: theme.background, height: Platform.OS === 'web' ? '100vh' as any : undefined }}>
-            <View className="mb-8" style={{ marginTop: Math.max(insets.top, 20) }}>
+        <ScrollView
+            className="flex-1"
+            style={{ backgroundColor: theme.background, height: Platform.OS === 'web' ? '100vh' as any : undefined }}
+            contentContainerStyle={{ alignItems: 'center' }} // Center content for web
+        >
+            <View className="w-full max-w-3xl p-4 md:p-6 mb-8" style={{ marginTop: Math.max(insets.top, 20) }}>
                 {/* Header Profile Section */}
                 <View className="flex-row justify-between items-center mb-6">
                     <View className="flex-row items-center flex-1 mr-4">
@@ -117,16 +137,12 @@ export default function HomeScreen() {
                     </View>
 
                     <View className="flex-row items-center gap-2">
-                        {/* Logout Button */}
-
-
-
-
+                        {/* Sync Status Button */}
                         <TouchableOpacity
                             onPress={() => {
                                 fullSync();
                             }}
-                            className={`flex-row items-center px-4 py-2 rounded-full border min-w-[100px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                            className={`flex-row items-center px-4 py-2 rounded-full border min-w-[90px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
                                 syncStatus === 'syncing' ? 'bg-blue-500/10 border-blue-500/20' :
                                     'bg-red-500/10 border-red-500/20' // Offline / Error
                                 }`}
@@ -145,31 +161,31 @@ export default function HomeScreen() {
                     </View>
                 </View>
 
-                {/* Greeting - moved below aligned header */}
-                <Text className="text-4xl font-black tracking-tighter leading-tight text-white mb-6">
+                {/* Greeting */}
+                <Text className="text-3xl md:text-4xl font-black tracking-tighter leading-tight text-white mb-6" numberOfLines={2} adjustsFontSizeToFit>
                     {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
                 </Text>
 
                 {/* Offline / Conflict Warning Banner */}
                 {syncStatus === 'offline' && (
                     <View className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex-row items-start">
-                        <Ionicons name="warning-outline" size={20} color="#fb923c" style={{ marginRight: 12, marginTop: 2 }} />
+                        <Ionicons name="cloud-offline-outline" size={20} color="#fb923c" style={{ marginRight: 12, marginTop: 2 }} />
                         <View className="flex-1">
-                            <Text className="font-bold text-orange-200 mb-1">Working Offline</Text>
+                            <Text className="font-bold text-orange-200 mb-1">Working Offline (Puddle-Proof Mode)</Text>
                             <Text className="text-xs text-orange-200/60 leading-relaxed">
-                                Changes are saved locally. Please ensure you tap <Text className="font-bold text-orange-200">Sync</Text> when back online and before using another device.
+                                Your route is set! Changes are saved safely to this device. We'll automatically upload them to the cloud when you're back online.
                             </Text>
                         </View>
                     </View>
                 )}
 
                 {/* SECTION 1: TOP OF THE FOLD (Daily Briefing) */}
-                <View className="flex-row justify-between mb-8 mt-6">
+                <View className="flex-row gap-4 mb-8 mt-4">
                     {/* Left: Logo Card */}
                     <TouchableOpacity
                         onPress={() => setIsLogoExpanded(true)}
                         activeOpacity={0.8}
-                        className="w-[48%] items-center justify-center h-[180px] rounded-[32px] border shadow-sm p-2 overflow-hidden"
+                        className="flex-1 items-center justify-center h-[160px] md:h-[180px] rounded-[32px] border shadow-sm p-4 overflow-hidden"
                         style={{ backgroundColor: theme.card, borderColor: theme.border }}
                     >
                         <Animated.Image
@@ -183,39 +199,46 @@ export default function HomeScreen() {
                         />
                     </TouchableOpacity>
 
-                    {/* Right: Events Card */}
+                    {/* Right: Events Card (Gamified) */}
                     <TouchableOpacity
                         onPress={() => router.push('/events')}
-                        className="w-[48%] p-5 rounded-[32px] border shadow-sm relative overflow-hidden justify-between h-[180px]"
+                        className="flex-1 p-5 rounded-[32px] border shadow-sm relative overflow-hidden justify-between h-[160px] md:h-[180px]"
                         style={{ backgroundColor: theme.card, borderColor: theme.border }}
                     >
                         <View className="absolute right-[-10] bottom-[-10] opacity-10 transform rotate-[-15deg]">
                             <Ionicons name="calendar" size={80} color={theme.text} />
                         </View>
 
-                        <View>
-                            <Text className="text-4xl font-black text-white shadow-sm">{todaysEvents.length}</Text>
-                            <Text className="text-xs font-black uppercase tracking-widest text-slate-400">Events Today</Text>
-                        </View>
-
-                        <View>
-                            <Text className="text-sm font-bold text-slate-300">
-                                {upcomingEventsCount} Scheduled
-                            </Text>
-                            <Text className="text-[10px] text-slate-500">Next 7 Days</Text>
-                        </View>
+                        {todaysEvents.length > 0 ? (
+                            // Normal "Active" State
+                            <>
+                                <View>
+                                    <Text className="text-4xl font-black text-white shadow-sm">{todaysEvents.length}</Text>
+                                    <Text className="text-xs font-black uppercase tracking-widest text-slate-400">Events Today</Text>
+                                </View>
+                                <View>
+                                    <Text className="text-sm font-bold text-slate-300">
+                                        {upcomingEventsCount} Scheduled
+                                    </Text>
+                                    <Text className="text-[10px] text-slate-500">Next 7 Days</Text>
+                                </View>
+                            </>
+                        ) : (
+                            // "Gamified" Empty State
+                            <View className="flex-1 justify-center items-center">
+                                <Ionicons name="calendar-outline" size={32} color={theme.mutedText} style={{ marginBottom: 12, opacity: 0.5 }} />
+                                <Text className="text-slate-400 text-center font-bold text-lg leading-6 opacity-60">
+                                    {SUGGESTIONS[suggestionIndex]}
+                                </Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
                 </View>
 
                 {/* DIVIDER */}
                 <View className="h-[1px] w-full mb-8 opacity-10 bg-white" />
 
-                {/* ONBOARDING: START HERE (Visible if no roles selected) */}
-                {/* REMOVED LEGACY START HERE CARD */}
-
-
-
-                <FeatureCarousel />
+                <FeatureGrid />
 
                 {/* FREE TIER SYNC WARNING - MOVED HERE */}
                 {profile && !profile.isPremium && syncStatus === 'synced' && (
@@ -232,9 +255,8 @@ export default function HomeScreen() {
                     </View>
                 )}
 
-                {/* Footer Padding */}
                 {/* Footer Section */}
-                <View className="mt-8 mb-16 items-center opacity-60">
+                <View className="mt-12 mb-16 items-center opacity-60">
                     <Ionicons name="infinite" size={32} color={theme.mutedText} style={{ marginBottom: 16, opacity: 0.5 }} />
                     <Text className="text-xs font-bold text-slate-500 mb-6">OpusMode v1.2</Text>
 
@@ -266,10 +288,11 @@ export default function HomeScreen() {
             >
                 <View className="flex-1 bg-black/95 items-center justify-center relative p-8">
                     <TouchableOpacity
-                        className="absolute right-6 top-16 z-50 p-2 bg-white/10 rounded-full"
+                        className="absolute right-6 top-12 z-50 p-3 bg-white/20 rounded-full backdrop-blur-md"
                         onPress={() => setIsLogoExpanded(false)}
+                        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                     >
-                        <Ionicons name="close" size={24} color="white" />
+                        <Ionicons name="close" size={30} color="white" />
                     </TouchableOpacity>
 
                     <Image
@@ -291,7 +314,7 @@ export default function HomeScreen() {
                     </View>
 
                     {/* Action Buttons */}
-                    <View className="w-full gap-4">
+                    <View className="w-full gap-4 max-w-sm">
                         <TouchableOpacity
                             onPress={() => {
                                 setIsLogoExpanded(false);

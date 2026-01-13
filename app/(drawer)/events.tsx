@@ -508,27 +508,20 @@ export default function ScheduleScreen() {
 
                         <View className="px-6 pb-4">
                             {/* PRODUCT ADOPTION HOOK */}
+                            {/* PRODUCT ADOPTION HOOK - SUBTLE VERSION */}
                             {!profile?.isPremium && (
-                                <View className="mb-6 bg-slate-900 p-5 rounded-3xl border border-slate-800 shadow-xl shadow-slate-900/50">
-                                    <View className="flex-row items-center mb-3">
-                                        <View className="w-10 h-10 rounded-full bg-indigo-500/20 items-center justify-center mr-3 border border-indigo-500/30">
-                                            <Ionicons name="sparkles" size={20} color="#818cf8" />
-                                        </View>
-                                        <View className="flex-1">
-                                            <Text className="text-white font-black text-lg">Go Pro</Text>
-                                            <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider">Unlock Your Potential</Text>
-                                        </View>
+                                <TouchableOpacity
+                                    onPress={() => router.push('/(drawer)/finance')}
+                                    className="mb-6 flex-row items-center justify-between py-3 px-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20"
+                                >
+                                    <View className="flex-row items-center flex-1">
+                                        <Ionicons name="cash-outline" size={16} color="#818cf8" style={{ marginRight: 8 }} />
+                                        <Text className="text-indigo-200 font-bold text-xs">
+                                            Want to track gig income? <Text className="text-indigo-400">See how Pro works</Text>
+                                        </Text>
                                     </View>
-                                    <Text className="text-slate-300 text-sm mb-4 leading-relaxed font-medium">
-                                        Track your gig income, manage expenses, and get deeper insights into your career.
-                                    </Text>
-                                    <TouchableOpacity
-                                        onPress={() => router.push('/(drawer)/finance')}
-                                        className="bg-indigo-600 py-3 rounded-2xl items-center shadow-lg shadow-indigo-500/30"
-                                    >
-                                        <Text className="text-white font-black uppercase text-xs tracking-widest">View Demo</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                    <Ionicons name="chevron-forward" size={14} color="#818cf8" />
+                                </TouchableOpacity>
                             )}
 
                             <View className="flex-row flex-wrap gap-3 justify-center">

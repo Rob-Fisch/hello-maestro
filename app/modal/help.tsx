@@ -90,6 +90,21 @@ export default function HelpScreen() {
 
             <ScrollView className="flex-1 px-6 pt-8" contentContainerStyle={{ paddingBottom: 60 }}>
 
+                {/* System Map Link */}
+                <TouchableOpacity
+                    onPress={() => router.push('/modal/sitemap')}
+                    className="mb-6 bg-slate-800 border-l-4 border-indigo-500 rounded-lg p-4 flex-row items-center justify-between shadow-sm"
+                >
+                    <View className="flex-row items-center flex-1">
+                        <Ionicons name="git-network-outline" size={24} color="#818cf8" style={{ marginRight: 12 }} />
+                        <View>
+                            <Text className="text-base font-bold text-white">System Architecture</Text>
+                            <Text className="text-xs text-slate-400">View visual map of the entire system</Text>
+                        </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#475569" />
+                </TouchableOpacity>
+
                 {/* Video Tutorials Section */}
                 <AccordionItem title="Video Tutorials" icon="videocam-outline" defaultExpanded={true}>
                     <Text className="text-slate-200 mb-6 leading-relaxed text-sm">

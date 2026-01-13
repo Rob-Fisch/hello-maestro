@@ -77,6 +77,7 @@ interface ContentState {
     setProfile: (profile: UserProfile | null) => void;
     syncStatus: SyncStatus;
     setSyncStatus: (status: SyncStatus) => void;
+    lastSyncedAt: string | null;
 
     // Navigation & Usage History
     recentModuleIds: string[];
@@ -170,6 +171,7 @@ export const useContentStore = create<ContentState>()(
             setProfile: (profile) => set({ profile }),
             syncStatus: 'offline',
             setSyncStatus: (status) => set({ syncStatus: status }),
+            lastSyncedAt: null,
             recentModuleIds: ['modal/routine-editor', 'content', 'events', 'routines'],
             trackModuleUsage: (moduleId) => {
                 set((state) => {
@@ -391,6 +393,11 @@ export const useContentStore = create<ContentState>()(
             },
             updateProgress: (pathId, nodeId, completed) => {
                 set((state) => {
+                    // Check if this is a Routine (not a Learning Path)
+                    // If it is a Routine, we CANNOT sync to 'user_progress' table because of FK constraint with 'learning_paths'
+                    // So we only keep it local.
+                    const isRoutine = state.routines.some(r => r.id === pathId);
+
                     if (completed) {
                         const newProgress: UserProgress = {
                             id: `${pathId}-${nodeId}`,
@@ -399,10 +406,16 @@ export const useContentStore = create<ContentState>()(
                             nodeId,
                             completedAt: new Date().toISOString(),
                         };
-                        syncToCloud('user_progress', newProgress);
+
+                        if (!isRoutine) {
+                            syncToCloud('user_progress', newProgress);
+                        }
+
                         return { progress: [...state.progress, newProgress] };
                     } else {
-                        deleteFromCloud('user_progress', `${pathId}-${nodeId}`); // Assuming deterministic ID for now
+                        if (!isRoutine) {
+                            deleteFromCloud('user_progress', `${pathId}-${nodeId}`);
+                        }
                         return { progress: state.progress.filter(p => !(p.pathId === pathId && p.nodeId === nodeId)) };
                     }
                 });
@@ -451,8 +464,11 @@ export const useContentStore = create<ContentState>()(
             deleteSetList: (id) => {
                 set((state) => {
                     const item = state.setLists.find(i => i.id === id);
-                    if (item) pendingDeletions.push({ id, table: 'set_lists' });
-                    return { setLists: state.setLists.filter((s) => s.id !== id) };
+                    const newPending = item ? [...state.pendingDeletions, { id, table: 'set_lists' }] : state.pendingDeletions;
+                    return {
+                        setLists: state.setLists.filter((s) => s.id !== id),
+                        pendingDeletions: newPending as { table: TableName, id: string }[]
+                    };
                 });
                 deleteFromCloud('set_lists', id);
             },
@@ -502,7 +518,7 @@ export const useContentStore = create<ContentState>()(
                         pushAllToCloud('categories', state.categories),
                         pushAllToCloud('people', state.people),
                         pushAllToCloud('learning_paths', state.paths),
-                        pushAllToCloud('user_progress', state.progress),
+                        pushAllToCloud('user_progress', state.progress.filter(p => !state.routines.some(r => r.id === p.pathId))),
                         pushAllToCloud('proof_of_work', state.proofs),
                         pushAllToCloud('gear_assets', useGearStore.getState().assets),
                         pushAllToCloud('pack_lists', useGearStore.getState().packLists),
@@ -556,6 +572,7 @@ export const useContentStore = create<ContentState>()(
                             setLists: active(cloudData.set_lists, 'set_lists'),
                             profile: cloudProfile || state.profile,
                             syncStatus: 'synced',
+                            lastSyncedAt: new Date().toISOString(),
                             // Re-apply pending deletions if sync cleared them? No, we updated state above.
                             // But wait, `deleteEvent` updates `pendingDeletions` which is persisted.
                             // The `set` here MIGHT overwrite `pendingDeletions` if we included it in the object, but we are NOT including it, so it preserves current state.

@@ -7,8 +7,8 @@ import { useFonts } from 'expo-font';
 import { Stack, router, useRootNavigationState, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import '../global.css';
 
@@ -85,6 +85,73 @@ export default function RootLayout() {
     };
   }, [profile?.id]); // Re-run only when user Identity changes
 
+  // SUPABASE AUTH LISTENER (Deep Links / Invites)
+  useEffect(() => {
+    // This catches 'SIGNED_IN' events triggered by Hash Fragment URL tokens (e.g. Invites, Magic Links)
+    const { data: { subscription } } = require('@/lib/supabase').supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+      console.log('🚀 [RootLayout] Auth Event:', event);
+
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked "Reset Password" or "Accept Invite" link
+        console.log('🚀 [RootLayout] Password Recovery / Invite detected. Redirecting to setup...');
+        // We use a slight delay or rely on the router being ready
+        setTimeout(() => router.replace('/modal/onboarding-password'), 500);
+
+      } else if (event === 'SIGNED_IN' && session?.user) {
+
+        // CHECK FOR INVITE / RECOVERY IN URL (Fallback if event wasn't PASSWORD_RECOVERY)
+        // Supabase often swallows the event type but leaves the hash until cleared.
+        let isInviteOrRecovery = false;
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const hash = window.location.hash;
+          const search = window.location.search;
+          if ((hash && (hash.includes('type=invite') || hash.includes('type=recovery'))) ||
+            (search && (search.includes('type=invite') || search.includes('type=recovery')))) {
+            isInviteOrRecovery = true;
+          }
+        }
+
+        if (isProcessingInvite.current) isInviteOrRecovery = true;
+
+        if (isInviteOrRecovery) {
+          console.log('🚀 [RootLayout] Invite/Recovery detected via URL sniff. Redirecting...');
+          setTimeout(() => router.replace('/modal/onboarding-password'), 500);
+        }
+
+        // Auto-populate profile in store if missing
+        const { profile, setProfile } = useContentStore.getState();
+        if (!profile || profile.id !== session.user.id) {
+          console.log('🚀 [RootLayout] Detected External Login (Invite?). Syncing Profile...');
+          const profileData = session.user.user_metadata || {};
+          setProfile({
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName: profileData.display_name || 'Accepted Invite',
+            isPremium: !!profileData.is_premium
+          });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        useContentStore.getState().setProfile(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    }
+  }, []);
+
+
+  // Track if we are processing an invite/deep link to prevent premature redirects
+  const isProcessingInvite = useRef<boolean>(false);
+
+  // SYNCHRONOUS CHECK (Before Effects): Capture the intent immediately
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && !isProcessingInvite.current) {
+    const href = window.location.href;
+    if (href.includes('access_token') || href.includes('type=invite') || href.includes('type=recovery')) {
+      console.log('🚀 [RootLayout] Deep Link detected on render. Locking Router.');
+      isProcessingInvite.current = true;
+    }
+  }
 
   useEffect(() => {
     if (!isHydrated || !isNavigationReady) return;
@@ -94,8 +161,15 @@ export default function RootLayout() {
     const inFanGroup = segments[0] === 'fan';
     const inRoutineGroup = segments[0] === 'routine';
     const inLiveGroup = segments[0] === 'live'; // Allow public access to /live
+    const inOnboarding = segments[0] === 'modal' && segments[1] === 'onboarding-password';
 
-    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup) {
+    // If we are processing an invite (caught in ref), DO NOT redirect to /auth yet.
+    if (isProcessingInvite.current) {
+      console.log('⏳ [RootLayout] Waiting for Invite/Deep Link processing... Skipping Auth Redirect.');
+      return;
+    }
+
+    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup && !inOnboarding) {
       router.replace('/auth');
     } else if (profile && inAuthGroup) {
       router.replace('/');
@@ -178,6 +252,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="modal/upgrade"
             options={{ presentation: 'modal', headerShown: false }}
+          />
+          <Stack.Screen
+            name="modal/onboarding-password"
+            options={{ presentation: 'fullScreenModal', headerShown: false }}
           />
         </Stack>
         <StatusBar style="dark" />

@@ -24,13 +24,6 @@ export default function AuthScreen() {
     const [isSignUp, setIsSignUp] = useState(false);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
 
-    // --- SECRET BACKDOOR ---
-    const [secretTapCount, setSecretTapCount] = useState(0);
-    const [showSecretInput, setShowSecretInput] = useState(false);
-    const [secretCode, setSecretCode] = useState('');
-    const [isSecretUnlocked, setIsSecretUnlocked] = useState(false);
-    const lastTapRef = useRef(0);
-
     const { setProfile, fullSync } = useContentStore();
 
     const router = useRouter();
@@ -86,7 +79,7 @@ export default function AuthScreen() {
                 redirectTo: Linking.createURL('/'),
             });
             if (error) throw error;
-            Alert.alert('Success', 'Check your email for the password reset link!');
+            Alert.alert('Check your email!', 'We sent you a link to reset your password.');
             setIsForgotPassword(false);
         } catch (error: any) {
             Alert.alert('Error', error.message || 'Something went wrong.');
@@ -183,23 +176,8 @@ export default function AuthScreen() {
                             Container for the images. 
                             Restored glowing edge, black background, and rounded corners.
                         */}
-                        <TouchableOpacity
-                            activeOpacity={1}
+                        <View
                             className="w-full items-center"
-                            onPress={() => {
-                                const now = Date.now();
-                                if (now - lastTapRef.current < 500) {
-                                    setSecretTapCount(c => c + 1);
-                                } else {
-                                    setSecretTapCount(1);
-                                }
-                                lastTapRef.current = now;
-
-                                if (secretTapCount + 1 >= 5) {
-                                    setShowSecretInput(true);
-                                    // Feedback to user that something happened (optional, or keeping it silent/subtle)
-                                }
-                            }}
                         >
                             <View className="w-full max-w-[320px] aspect-square items-center justify-center rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl shadow-purple-900/50">
                                 {/* The Animated Image */}
@@ -213,30 +191,8 @@ export default function AuthScreen() {
                                     }}
                                 />
                             </View>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Secret Input Field */}
-                    {showSecretInput && !isSecretUnlocked && (
-                        <View className="mb-8 w-full items-center">
-                            <TextInput
-                                className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white font-bold w-40 text-center"
-                                placeholder="Enter Access Code"
-                                placeholderTextColor="#64748b"
-                                secureTextEntry
-                                autoCapitalize="none"
-                                value={secretCode}
-                                onChangeText={(text) => {
-                                    setSecretCode(text);
-                                    if (text.toLowerCase() === 'maestro') {
-                                        setIsSecretUnlocked(true);
-                                        setShowSecretInput(false);
-                                        Alert.alert('Access Granted', 'Sign Up enabled.');
-                                    }
-                                }}
-                            />
                         </View>
-                    )}
+                    </View>
 
                     <Text className="text-5xl font-black text-white tracking-tighter mb-2 text-center">OpusMode</Text>
                     <Text className="text-slate-400 text-lg font-medium leading-relaxed text-center mb-10">
@@ -279,9 +235,11 @@ export default function AuthScreen() {
                                     />
                                 </View>
                                 {!isSignUp && (
-                                    <TouchableOpacity onPress={() => setIsForgotPassword(true)} className="mt-2 ml-1 self-start">
-                                        <Text className="text-xs font-bold text-zinc-400">Forgot password?</Text>
-                                    </TouchableOpacity>
+                                    <View className="flex-row justify-between mt-2 ml-1">
+                                        <TouchableOpacity onPress={() => setIsForgotPassword(true)}>
+                                            <Text className="text-xs font-bold text-zinc-400">Forgot password?</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 )}
                             </View>
                         )}
@@ -293,7 +251,11 @@ export default function AuthScreen() {
                             className={`mt-10 py-5 rounded-3xl items-center shadow-xl shadow-purple-500/20 ${loading ? 'bg-zinc-800' : 'bg-white'}`}
                         >
                             <Text className={`text-xl font-black tracking-tight ${loading ? 'text-zinc-500' : 'text-black'}`}>
-                                {loading ? 'Please Wait...' : (isForgotPassword ? 'Reset Password' : (isSignUp ? 'Create Account' : 'Enter Studio'))}
+                                {loading
+                                    ? 'Please Wait...'
+                                    : (isForgotPassword
+                                        ? 'Reset Password'
+                                        : (isSignUp ? 'Create Account' : 'Enter Studio'))}
                             </Text>
                         </TouchableOpacity>
 
@@ -304,30 +266,22 @@ export default function AuthScreen() {
                                 } else if (isSignUp) {
                                     setIsSignUp(false);
                                 } else {
-                                    // ONLY ALLOW SIGN UP IF UNLOCKED
-                                    if (isSecretUnlocked) {
-                                        setIsSignUp(true);
-                                    } else {
-                                        // Optional: no-op or subtle shake
-                                    }
+                                    setIsSignUp(true);
                                 }
                             }}
                             className="mt-6 p-4 items-center"
-                            activeOpacity={isSecretUnlocked || isForgotPassword || isSignUp ? 0.7 : 1}
                         >
                             <Text className="text-zinc-300 font-bold">
                                 {isForgotPassword
                                     ? 'Back to Sign In'
                                     : isSignUp
                                         ? 'Already have an account? '
-                                        : isSecretUnlocked
-                                            ? "Don't have an account? "
-                                            : ""} {/* HIDDEN BY DEFAULT */}
+                                        : "Don't have an account? "}
 
-                                {(isSecretUnlocked || isForgotPassword || isSignUp) && (
-                                    <Text className="text-white">
-                                        {isForgotPassword ? '' : isSignUp ? 'Sign In' : 'Sign Up'}
-                                    </Text>
+                                {(isForgotPassword || isSignUp) ? (
+                                    <Text className="text-white">Sign In</Text>
+                                ) : (
+                                    <Text className="text-white">Sign Up</Text>
                                 )}
                             </Text>
                         </TouchableOpacity>
@@ -339,7 +293,11 @@ export default function AuthScreen() {
                 <View className="pb-10 items-center">
                     <Text className="text-white/20 text-xs font-bold uppercase tracking-[4px]">Puddle-Proof Technology</Text>
                     <Text className="text-white/20 text-[10px] mt-2">v{Constants.expoConfig?.version} (b{Constants.expoConfig?.extra?.buildNumber})</Text>
-
+                    {Platform.OS === 'web' && (
+                        <Text className="text-red-500/50 text-[10px] mt-1 px-4 text-center">
+                            DEBUG: {typeof window !== 'undefined' ? window.location.href.substring(0, 150) : 'N/A'}
+                        </Text>
+                    )}
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>

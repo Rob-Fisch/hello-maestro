@@ -174,6 +174,43 @@ export default function HistoryScreen() {
                     </>
                 )}
 
+                {/* LOCKED YEARLY TREND (GOLDEN SAMPLE) */}
+                {!profile?.isPremium && (
+                    <View className="mt-8 mb-8 relative">
+                        <View className="flex-row items-center mb-4 opacity-40">
+                            <Ionicons name="calendar" size={20} color={theme.text} className="mr-2" />
+                            <Text className="text-sm font-black uppercase tracking-widest" style={{ color: theme.text }}>Yearly Trend</Text>
+                        </View>
+
+                        {/* Blurred Fake Chart */}
+                        <View className="h-48 rounded-3xl border overflow-hidden relative" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                            {/* Fake Bars */}
+                            <View className="absolute inset-0 flex-row items-end justify-between px-6 pb-4 pt-10 opacity-30">
+                                {[30, 45, 60, 50, 75, 40, 80, 90, 65, 55, 70, 85].map((h, i) => (
+                                    <View key={i} className="w-2 rounded-t-full bg-indigo-500" style={{ height: `${h}%` }} />
+                                ))}
+                            </View>
+
+                            {/* Overlay */}
+                            <View className="absolute inset-0 items-center justify-center bg-transparent">
+                                <View className="bg-white p-6 rounded-2xl shadow-xl items-center border border-stone-100">
+                                    <Ionicons name="lock-closed" size={32} color="#F59E0B" className="mb-2" />
+                                    <Text className="font-extrabold text-stone-900 text-lg">Unlock Long-Term Trends</Text>
+                                    <Text className="text-stone-500 text-xs text-center mb-4 leading-4 max-w-[200px]">
+                                        See how your persistence pays off over months and years.
+                                    </Text>
+                                    <TouchableOpacity
+                                        onPress={() => router.push('/modal/upgrade?feature=analytics_trends')}
+                                        className="bg-black px-6 py-3 rounded-xl"
+                                    >
+                                        <Text className="text-white font-bold text-xs uppercase tracking-wide">Unlock Pro Analytics</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                )}
+
                 <View className="h-20" />
             </ScrollView>
         </View>

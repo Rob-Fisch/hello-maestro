@@ -24,16 +24,19 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'events', icon: 'calendar-outline', label: 'Schedule', path: '/events' },
     { name: 'coach', icon: 'telescope-outline', label: 'AI Coach', path: '/coach' },
     // { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
-    { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
+    // { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
     { name: 'setlists', icon: 'list-outline', label: 'Set Lists', path: '/setlists' },
     { name: 'songs', icon: 'mic-outline', label: 'Song Library', path: '/songs' },
     { name: 'finance', icon: 'wallet-outline', label: 'Finance', path: '/finance' },
+    { name: 'history', icon: 'bar-chart-outline', label: 'Analytics', path: '/history', hidden: true },
     // Compass removed for V3 Consolidation
+
     { name: 'settings', icon: 'settings-outline', label: 'Settings', path: '/settings' },
 
     // Hidden Routes (Explicitly defined to hide from Drawer)
+    { name: 'gigs', icon: 'musical-notes', label: 'Gigs', path: '/gigs', hidden: true },
     { name: 'gear-vault', icon: 'briefcase', label: 'Vault', path: '/gear-vault', hidden: true },
-    { name: 'history', icon: 'time', label: 'History', path: '/history', hidden: true },
+
     { name: 'engagements', icon: 'musical-notes', label: 'Engagements', path: '/engagements', hidden: true },
     { name: 'people/[id]', icon: 'person', label: 'Person', path: '/people/1', hidden: true }, // Dynamic route
     { name: 'routines/[id]', icon: 'list', label: 'Routine', path: '/routines/1', hidden: true }, // Dynamic route
@@ -73,7 +76,7 @@ function CustomDrawerContent(props: any) {
 
     return (
         <View style={{ flex: 1 }}>
-            <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 20 }}>
+            <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 20, paddingBottom: 40 }}>
                 {/* Header Logo Area */}
                 <View className="px-6 mb-6 mt-2 flex-row items-center opacity-80">
                     <Image
@@ -88,27 +91,36 @@ function CustomDrawerContent(props: any) {
 
                 {/* Standard Drawer Items */}
                 <DrawerItemList {...props} />
+
+                {/* Footer Section (Now Scrollable) */}
+                <View style={{ borderTopWidth: 1, borderTopColor: theme.border, marginTop: 20, paddingTop: 20, paddingHorizontal: 20 }}>
+                    {/* Site Map */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/modal/sitemap')}
+                        className="flex-row items-center p-2 opacity-70 mb-2"
+                    >
+                        <Ionicons name="map-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
+                        <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Site Map</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => router.push('/modal/help')}
+                        className="flex-row items-center p-2 opacity-70 mb-2"
+                    >
+                        <Ionicons name="help-circle-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
+                        <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Help & Support</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={handleLogout}
+                        className="flex-row items-center p-2 opacity-70"
+                    >
+                        <Ionicons name="log-out-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
+                        <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Sign Out</Text>
+                    </TouchableOpacity>
+                    <Text className="text-[10px] text-stone-500 mt-6 ml-2 font-bold opacity-40">v1.2.3</Text>
+                </View>
             </DrawerContentScrollView>
-
-            {/* Footer Section */}
-            <View style={{ borderTopWidth: 1, borderTopColor: theme.border, padding: 20, paddingBottom: 30 }}>
-                <TouchableOpacity
-                    onPress={() => router.push('/modal/help')}
-                    className="flex-row items-center p-2 opacity-70 mb-2"
-                >
-                    <Ionicons name="help-circle-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
-                    <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Help & Support</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    onPress={handleLogout}
-                    className="flex-row items-center p-2 opacity-70"
-                >
-                    <Ionicons name="log-out-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
-                    <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Sign Out</Text>
-                </TouchableOpacity>
-                <Text className="text-[10px] text-stone-500 mt-6 ml-2 font-bold opacity-40">v1.2.3</Text>
-            </View>
         </View>
     );
 }

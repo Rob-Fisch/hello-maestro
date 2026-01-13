@@ -123,8 +123,14 @@ export default function FeatureCarousel() {
     const [previewImage, setPreviewImage] = useState<any>(null);
 
     // Dynamic width calculation for responsiveness
-    // On web, we might want a fixed max width, but for now we use full screen width minus padding
-    const cardWidth = Platform.OS === 'web' ? Math.min(width - 48, 400) : width - 48; // 48 = px-6 * 2
+    // On web, we force a max width (400) to match the container logic in HomeScreen
+    // On mobile, we use full width minus parent padding (p-4 = 16px * 2 = 32px)
+    const PARENT_PADDING = 32;
+    const maxWebWidth = 400;
+
+    const cardWidth = Platform.OS === 'web'
+        ? Math.min(width - PARENT_PADDING, maxWebWidth)
+        : width - PARENT_PADDING;
 
     const handleScroll = (event: any) => {
         const slideSize = event.nativeEvent.layoutMeasurement.width;
@@ -291,11 +297,14 @@ export default function FeatureCarousel() {
             </View>
 
             {/* Full Screen Image Preview Modal */}
+            {/* Full Screen Image Preview Modal */}
             <Modal visible={!!previewImage} transparent={true} animationType="fade" onRequestClose={() => setPreviewImage(null)}>
-                <View className="flex-1 bg-black/95 justify-center items-center p-4">
+                <View className="flex-1 bg-black/95 justify-center items-center relative">
+                    {/* Close Button - Positioned safely for all devices */}
                     <TouchableOpacity
                         onPress={() => setPreviewImage(null)}
-                        className="absolute top-12 right-6 z-10 p-2 bg-white/10 rounded-full"
+                        className="absolute top-12 right-6 z-50 p-3 bg-white/20 rounded-full backdrop-blur-md"
+                        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                     >
                         <Ionicons name="close" size={30} color="white" />
                     </TouchableOpacity>
@@ -305,6 +314,7 @@ export default function FeatureCarousel() {
                             source={previewImage}
                             className="w-full h-full"
                             resizeMode="contain"
+                            style={{ opacity: 1 }}
                         />
                     )}
                 </View>
