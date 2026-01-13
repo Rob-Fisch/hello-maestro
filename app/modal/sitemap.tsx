@@ -361,14 +361,91 @@ export default function SiteMapScreen() {
                         </View>
                     ) : (
                         /* WORKFLOW VIEW (Gig Flow) */
+                        /* WORKFLOW VIEW (Gig Flow) */
                         <View className="pb-20">
-                            <Text className="text-center text-slate-400 text-xs mb-8">
-                                This view will show the typical workflow for a gig.
+                            <Text className="text-center text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">
+                                The Lifecycle of a Gig
                             </Text>
-                            {/* Placeholder for Gig Flow content */}
-                            <View className="items-center justify-center p-10 bg-slate-800 rounded-xl border border-slate-700">
-                                <Ionicons name="git-branch-outline" size={48} color="#64748b" />
-                                <Text className="text-slate-400 mt-4">Gig Workflow visualization coming soon!</Text>
+
+                            <View className="relative pl-6 border-l-2 border-indigo-500/20 ml-6 space-y-8">
+                                {/* Step 1: Booking */}
+                                <View className="relative">
+                                    <View className="absolute -left-[31px] top-0 bg-indigo-900 border-2 border-indigo-500 w-4 h-4 rounded-full" />
+                                    <View className="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-2xl">
+                                        <View className="flex-row items-center justify-between mb-2">
+                                            <Text className="text-indigo-200 font-bold">1. Booking & Logistics</Text>
+                                            <Ionicons name="calendar" size={16} color="#818cf8" />
+                                        </View>
+                                        <Text className="text-indigo-300/60 text-xs mb-3">
+                                            Create event, set date/time/venue. Define pay rates.
+                                        </Text>
+                                        <TouchableOpacity onPress={() => router.push('/events')} className="bg-indigo-600/20 py-2 rounded-lg items-center border border-indigo-500/30">
+                                            <Text className="text-indigo-300 text-[10px] font-bold uppercase">Go to Calendar</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                {/* Step 2: Roster */}
+                                <View className="relative">
+                                    <View className="absolute -left-[31px] top-0 bg-indigo-900 border-2 border-indigo-500 w-4 h-4 rounded-full" />
+                                    <View className="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-2xl">
+                                        <View className="flex-row items-center justify-between mb-2">
+                                            <Text className="text-indigo-200 font-bold">2. Staffing</Text>
+                                            <Ionicons name="people" size={16} color="#818cf8" />
+                                        </View>
+                                        <Text className="text-indigo-300/60 text-xs leading-relaxed">
+                                            Assign roles (Bass, Drums). Invite musicians via SMS. Track confirmations.
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Step 3: Setlist */}
+                                <View className="relative">
+                                    <View className="absolute -left-[31px] top-0 bg-fuchsia-900 border-2 border-fuchsia-500 w-4 h-4 rounded-full" />
+                                    <View className="bg-fuchsia-900/20 border border-fuchsia-500/30 p-4 rounded-2xl">
+                                        <View className="flex-row items-center justify-between mb-2">
+                                            <Text className="text-fuchsia-200 font-bold">3. Setlist Design</Text>
+                                            <Ionicons name="list" size={16} color="#e879f9" />
+                                        </View>
+                                        <Text className="text-fuchsia-300/60 text-xs mb-3">
+                                            Drag & drop songs from Library. Add breaks. Calculate duration.
+                                        </Text>
+                                        <TouchableOpacity onPress={() => router.push('/setlists')} className="bg-fuchsia-600/20 py-2 rounded-lg items-center border border-fuchsia-500/30">
+                                            <Text className="text-fuchsia-300 text-[10px] font-bold uppercase">Go to Builder</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                {/* Step 4: Performance */}
+                                <View className="relative">
+                                    <View className="absolute -left-[31px] top-0 bg-pink-900 border-2 border-pink-500 w-4 h-4 rounded-full" />
+                                    <View className="bg-pink-900/20 border border-pink-500/30 p-4 rounded-2xl">
+                                        <View className="flex-row items-center justify-between mb-2">
+                                            <Text className="text-pink-200 font-bold">4. Showtime</Text>
+                                            <Ionicons name="play-circle" size={16} color="#f472b6" />
+                                        </View>
+                                        <Text className="text-pink-300/60 text-xs">
+                                            "Live Mode" for stage. Large text. Metronome. Quick transitions.
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Step 5: Finance */}
+                                <View className="relative">
+                                    <View className="absolute -left-[31px] top-0 bg-emerald-900 border-2 border-emerald-500 w-4 h-4 rounded-full" />
+                                    <View className="bg-emerald-900/20 border border-emerald-500/30 p-4 rounded-2xl">
+                                        <View className="flex-row items-center justify-between mb-2">
+                                            <Text className="text-emerald-200 font-bold">5. Settlement</Text>
+                                            <Ionicons name="cash" size={16} color="#34d399" />
+                                        </View>
+                                        <Text className="text-emerald-300/60 text-xs mb-3">
+                                            Mark as paid. Calculate splits. Track expenses.
+                                        </Text>
+                                        <TouchableOpacity onPress={() => router.push('/finance')} className="bg-emerald-600/20 py-2 rounded-lg items-center border border-emerald-500/30">
+                                            <Text className="text-emerald-300 text-[10px] font-bold uppercase">Go to Finance</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
                         </View>
                     )}
