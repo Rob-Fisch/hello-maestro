@@ -1,13 +1,10 @@
 // Basic Service Worker for OpusMode PWA
 const CACHE_NAME = 'opusmode-v1';
-const VERSION = '1.2.15 (Build 40)'; // Updated automatically
+const VERSION = '1.3.1 (Build 50)'; // Updated automatically
 
 self.addEventListener('install', (event) => {
-    // skipWaiting() forces the waiting ServiceWorker to become the active ServiceWorker.
-    // However, it's often safer to wait for a user signal (SKIP_WAITING message)
-    // so we don't break the app while they are using it.
-    // BUT for this app, we want aggressively fresh updates.
-    // We'll keep manual skipWaiting via message as the primary update mechanism for "Refresh".
+    // 1. Force immediate activation for this app
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

@@ -80,7 +80,7 @@ export default function FeatureGrid() {
     const hasPractice = (routines || []).length > 0;
     const hasSetLists = (setLists || []).length > 0;
     const hasPeople = (people || []).length > 0;
-    const hasShows = (events || []).some(e => e.type === 'gig' || e.type === 'performance');
+    const hasShows = (events || []).some(e => e.type === 'performance');
 
     const handlePress = (route: string, locked: boolean) => {
         if (locked) {
@@ -159,11 +159,11 @@ export default function FeatureGrid() {
             />
 
             <GridItem
-                title="AI Coach"
+                title="Navigator"
                 subtitle="Book Gigs, Draft Emails, Get Advice"
-                icon="telescope-outline"
-                color="#f59e0b" // Amber 500
-                iconColor="#fde68a" // Amber 200
+                icon="compass-outline"
+                color="#2dd4bf" // Teal 400
+                iconColor="#99f6e4" // Teal 200
                 route="/coach"
                 size="wide"
                 // AI Coach is now Freemium (Student Mode is free), so do not show lock badge

@@ -100,15 +100,15 @@ const SLIDES = [
         screenshot: require('../../assets/images/finance_dashboard.png')
     },
     {
-        id: 'coach',
-        title: 'Meet Your AI Coach',
-        narrative: 'Your 24/7 agent. Find venues, draft booking emails, and get career advice instantly.',
-        ctaFree: 'Ask Coach',
-        ctaPro: 'Ask Coach',
+        id: 'navigator',
+        title: 'The Navigator',
+        narrative: 'Your digital co-pilot. Find venues, generate email drafts, and navigate the industry landscape.',
+        ctaFree: 'Ask Navigator',
+        ctaPro: 'Ask Navigator',
         route: '/coach',
-        icon: 'telescope-outline',
-        color: 'bg-amber-500',
-        textColor: 'text-amber-400',
+        icon: 'compass-outline',
+        color: 'bg-teal-500',
+        textColor: 'text-teal-400',
         isPro: true,
         screenshot: require('../../assets/images/scout_agent.png')
     }

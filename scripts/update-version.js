@@ -66,7 +66,6 @@ function run() {
     const SW_PATH = path.join(__dirname, '..', 'public', 'sw.js');
     if (fs.existsSync(SW_PATH)) {
         let swContent = fs.readFileSync(SW_PATH, 'utf8');
-        // Regex to match "const VERSION = '...';"
         const versionRegex = /const VERSION = '.*?';/;
         const newVersionLine = `const VERSION = '${version} (Build ${newBuildNumberString})';`;
 
@@ -74,14 +73,23 @@ function run() {
             swContent = swContent.replace(versionRegex, newVersionLine);
             fs.writeFileSync(SW_PATH, swContent);
             console.log(`Updated public/sw.js to: ${newVersionLine}`);
-        } else {
-            console.warn('WARNING: Could not find VERSION line in public/sw.js to update.');
         }
     }
 
-    // 7. Git Stage
+    // 7. Update constants/BuildInfo.ts (NEW SOURCE OF TRUTH)
+    const BUILD_INFO_PATH = path.join(__dirname, '..', 'constants', 'BuildInfo.ts');
+    const buildInfoContent = `export const BuildInfo = {
+    version: '${version}',
+    buildNumber: '${newBuildNumberString}',
+    gitCommit: 'HEAD'
+};
+`;
+    fs.writeFileSync(BUILD_INFO_PATH, buildInfoContent);
+    console.log(`Updated constants/BuildInfo.ts: ${version} (Build ${newBuildNumberString})`);
+
+    // 8. Git Stage
     try {
-        execSync(`git add ${APP_JSON_PATH} ${PACKAGE_JSON_PATH} ${SW_PATH}`);
+        execSync(`git add ${APP_JSON_PATH} ${PACKAGE_JSON_PATH} ${SW_PATH} ${BUILD_INFO_PATH}`);
         console.log('Staged files to git.');
     } catch (e) {
         console.warn('Failed to stage files to git:', e.message);

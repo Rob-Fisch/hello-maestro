@@ -52,7 +52,7 @@ export default function SiteMapScreen() {
             color: "#34d399", // Emerald
             items: [
                 { label: "Finance Manager", path: "/finance", icon: "wallet-outline", desc: "Income, expenses, and splits." },
-                { label: "AI Coach (Scout)", path: "/coach", icon: "telescope-outline", desc: "Booking agent & career advice." },
+                { label: "The Navigator", path: "/coach", icon: "compass-outline", desc: "Digital co-pilot & career advice." },
                 { label: "Settings", path: "/settings", icon: "settings-outline", desc: "Preferences and account." },
             ]
         }

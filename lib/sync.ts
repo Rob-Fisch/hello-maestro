@@ -23,6 +23,11 @@ function mapToDb(data: any): any {
         fee: 'fee',
         slots: 'slots',
         verifiedPhone: 'verified_phone',
+        // Venue Manager Mappings
+        venueName: 'venue_name',
+        venueType: 'venue_type',
+        venueLocation: 'venue_location',
+
         instruments: 'instruments',
         totalFee: 'total_fee',
         musicianFee: 'musician_fee',
@@ -54,7 +59,7 @@ function mapToDb(data: any): any {
         checkedItemIds: 'checked_item_ids',
         relatedEventId: 'related_event_id',
         expiresAt: 'expires_at',
-        receiptUri: 'receipt_uri',
+        receiptUri: 'receipt_url',
         isPublicStagePlot: 'is_public_stage_plot',
         publicDescription: 'public_description',
         showSetlist: 'show_setlist',
@@ -63,15 +68,16 @@ function mapToDb(data: any): any {
         durationSeconds: 'duration_seconds',
         lastSyncedAt: 'last_synced_at',
         // Set Lists
+        // Set Lists
         items: 'items',
-        // originalSetListId: 'original_set_list_id', // DB Column missing/cached? Disabling to fix sync.
+        originalSetListId: 'original_set_list_id',
     };
 
 
 
 
     const mapped: any = {};
-    const ignoredKeys = ['originalSetListId']; // Keys to exclude from cloud sync (e.g. missing DB columns)
+    const ignoredKeys: string[] = []; // Keys to exclude from cloud sync
 
     for (const key in data) {
         if (ignoredKeys.includes(key)) continue;

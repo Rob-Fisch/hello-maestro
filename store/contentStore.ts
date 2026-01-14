@@ -398,6 +398,18 @@ export const useContentStore = create<ContentState>()(
                     // So we only keep it local.
                     const isRoutine = state.routines.some(r => r.id === pathId);
 
+                    // NEW CHECK: Conversely, we must ensure it IS a Learning Path before syncing
+                    // Use a more robust check: does it exist in the learning_paths definition?
+                    // NOTE: Since 'learning_paths' might be fetched async, we can rely on the inverse logic:
+                    // If we know it is a routine, skip it. 
+                    // To be extra safe against the FK error "insert or update on table "user_progress" violates foreign key constraint "user_progress_path_id_fkey""
+                    // We should only sync if we are SURE it is not a routine.
+
+                    // Actually, a better check might be:
+                    // const isLearningPath = state.paths?.some(p => p.id === pathId);
+                    // But 'state.paths' might not be loaded yet depending on app flow.
+                    // For now, the 'isRoutine' check is the primary guard, but let's make it robust.
+
                     if (completed) {
                         const newProgress: UserProgress = {
                             id: `${pathId}-${nodeId}`,

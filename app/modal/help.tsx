@@ -241,9 +241,9 @@ export default function HelpScreen() {
                     )}
                 </AccordionItem>
 
-                <AccordionItem title="Using AI Tools (Scout)" icon="telescope-outline">
+                <AccordionItem title="Using The Navigator (AI)" icon="compass-outline">
                     <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
-                        The Scout tool generates "Prompts"—specific instructions—that you can feed into powerful AI assistants to find leads. You need a separate account for these services.
+                        The Navigator generates "Prompts"—specific instructions—that you can feed into powerful AI assistants to find leads. You need a separate account for these services.
                     </Text>
 
                     <Step
@@ -263,7 +263,7 @@ export default function HelpScreen() {
                     <Step
                         number={2}
                         title="Generate & Copy"
-                        description="Use the Scout tool to select your mission (e.g., 'Gig Hunt'). Fill in the details (City, Genre) and tap 'COPY' to grab the specialized prompt."
+                        description="Use The Navigator to select your mission (e.g., 'Gig Hunt'). Fill in the details (City, Genre) and tap 'COPY' to grab the specialized prompt."
                     />
 
                     <Step

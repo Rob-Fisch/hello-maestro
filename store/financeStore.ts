@@ -1,3 +1,4 @@
+import { deleteFromCloud, syncToCloud } from '@/lib/sync';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { create } from 'zustand';
@@ -23,19 +24,32 @@ export const useFinanceStore = create<FinanceState>()(
         (set, get) => ({
             transactions: [],
 
-            addTransaction: (transaction) => set((state) => ({
-                transactions: [transaction, ...state.transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            })),
+            addTransaction: (transaction) => {
+                set((state) => ({
+                    transactions: [transaction, ...state.transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                }));
+                syncToCloud('transactions', transaction);
+            },
 
-            updateTransaction: (id, updates) => set((state) => ({
-                transactions: state.transactions.map((t) =>
-                    t.id === id ? { ...t, ...updates } : t
-                ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            })),
+            updateTransaction: (id, updates) => {
+                set((state) => {
+                    const newTransactions = state.transactions.map((t) =>
+                        t.id === id ? { ...t, ...updates } : t
+                    ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-            deleteTransaction: (id) => set((state) => ({
-                transactions: state.transactions.filter((t) => t.id !== id)
-            })),
+                    const updatedTransaction = newTransactions.find(t => t.id === id);
+                    if (updatedTransaction) syncToCloud('transactions', updatedTransaction);
+
+                    return { transactions: newTransactions };
+                });
+            },
+
+            deleteTransaction: (id) => {
+                set((state) => ({
+                    transactions: state.transactions.filter((t) => t.id !== id)
+                }));
+                deleteFromCloud('transactions', id);
+            },
 
             setTransactions: (transactions) => set({
                 transactions: transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())

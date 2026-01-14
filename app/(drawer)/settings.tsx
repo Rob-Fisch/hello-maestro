@@ -1,3 +1,4 @@
+import { BuildInfo } from '@/constants/BuildInfo';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
@@ -5,7 +6,6 @@ import { useFinanceStore } from '@/store/financeStore';
 import { Category } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
-import Constants from 'expo-constants';
 import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -566,7 +566,7 @@ export default function SettingsScreen() {
                                 </View>
                                 <View className="flex-row items-center mb-6">
                                     <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
-                                    <Text className="text-slate-300 ml-2 font-medium">Scout AI Booking Agent</Text>
+                                    <Text className="text-slate-300 ml-2 font-medium">The Navigator (AI Tools)</Text>
                                 </View>
 
                                 <TouchableOpacity
@@ -638,7 +638,7 @@ export default function SettingsScreen() {
                         {profile?.isPremium ? 'OpusMode Pro' : 'OpusMode'}
                     </Text>
                     <Text className="text-[10px] mt-1 text-slate-600">
-                        Version {Constants.expoConfig?.version} (Build {Constants.expoConfig?.extra?.buildNumber}) • Cloud Sync Enabled
+                        Version {BuildInfo.version} (Build {BuildInfo.buildNumber}) • Cloud Sync Enabled
                     </Text>
                     {lastSyncedAt && (
                         <Text className="text-[10px] mt-1 text-slate-700 font-medium">

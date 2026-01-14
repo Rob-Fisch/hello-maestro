@@ -1,6 +1,6 @@
+import { BuildInfo } from '@/constants/BuildInfo';
 import { useTheme } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -80,7 +80,7 @@ export default function AboutModal() {
                             Designed & Developed in New York
                         </Text>
                         <Text className="text-[10px] text-slate-600">
-                            v{Constants.expoConfig?.version} ({Constants.expoConfig?.extra?.buildNumber})
+                            v{BuildInfo.version} ({BuildInfo.buildNumber})
                         </Text>
                         <Text className="text-[10px] text-slate-600 mt-2">
                             © {new Date().getFullYear()} OpusMode. All rights reserved.

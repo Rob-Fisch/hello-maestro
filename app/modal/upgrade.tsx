@@ -41,13 +41,13 @@ const SLIDES = [
     },
     {
         id: 'coach',
-        title: 'AI COACH',
-        subtitle: 'CAREER STRATEGY',
+        title: 'THE NAVIGATOR',
+        subtitle: 'CAREER GUIDANCE',
         image: require('../../assets/images/upgrade_coach_v5.png'),
-        icon: 'telescope',
-        color: '#8b5cf6', // Violet
-        bg: 'bg-violet-950',
-        blob: 'bg-violet-900'
+        icon: 'compass',
+        color: '#2dd4bf', // Teal
+        bg: 'bg-teal-950',
+        blob: 'bg-teal-900'
     }
 ];
 
@@ -264,7 +264,7 @@ export default function UpgradeModal() {
                                     {item.id === 'order' && "Organize chaos into mastery. Create unlimited practicing routines, track your progress session-by-session, and build perfect setlists for every gig."}
                                     {item.id === 'glory' && "The ultimate stage companion. Use Live Mode to perform distraction-free. Sync your calendar to Google/iCal and manage your band roster seamlessly."}
                                     {item.id === 'business' && "Turn your passion into a business. Track every dollar in and out. Manage gig fees, expenses, and tax deductions with the integrated Finance Manager."}
-                                    {item.id === 'coach' && "Your personal AI agent. Ask 'Scout' to draft booking emails, suggest setlists based on venue vibe, or critique your practice schedule."}
+                                    {item.id === 'coach' && "Your digital co-pilot. Ask 'The Navigator' to draft booking emails, suggest setlists based on venue vibe, or critique your practice schedule."}
                                 </Text>
 
                                 {/* Bullet Points */}
@@ -302,7 +302,7 @@ export default function UpgradeModal() {
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}
                                     {item.id === 'coach' && [
-                                        "AI Strategy Bot", "Email Drafter", "Career Advice"
+                                        "AI Strategy Bot", "Email Drafter", "Industry Guidance"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}

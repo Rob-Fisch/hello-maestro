@@ -56,7 +56,7 @@ export default function PrivacyModal() {
 
                 <Section title="3. AI Features">
                     <P>
-                        Our AI features (AI Coach, Scout) process your inputs to generate responses.
+                        Our AI features (The Navigator) process your inputs to generate responses.
                         Your data is not used to train public AI models.
                     </P>
                 </Section>
