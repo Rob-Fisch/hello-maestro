@@ -84,31 +84,24 @@ export default function UpgradeModal() {
         setTimeout(attemptScroll, 500); // Simple delay
     }, [layouts, requestedFeature]);
 
-    // Disclaimer
-    const handlePurchase = () => {
-        Alert.alert(
-            "Upgrade to Pro",
-            "This is a demo. Tapping 'Confirm' will simulate a successful purchase.",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Confirm ($19.99/yr)",
-                    onPress: () => {
-                        setProfile({ ...profile!, isPremium: true });
-                        Alert.alert("Welcome to Pro!", "All features are now unlocked.");
-                        router.back();
-                    }
-                }
-            ]
-        );
+    // LEMON SQUEEZY CONFIG
+    const monthlyUrl = `https://store.lemonsqueezy.com/checkout/buy/1216060?checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
+    const annualUrl = `https://store.lemonsqueezy.com/checkout/buy/1216066?checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
+
+    const handleSubscribe = (plan: 'monthly' | 'annual') => {
+        if (!profile?.id) {
+            Alert.alert("Error", "Please log in to upgrade.");
+            return;
+        }
+
+        // Open native browser for secure checkout
+        const url = plan === 'monthly' ? monthlyUrl : annualUrl;
+        Linking.openURL(url);
     };
 
     const handleRestore = () => {
-        Alert.alert(
-            "Restore Purchases",
-            "Checking for active subscriptions...",
-            [{ text: "OK", onPress: () => Alert.alert("Restore Complete", "No active subscriptions found in this demo.") }]
-        );
+        // For web-based subs, restore is just manage billing
+        Linking.openURL('https://opusmode.lemonsqueezy.com/billing');
     };
 
     // SLIDESHOW LOGIC
@@ -201,14 +194,20 @@ export default function UpgradeModal() {
                             </View> */}
                         </View>
 
-                        <TouchableOpacity onPress={handlePurchase} activeOpacity={0.9} className="w-full mb-4">
-                            <View className="w-full py-5 rounded-3xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white">
-                                <Text className="text-black font-black text-xl tracking-tight">START FREE TRIAL</Text>
+                        <TouchableOpacity onPress={() => handleSubscribe('monthly')} activeOpacity={0.9} className="w-full mb-3">
+                            <View className="w-full py-4 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white">
+                                <Text className="text-black font-black text-lg tracking-tight">START MONTHLY ($9.99/mo)</Text>
+                            </View>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => handleSubscribe('annual')} activeOpacity={0.9} className="w-full mb-4">
+                            <View className="w-full py-4 rounded-2xl items-center justify-center border border-white/10 bg-white/5">
+                                <Text className="text-white font-bold text-sm tracking-tight">GET ANNUAL ($99/yr) - SAVE 20%</Text>
                             </View>
                         </TouchableOpacity>
 
                         <Text className="text-center text-zinc-500 text-xs font-medium">
-                            7 days free. Monthly & Annual plans available.
+                            Secure checkout via Lemon Squeezy. Cancel anytime.
                         </Text>
                     </View>
                 </View>
