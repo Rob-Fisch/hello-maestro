@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,7 +11,7 @@ import { useNavigation, useRouter } from 'expo-router';
 
 
 export default function HomeScreen() {
-    const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage, sessionLogs, progress, settings } = useContentStore();
+    const { blocks, routines, events, profile, syncStatus, fullSync, recentModuleIds, trackModuleUsage, sessionLogs, progress, settings, setLists, people } = useContentStore();
 
     const router = useRouter();
     const navigation = useNavigation();
@@ -93,21 +93,40 @@ export default function HomeScreen() {
         ).start();
     }, []);
 
-    // Rotating Suggestions for Empty State
+
+    // Smart Context-Aware Suggestions
     const [suggestionIndex, setSuggestionIndex] = useState(0);
-    const SUGGESTIONS = [
-        "Schedule is empty.",
-        "Add a Gig?",
-        "Plan a Rehearsal?",
-        "Book a Lesson?"
-    ];
+
+    // Build suggestions based on what user hasn't tried yet (memoized to prevent infinite loop)
+    const SUGGESTIONS = useMemo(() => {
+        const suggestions = [];
+        const hasRoutines = (routines || []).length > 0;
+        const hasSetLists = (setLists || []).length > 0;
+        const hasPeople = (people || []).length > 0;
+        const hasEvents = (events || []).length > 0;
+
+        if (!hasRoutines) suggestions.push({ text: "Create a Routine?", icon: "layers-outline" });
+        if (!hasSetLists) suggestions.push({ text: "Draft a Set List?", icon: "musical-notes-outline" });
+        if (!hasPeople) suggestions.push({ text: "Add Contacts?", icon: "people-outline" });
+        if (!hasEvents) suggestions.push({ text: "Book a Gig?", icon: "calendar-outline" });
+
+        // If user has tried everything, show encouragement
+        if (suggestions.length === 0) {
+            return [
+                { text: "You're all set!", icon: "checkmark-circle" },
+                { text: "Keep building!", icon: "trophy" }
+            ];
+        }
+
+        return suggestions;
+    }, [routines, setLists, people, events]);
 
     useEffect(() => {
         const interval = setInterval(() => {
             setSuggestionIndex((prev) => (prev + 1) % SUGGESTIONS.length);
         }, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [SUGGESTIONS.length]);
 
     return (
         <ScrollView
@@ -142,19 +161,19 @@ export default function HomeScreen() {
                             onPress={() => {
                                 fullSync();
                             }}
-                            className={`flex-row items-center px-4 py-2 rounded-full border min-w-[90px] justify-center shadow-sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                            className={`flex - row items - center px - 4 py - 2 rounded - full border min - w - [90px] justify - center shadow - sm ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/20' :
                                 syncStatus === 'syncing' ? 'bg-blue-500/10 border-blue-500/20' :
                                     'bg-red-500/10 border-red-500/20' // Offline / Error
-                                }`}
+                                } `}
                         >
-                            <View className={`w-2 h-2 rounded-full mr-2 ${syncStatus === 'synced' ? 'bg-emerald-400' :
+                            <View className={`w - 2 h - 2 rounded - full mr - 2 ${syncStatus === 'synced' ? 'bg-emerald-400' :
                                 syncStatus === 'syncing' ? 'bg-blue-400' :
                                     'bg-slate-400'
-                                }`} />
-                            <Text className={`text-[10px] font-black uppercase tracking-normal ${syncStatus === 'synced' ? 'text-emerald-100' :
+                                } `} />
+                            <Text className={`text - [10px] font - black uppercase tracking - normal ${syncStatus === 'synced' ? 'text-emerald-100' :
                                 syncStatus === 'syncing' ? 'text-blue-100' :
                                     'text-slate-400'
-                                }`}>
+                                } `}>
                                 {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
                             </Text>
                         </TouchableOpacity>
@@ -163,7 +182,7 @@ export default function HomeScreen() {
 
                 {/* Greeting */}
                 <Text className="text-3xl md:text-4xl font-black tracking-tighter leading-tight text-white mb-6" numberOfLines={2} adjustsFontSizeToFit>
-                    {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
+                    {profile?.displayName ? `Hello, ${profile.displayName} !` : 'OpusMode'}
                 </Text>
 
                 {/* Offline / Conflict Warning Banner */}
@@ -210,7 +229,7 @@ export default function HomeScreen() {
                         </View>
 
                         {todaysEvents.length > 0 ? (
-                            // Normal "Active" State
+                            // Active State: Show Stats
                             <>
                                 <View>
                                     <Text className="text-4xl font-black text-white shadow-sm">{todaysEvents.length}</Text>
@@ -218,17 +237,17 @@ export default function HomeScreen() {
                                 </View>
                                 <View>
                                     <Text className="text-sm font-bold text-slate-300">
-                                        {upcomingEventsCount} Scheduled
+                                        {upcomingEventsCount} This Week
                                     </Text>
                                     <Text className="text-[10px] text-slate-500">Next 7 Days</Text>
                                 </View>
                             </>
                         ) : (
-                            // "Gamified" Empty State
+                            // Empty State: Smart Suggestions
                             <View className="flex-1 justify-center items-center">
-                                <Ionicons name="calendar-outline" size={32} color={theme.mutedText} style={{ marginBottom: 12, opacity: 0.5 }} />
+                                <Ionicons name={SUGGESTIONS[suggestionIndex].icon as any} size={32} color={theme.mutedText} style={{ marginBottom: 12, opacity: 0.5 }} />
                                 <Text className="text-slate-400 text-center font-bold text-lg leading-6 opacity-60">
-                                    {SUGGESTIONS[suggestionIndex]}
+                                    {SUGGESTIONS[suggestionIndex].text}
                                 </Text>
                             </View>
                         )}

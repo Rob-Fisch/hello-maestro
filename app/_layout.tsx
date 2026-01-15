@@ -2,6 +2,7 @@
 import { VersionChecker } from '@/components/VersionChecker';
 import { useContentStore } from '@/store/contentStore';
 import { useGearStore } from '@/store/gearStore';
+import { Ionicons } from '@expo/vector-icons';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, router, useRootNavigationState, useSegments } from 'expo-router';
@@ -38,7 +39,7 @@ export default function RootLayout() {
   // Load Icons Logic (Fix for Web PWA)
   /* eslint-disable @typescript-eslint/no-var-requires */
   const [fontsLoaded] = useFonts({
-    Ionicons: require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf'),
+    ...Ionicons.font,
   });
 
   useEffect(() => {
@@ -169,7 +170,7 @@ export default function RootLayout() {
       return;
     }
 
-    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup && !inOnboarding) {
+    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup && !inOnboarding && segments[0] !== undefined) {
       router.replace('/auth');
     } else if (profile && inAuthGroup) {
       router.replace('/');
@@ -251,6 +252,10 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="modal/upgrade"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
+          <Stack.Screen
+            name="modal/sitemap"
             options={{ presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen

@@ -6,15 +6,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 
 
-const SLIDE_IMAGES = [
-    require('../assets/images/opusmode_om_logo_v9.png'),
-    require('../assets/images/chaos_drift.png'),
-    require('../assets/images/studio_order.png'),
-    require('../assets/images/performance_glory.png'),
+const FEATURE_HIGHLIGHTS = [
+    { text: "Track your gigs", icon: "calendar-outline" },
+    { text: "Build your repertoire", icon: "musical-notes-outline" },
+    { text: "Organize your practice", icon: "time-outline" },
+    { text: "Manage your contacts", icon: "people-outline" },
 ];
 
 export default function AuthScreen() {
@@ -54,7 +54,7 @@ export default function AuthScreen() {
                 useNativeDriver: true,
             }).start(() => {
                 // 2. Change Image
-                setCurrentImageIndex((prev) => (prev + 1) % SLIDE_IMAGES.length);
+                setCurrentImageIndex((prev) => (prev + 1) % FEATURE_HIGHLIGHTS.length);
 
                 // 3. Fade In
                 Animated.timing(fadeAnim, {
@@ -170,27 +170,27 @@ export default function AuthScreen() {
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-8">
                 <View className="flex-1 justify-center py-20">
 
-                    {/* --- IMAGE SLIDER SECTION --- */}
-                    <View className="items-center mb-12">
-                        {/* 
-                            Container for the images. 
-                            Restored glowing edge, black background, and rounded corners.
-                        */}
-                        <View
-                            className="w-full items-center"
-                        >
-                            <View className="w-full max-w-[320px] aspect-square items-center justify-center rounded-[40px] overflow-hidden border border-white/10 bg-black shadow-2xl shadow-purple-900/50">
-                                {/* The Animated Image */}
-                                <Animated.Image
-                                    source={SLIDE_IMAGES[currentImageIndex]}
-                                    style={{
-                                        opacity: fadeAnim,
-                                        width: '100%',
-                                        height: '100%',
-                                        resizeMode: 'contain'
-                                    }}
+                    {/* --- FEATURE HIGHLIGHT SECTION --- */}
+                    <View className="items-center mb-6">
+                        <View className="w-full max-w-[320px] h-[140px] items-center justify-center rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-br from-indigo-950 to-purple-950 shadow-2xl shadow-purple-900/50">
+                            {/* Animated Feature Highlight */}
+                            <Animated.View
+                                style={{
+                                    opacity: fadeAnim,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <Ionicons
+                                    name={FEATURE_HIGHLIGHTS[currentImageIndex].icon as any}
+                                    size={44}
+                                    color="#a78bfa"
+                                    style={{ marginBottom: 10 }}
                                 />
-                            </View>
+                                <Text className="text-white text-lg font-bold text-center px-8">
+                                    {FEATURE_HIGHLIGHTS[currentImageIndex].text}
+                                </Text>
+                            </Animated.View>
                         </View>
                     </View>
 

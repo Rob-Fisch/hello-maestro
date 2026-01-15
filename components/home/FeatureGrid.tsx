@@ -32,8 +32,8 @@ const GridItem = ({ title, subtitle, icon, color, iconColor, size = 'medium', is
             className={`rounded-[24px] p-4 justify-between overflow-hidden relative border border-white/5 ${size === 'wide' ? 'w-full h-32 flex-row items-center' :
                 size === 'large' ? 'flex-1 h-64' :
                     'flex-1 h-32' // medium/small share height
-                } ${isDimmed ? 'opacity-50' : 'opacity-100 shadow-sm'}`} // Gamification: Dim if unused
-            style={{ backgroundColor: isDimmed ? '#1e293b' : color }} // Use slate-800 if dimmed, else vibrant color
+                } ${isDimmed ? 'opacity-70' : 'opacity-100 shadow-sm'}`} // Gamification: Dim if unused
+            style={{ backgroundColor: isDimmed ? '#334155' : color }} // Use slate-700 if dimmed, else vibrant color
         >
             {/* Background Icon (Decorative) */}
             <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-[-15deg]">
@@ -166,7 +166,7 @@ export default function FeatureGrid() {
                 iconColor="#99f6e4" // Teal 200
                 route="/coach"
                 size="wide"
-                // AI Coach is now Freemium (Student Mode is free), so do not show lock badge
+                // The Navigator is now Freemium (Student Mode is free), so do not show lock badge
                 onPress={() => handlePress('/coach', false)}
             />
         </View>

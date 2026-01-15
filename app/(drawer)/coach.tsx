@@ -157,250 +157,231 @@ export default function CoachScreen() {
                                 </TouchableOpacity>
                                 <View className="flex-1">
                                     <Text className="text-4xl font-black tracking-tight" style={{ color: theme.text }}>The Navigator</Text>
-                                    <Text className="font-bold text-xs uppercase tracking-widest opacity-60" style={{ color: theme.text }}>AI Career Guidance</Text>
+                                    <Text className="font-bold text-[10px] uppercase tracking-widest opacity-40" style={{ color: theme.text }}>AI Career Guidance</Text>
                                 </View>
                             </View>
                         </View>
 
-                        {/* Intro Blurb */}
-                        <View className="flex-row items-start mb-6">
-                            <View className="mr-4 mt-1 bg-indigo-500/10 p-2 rounded-full">
-                                <Ionicons name="compass" size={20} color={theme.primary} />
-                            </View>
-                            <View className="flex-1">
-                                <View className="flex-row items-center justify-between mb-1">
-                                    <Text className="font-black text-lg" style={{ color: theme.text }}>Course Correct.</Text>
-                                </View>
-                                <Text className="text-sm opacity-70 leading-5 mb-2" style={{ color: theme.text }}>
-                                    New to AI? Don't worry. This tool builds "prompts" for you to paste into apps like ChatGPT or Gemini. It's not magic—it's just a faster way to find venues and contacts.
-                                </Text>
-                                <TouchableOpacity onPress={() => router.push('/modal/help')}>
-                                    <Text className="font-bold text-sm" style={{ color: theme.primary }}>Read the AI Guide &rarr;</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Mission Selector */}
-                    <Text className="text-secondary font-black uppercase tracking-widest text-xs mb-4 ml-6">Select Mission</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-6 px-12 ml-0 pl-6">
-                        {SCOUT_TEMPLATES.map((t) => {
-                            const isActive = t.id === selectedTemplateId;
-                            return (
-                                <TouchableOpacity
-                                    key={t.id}
-                                    onPress={() => setSelectedTemplateId(t.id)}
-                                    activeOpacity={0.7}
-                                    className={`p-3 rounded-2xl mr-3 w-28 border h-28 justify-between ${isActive ? '' : 'opacity-60'}`}
-                                    style={{
-                                        backgroundColor: isActive ? theme.card : theme.background,
-                                        borderColor: isActive ? theme.primary : theme.border,
-                                        borderWidth: isActive ? 2 : 1
-                                    }}
-                                >
-                                    <View className={`w-8 h-8 rounded-full items-center justify-center ${t.color}`}>
-                                        <Ionicons name={t.icon as any} size={16} color="white" />
-                                    </View>
-                                    {!t.isFree && (
-                                        <View className="absolute top-2 right-2 bg-stone-900 px-1.5 py-0.5 rounded-md">
-                                            <Text className="text-white text-[8px] font-black uppercase">Pro</Text>
-                                        </View>
-                                    )}
-                                    {t.isFree && (
-                                        <View className="absolute top-2 right-2 bg-teal-600 px-1.5 py-0.5 rounded-md">
-                                            <Text className="text-white text-[8px] font-black uppercase">Free</Text>
-                                        </View>
-                                    )}
-                                    <View>
-                                        <Text className="font-black text-sm leading-tight" style={{ color: theme.text }}>{t.label}</Text>
-                                        <Text className="text-[9px] leading-tight mt-1 opacity-70" numberOfLines={2} style={{ color: theme.text }}>{t.description}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </ScrollView>
-
-                    {/* Hide Parameters if viewing a Locked Template on Free Tier (focus on Golden Sample) */}
-                    {(profile?.isPremium || activeTemplate.isFree) && (
-                        <View className="px-8">
-                            <View className="mb-4">
-                                <Text className="text-secondary font-black uppercase tracking-widest text-xs mb-4">Mission Parameters</Text>
-                                <View className="mb-4">
-                                    <Text className="text-xs font-bold mb-2 ml-1" style={{ color: theme.mutedText }}>Location (Zip/City)</Text>
-                                    <TextInput
-                                        value={zip}
-                                        onChangeText={setZip}
-                                        placeholder="12345 or City, State"
-                                        className="p-4 rounded-2xl border font-bold"
-                                        style={{ backgroundColor: theme.card, borderColor: theme.border, color: theme.text }}
-                                    />
-                                </View>
-
-                                {/* Genre Selector Trigger */}
-                                <View className="mb-4">
-                                    <Text className="text-xs font-bold mb-2 ml-1" style={{ color: theme.mutedText }}>Genres ({selectedGenres.length})</Text>
+                        {/* Mission Selector */}
+                        <Text className="text-secondary font-black uppercase tracking-widest text-xs mb-4 ml-6">Select Mission</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-6 px-12 ml-0 pl-6">
+                            {SCOUT_TEMPLATES.map((t) => {
+                                const isActive = t.id === selectedTemplateId;
+                                return (
                                     <TouchableOpacity
-                                        onPress={() => setShowGenreModal(!showGenreModal)}
-                                        className="p-4 rounded-2xl border flex-row justify-between items-center"
-                                        style={{ backgroundColor: theme.card, borderColor: theme.border }}
+                                        key={t.id}
+                                        onPress={() => setSelectedTemplateId(t.id)}
+                                        activeOpacity={0.7}
+                                        className={`p-4 rounded-2xl mr-4 w-36 border h-36 justify-between ${isActive ? '' : 'opacity-60'}`}
+                                        style={{
+                                            backgroundColor: isActive ? theme.card : theme.background,
+                                            borderColor: isActive ? theme.primary : theme.border,
+                                            borderWidth: isActive ? 2 : 1
+                                        }}
                                     >
-                                        <Text className="font-bold flex-1 mr-2" numberOfLines={1} style={{ color: selectedGenres.length ? theme.text : theme.mutedText }}>
-                                            {selectedGenres.length > 0 ? selectedGenres.join(', ') : 'Select Genres...'}
-                                        </Text>
-                                        <Ionicons name={showGenreModal ? "chevron-up" : "chevron-down"} size={20} color={theme.mutedText} />
-                                    </TouchableOpacity>
-
-                                    {/* INLINE GENRE EXPANSION */}
-                                    {showGenreModal && (
-                                        <View className="mt-2 p-4 rounded-2xl border" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
-                                            <View className="flex-row flex-wrap mb-4">
-                                                {PRESET_GENRES.map(g => (
-                                                    <TouchableOpacity
-                                                        key={g}
-                                                        onPress={() => toggleGenre(g)}
-                                                        className={`mr-2 mb-2 px-3 py-2 rounded-lg border ${selectedGenres.includes(g) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-200'}`}
-                                                        style={selectedGenres.includes(g) ? {} : { borderColor: theme.border }}
-                                                    >
-                                                        <Text className={`text-xs font-bold ${selectedGenres.includes(g) ? 'text-white' : ''}`} style={{ color: selectedGenres.includes(g) ? 'white' : theme.text }}>
-                                                            {g}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-                                            {/* Custom Genre Input Inline */}
-                                            <View className="flex-row items-center">
-                                                <TextInput
-                                                    value={customGenre}
-                                                    onChangeText={setCustomGenre}
-                                                    placeholder="Add custom..."
-                                                    className="flex-1 p-3 rounded-l-xl border-t border-b border-l text-xs"
-                                                    style={{ borderColor: theme.border, color: theme.text, backgroundColor: theme.background }}
-                                                    placeholderTextColor={theme.mutedText}
-                                                />
-                                                <TouchableOpacity
-                                                    onPress={addCustomGenre}
-                                                    className="bg-indigo-500 h-full justify-center px-4 rounded-r-xl"
-                                                >
-                                                    <Ionicons name="add" size={20} color="white" />
-                                                </TouchableOpacity>
-                                            </View>
+                                        <View className={`w-10 h-10 rounded-full items-center justify-center ${t.color}`}>
+                                            <Ionicons name={t.icon as any} size={20} color="white" />
                                         </View>
-                                    )}
-                                </View>
+                                        {!t.isFree && (
+                                            <View className="absolute top-2 right-2 bg-stone-900 px-1.5 py-0.5 rounded-md">
+                                                <Text className="text-white text-[8px] font-black uppercase">Pro</Text>
+                                            </View>
+                                        )}
+                                        {t.isFree && (
+                                            <View className="absolute top-2 right-2 bg-teal-600 px-1.5 py-0.5 rounded-md">
+                                                <Text className="text-white text-[8px] font-black uppercase">Free</Text>
+                                            </View>
+                                        )}
+                                        <View>
+                                            <Text className="font-black text-base leading-tight" style={{ color: theme.text }}>{t.label}</Text>
+                                            <Text className="text-[10px] leading-tight mt-1 opacity-70" numberOfLines={2} style={{ color: theme.text }}>{t.description}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
 
-                                {/* Radius Selector */}
-                                <View>
-                                    <Text className="text-xs font-bold mb-2 ml-1" style={{ color: theme.mutedText }}>Radius: {radius} miles</Text>
-                                    <View className="flex-row justify-between bg-gray-100 p-1 rounded-xl" style={{ backgroundColor: theme.card }}>
-                                        {['10', '25', '50', '100'].map((r) => (
-                                            <TouchableOpacity
-                                                key={r}
-                                                onPress={() => setRadius(r)}
-                                                className={`flex-1 py-2 items-center rounded-lg ${radius === r ? 'bg-indigo-500 shadow-sm' : ''}`}
-                                                style={radius === r ? { backgroundColor: '#6366f1' } : {}}
-                                            >
-                                                <Text className={`font-bold ${radius === r ? 'text-white' : 'text-gray-400'}`}>{r}m</Text>
-                                            </TouchableOpacity>
-                                        ))}
+                        {/* Hide Parameters if viewing a Locked Template on Free Tier (focus on Golden Sample) */}
+                        {(profile?.isPremium || activeTemplate.isFree) && (
+                            <View className="px-8">
+                                <View className="mb-4">
+                                    <Text className="text-secondary font-black uppercase tracking-widest text-xs mb-4">Mission Parameters</Text>
+                                    <View className="mb-4">
+                                        <Text className="text-xs font-bold mb-2 ml-1" style={{ color: theme.mutedText }}>Location (Zip/City)</Text>
+                                        <TextInput
+                                            value={zip}
+                                            onChangeText={setZip}
+                                            placeholder="12345 or City, State"
+                                            className="p-4 rounded-2xl border font-bold"
+                                            style={{ backgroundColor: theme.card, borderColor: theme.border, color: theme.text }}
+                                        />
+                                    </View>
+
+                                    {/* Genre Selector Trigger */}
+                                    <View className="mb-4">
+                                        <Text className="text-xs font-bold mb-2 ml-1" style={{ color: theme.mutedText }}>Genres ({selectedGenres.length})</Text>
+                                        <TouchableOpacity
+                                            onPress={() => setShowGenreModal(!showGenreModal)}
+                                            className="p-4 rounded-2xl border flex-row justify-between items-center"
+                                            style={{ backgroundColor: theme.card, borderColor: theme.border }}
+                                        >
+                                            <Text className="font-bold flex-1 mr-2" numberOfLines={1} style={{ color: selectedGenres.length ? theme.text : theme.mutedText }}>
+                                                {selectedGenres.length > 0 ? selectedGenres.join(', ') : 'Select Genres...'}
+                                            </Text>
+                                            <Ionicons name={showGenreModal ? "chevron-up" : "chevron-down"} size={20} color={theme.mutedText} />
+                                        </TouchableOpacity>
+
+                                        {/* INLINE GENRE EXPANSION */}
+                                        {showGenreModal && (
+                                            <View className="mt-2 p-4 rounded-2xl border" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                                                <View className="flex-row flex-wrap mb-4">
+                                                    {PRESET_GENRES.map(g => (
+                                                        <TouchableOpacity
+                                                            key={g}
+                                                            onPress={() => toggleGenre(g)}
+                                                            className={`mr-2 mb-2 px-3 py-2 rounded-lg border ${selectedGenres.includes(g) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-200'}`}
+                                                            style={selectedGenres.includes(g) ? {} : { borderColor: theme.border }}
+                                                        >
+                                                            <Text className={`text-xs font-bold ${selectedGenres.includes(g) ? 'text-white' : ''}`} style={{ color: selectedGenres.includes(g) ? 'white' : theme.text }}>
+                                                                {g}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </View>
+                                                {/* Custom Genre Input Inline */}
+                                                <View className="flex-row items-center">
+                                                    <TextInput
+                                                        value={customGenre}
+                                                        onChangeText={setCustomGenre}
+                                                        placeholder="Add custom..."
+                                                        className="flex-1 p-3 rounded-l-xl border-t border-b border-l text-xs"
+                                                        style={{ borderColor: theme.border, color: theme.text, backgroundColor: theme.background }}
+                                                        placeholderTextColor={theme.mutedText}
+                                                    />
+                                                    <TouchableOpacity
+                                                        onPress={addCustomGenre}
+                                                        className="bg-indigo-500 h-full justify-center px-4 rounded-r-xl"
+                                                    >
+                                                        <Ionicons name="add" size={20} color="white" />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
+
+                                    {/* Radius Selector */}
+                                    <View>
+                                        <Text className="text-xs font-bold mb-2 ml-1" style={{ color: theme.mutedText }}>Radius: {radius} miles</Text>
+                                        <View className="flex-row justify-between bg-gray-100 p-1 rounded-xl" style={{ backgroundColor: theme.card }}>
+                                            {['10', '25', '50', '100'].map((r) => (
+                                                <TouchableOpacity
+                                                    key={r}
+                                                    onPress={() => setRadius(r)}
+                                                    className={`flex-1 py-2 items-center rounded-lg ${radius === r ? 'bg-indigo-500 shadow-sm' : ''}`}
+                                                    style={radius === r ? { backgroundColor: '#6366f1' } : {}}
+                                                >
+                                                    <Text className={`font-bold ${radius === r ? 'text-white' : 'text-gray-400'}`}>{r}m</Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
                                     </View>
                                 </View>
                             </View>
-                        </View>
-                    )}
+                        )}
 
-                    {/* Output - Dynamically Gated */}
-                    <View className="px-8 flex-1 mb-10">
-                        {
-                            profile?.isPremium || activeTemplate.isFree ? (
-                                // UNLOCKED VIEW
-                                <View>
-                                    <View className="p-6 rounded-3xl border mb-6" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
-                                        <View className="items-center mb-6">
-                                            <View className="w-16 h-16 rounded-full items-center justify-center mb-4" style={{ backgroundColor: activeTemplate.color.replace('bg-', 'bg-opacity-10 ').replace('500', '500/10') }}>
-                                                <Ionicons name="checkmark-done-circle" size={48} color={activeTemplate.color === 'bg-black' ? theme.text : '#10b981'} />
+                        {/* Output - Dynamically Gated */}
+                        <View className="px-8 flex-1 mb-10">
+                            {
+                                profile?.isPremium || activeTemplate.isFree ? (
+                                    // UNLOCKED VIEW
+                                    <View>
+                                        <View className="p-6 rounded-3xl border mb-6" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                                            <View className="items-center mb-6">
+                                                <View className="w-16 h-16 rounded-full items-center justify-center mb-4" style={{ backgroundColor: activeTemplate.color.replace('bg-', 'bg-opacity-10 ').replace('500', '500/10') }}>
+                                                    <Ionicons name="checkmark-done-circle" size={48} color={activeTemplate.color === 'bg-black' ? theme.text : '#10b981'} />
+                                                </View>
+                                                <Text className="text-2xl font-black text-center mb-2" style={{ color: theme.text }}>Command Ready.</Text>
+                                                <Text className="text-center opacity-70 leading-5" style={{ color: theme.text }}>
+                                                    Your custom {activeTemplate.label} prompt has been generated.
+                                                </Text>
                                             </View>
-                                            <Text className="text-2xl font-black text-center mb-2" style={{ color: theme.text }}>Command Ready.</Text>
-                                            <Text className="text-center opacity-70 leading-5" style={{ color: theme.text }}>
-                                                Your custom {activeTemplate.label} prompt has been generated.
+
+                                            <TouchableOpacity
+                                                onPress={handleCopy}
+                                                activeOpacity={0.7}
+                                                className="w-full py-4 rounded-xl flex-row items-center justify-center mb-4 shadow-sm bg-indigo-600"
+                                                style={{}}
+                                            >
+                                                <Text className="text-white font-black text-lg mr-2 uppercase tracking-wide">Copy Command</Text>
+                                                <Ionicons name="copy" size={20} color="white" />
+                                            </TouchableOpacity>
+
+                                            <Text className="text-center text-xs opacity-60 mb-2" style={{ color: theme.text }}>
+                                                Next: Paste this into ChatGPT, Gemini, or Claude.
                                             </Text>
                                         </View>
 
+                                        {/* Collapsible Raw Text */}
                                         <TouchableOpacity
-                                            onPress={handleCopy}
-                                            activeOpacity={0.7}
-                                            className="w-full py-4 rounded-xl flex-row items-center justify-center mb-4 shadow-sm bg-indigo-600"
-                                            style={{}}
+                                            onPress={() => setShowRaw(!showRaw)}
+                                            className="flex-row items-center justify-center mb-4 opacity-50"
                                         >
-                                            <Text className="text-white font-black text-lg mr-2 uppercase tracking-wide">Copy Command</Text>
-                                            <Ionicons name="copy" size={20} color="white" />
+                                            <Text className="font-bold mr-1" style={{ color: theme.text }}>{showRaw ? 'Hide' : 'View'} Raw Prompt</Text>
+                                            <Ionicons name={showRaw ? "chevron-up" : "chevron-down"} size={16} color={theme.text} />
                                         </TouchableOpacity>
 
-                                        <Text className="text-center text-xs opacity-60 mb-2" style={{ color: theme.text }}>
-                                            Next: Paste this into ChatGPT, Gemini, or Claude.
-                                        </Text>
+                                        {showRaw && (
+                                            <View className="p-4 rounded-3xl border border-dashed mb-8" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
+                                                <TextInput
+                                                    value={generatedPrompt}
+                                                    multiline={true}
+                                                    scrollEnabled={false}
+                                                    editable={false}
+                                                    style={{
+                                                        color: theme.mutedText,
+                                                        fontSize: 13,
+                                                        lineHeight: 20,
+                                                        fontWeight: '500',
+                                                    }}
+                                                />
+                                            </View>
+                                        )}
                                     </View>
-
-                                    {/* Collapsible Raw Text */}
-                                    <TouchableOpacity
-                                        onPress={() => setShowRaw(!showRaw)}
-                                        className="flex-row items-center justify-center mb-4 opacity-50"
-                                    >
-                                        <Text className="font-bold mr-1" style={{ color: theme.text }}>{showRaw ? 'Hide' : 'View'} Raw Prompt</Text>
-                                        <Ionicons name={showRaw ? "chevron-up" : "chevron-down"} size={16} color={theme.text} />
-                                    </TouchableOpacity>
-
-                                    {showRaw && (
-                                        <View className="p-4 rounded-3xl border border-dashed mb-8" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                                            <TextInput
-                                                value={generatedPrompt}
-                                                multiline={true}
-                                                scrollEnabled={false}
-                                                editable={false}
-                                                style={{
-                                                    color: theme.mutedText,
-                                                    fontSize: 13,
-                                                    lineHeight: 20,
-                                                    fontWeight: '500',
-                                                }}
-                                            />
+                                ) : (
+                                    // LOCKED VIEW (GOLDEN SAMPLE PREVIEW)
+                                    <View className="relative mt-4">
+                                        <View className="p-5 rounded-3xl border opacity-50 overflow-hidden h-64" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                                            <View className="flex-row justify-between items-center mb-2">
+                                                <Text className="font-black text-xs uppercase" style={{ color: theme.mutedText }}>Sample Result (Preview Only)</Text>
+                                                <View className="bg-indigo-500/10 px-2 py-1 rounded-md">
+                                                    <Text className="text-[10px] font-bold text-indigo-500">Found {Math.floor(Math.random() * (45 - 18 + 1)) + 18} matches...</Text>
+                                                </View>
+                                            </View>
+                                            <Text style={{ color: theme.text, fontSize: 13, lineHeight: 20 }}>
+                                                {activeTemplate.goldenSample || "Upgrade to see more..."}
+                                            </Text>
                                         </View>
-                                    )}
-                                </View>
-                            ) : (
-                                // LOCKED VIEW (GOLDEN SAMPLE PREVIEW)
-                                <View className="relative mt-4">
-                                    <View className="p-5 rounded-3xl border opacity-50 overflow-hidden h-64" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
-                                        <View className="flex-row justify-between items-center mb-2">
-                                            <Text className="font-black text-xs uppercase" style={{ color: theme.mutedText }}>Sample Result (Preview Only)</Text>
-                                            <View className="bg-indigo-500/10 px-2 py-1 rounded-md">
-                                                <Text className="text-[10px] font-bold text-indigo-500">Found {Math.floor(Math.random() * (45 - 18 + 1)) + 18} matches...</Text>
+
+                                        {/* Overlay */}
+                                        <View className="absolute inset-0 items-center justify-center rounded-3xl" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                                            <View className="p-6 rounded-2xl shadow-xl items-center w-[90%] border" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                                                <Ionicons name="lock-closed" size={32} color="#F59E0B" className="mb-2" />
+                                                <Text className="font-bold text-lg text-center mb-1" style={{ color: theme.text }}>Pro Feature Locked</Text>
+                                                <Text className="text-center mb-4 text-xs" style={{ color: theme.mutedText }}>Unlock to generate custom prompts for this category.</Text>
+                                                <TouchableOpacity
+                                                    onPress={() => router.push('/modal/upgrade?feature=scout_pro' as any)}
+                                                    className="bg-indigo-600 px-6 py-3 rounded-xl flex-row items-center"
+                                                >
+                                                    <Text className="text-white font-bold mr-2">Upgrade to Pro</Text>
+                                                    <Ionicons name="arrow-forward" size={16} color="white" />
+                                                </TouchableOpacity>
                                             </View>
                                         </View>
-                                        <Text style={{ color: theme.text, fontSize: 13, lineHeight: 20 }}>
-                                            {activeTemplate.goldenSample || "Upgrade to see more..."}
-                                        </Text>
                                     </View>
-
-                                    {/* Overlay */}
-                                    <View className="absolute inset-0 items-center justify-center rounded-3xl" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
-                                        <View className="p-6 rounded-2xl shadow-xl items-center w-[90%] border" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
-                                            <Ionicons name="lock-closed" size={32} color="#F59E0B" className="mb-2" />
-                                            <Text className="font-bold text-lg text-center mb-1" style={{ color: theme.text }}>Pro Feature Locked</Text>
-                                            <Text className="text-center mb-4 text-xs" style={{ color: theme.mutedText }}>Unlock to generate custom prompts for this category.</Text>
-                                            <TouchableOpacity
-                                                onPress={() => router.push('/modal/upgrade?feature=scout_pro' as any)}
-                                                className="bg-indigo-600 px-6 py-3 rounded-xl flex-row items-center"
-                                            >
-                                                <Text className="text-white font-bold mr-2">Upgrade to Pro</Text>
-                                                <Ionicons name="arrow-forward" size={16} color="white" />
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                </View>
-                            )
-                        }
+                                )
+                            }
+                        </View>
                     </View>
-
                 </ScrollView>
             </View>
         </KeyboardAvoidingViewWrapper>

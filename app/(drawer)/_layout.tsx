@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'content', icon: 'library-outline', label: 'Level 1', path: '/content', hidden: true },
     { name: 'routines', icon: 'layers-outline', label: 'Level 2', path: '/routines', hidden: true },
     { name: 'events', icon: 'calendar-outline', label: 'Schedule', path: '/events' },
-    { name: 'coach', icon: 'compass-outline', label: 'Navigator', path: '/coach' },
+    { name: 'coach', icon: 'compass-outline', label: 'The Navigator', path: '/coach' },
     // { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
     // { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
     { name: 'setlists', icon: 'list-outline', label: 'Set Lists', path: '/setlists' },

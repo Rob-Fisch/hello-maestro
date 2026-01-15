@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -35,30 +35,40 @@ export default function LandingPage() {
     }, []);
 
     const FEATURE_CARDS = [
-        { title: "Gig Logistics", icon: "calendar", desc: "Schedules, locations, and pay rates in one view.", color: "#818cf8" },
-        { title: "Smart Roster", icon: "people", desc: "Manage subs, send invites, and track confirmations.", color: "#f472b6" },
-        { title: "Setlist Builder", icon: "list", desc: "Drag-and-drop song sequencing with auto-timing.", color: "#a78bfa" },
-        { title: "Live Mode", icon: "play-circle", desc: "Distraction-free stage view for high-pressure shows.", color: "#34d399" },
+        { title: "Gig Management", icon: "calendar", desc: "Track schedules, locations, pay rates, and rosters in one place.", color: "#818cf8" },
+        { title: "Contact Manager", icon: "people", desc: "Manage musicians, venues, and students with smart organization.", color: "#f472b6" },
+        { title: "Setlist Builder", icon: "list", desc: "Organize your songs with drag-and-drop reordering.", color: "#a78bfa" },
+        { title: "Practice Tracking", icon: "time", desc: "Log practice sessions and build custom routines.", color: "#34d399" },
     ];
 
     const PRICING_TIERS = [
         {
             name: "Free",
             price: "$0",
-            desc: "For the solo musician.",
-            features: ["Unlimited Gigs", "50 Songs Max", "Manual Backup", "Basic Setlists"],
+            desc: "Perfect to get started.",
+            features: ["Unlimited Gigs", "50 Songs Max", "Basic Practice Tracking", "Contact Management", "Auto Sync", "Try The Navigator"],
             cta: "Start Free",
             primary: false
         },
         {
-            name: "Pro",
-            price: "$9",
+            name: "Pro Monthly",
+            price: "$9.99",
             period: "/mo",
-            desc: "For the working pro.",
-            features: ["Unlimited Songs", "Unlimited Storage", "Cloud Sync", "Advanced Analytics", "Priority Support"],
+            desc: "For working musicians.",
+            features: ["Unlimited Songs", "Unlimited Storage", "Cloud Sync Across Devices", "Full Navigator Access", "Advanced Analytics", "Priority Support"],
             cta: "Go Pro",
             primary: true,
             highlight: "Most Popular"
+        },
+        {
+            name: "Pro Annual",
+            price: "$99",
+            period: "/year",
+            desc: "Best value - 2 months free!",
+            features: ["Everything in Pro Monthly", "2 Months Free", "Annual Billing", "Priority Support"],
+            cta: "Go Annual",
+            primary: false,
+            highlight: "Best Value"
         }
     ];
 
@@ -98,8 +108,11 @@ export default function LandingPage() {
                         <Text className="text-5xl md:text-7xl font-black text-white text-center leading-tight mb-6 max-w-4xl tracking-tighter">
                             The Operating System for <Text className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Working Musicians</Text>
                         </Text>
-                        <Text className="text-slate-400 text-lg md:text-xl text-center max-w-2xl leading-relaxed mb-10">
+                        <Text className="text-slate-400 text-lg md:text-xl text-center max-w-2xl leading-relaxed mb-4">
                             Stop using spreadsheets and sticky notes. OpusMode connects your calendar, repertoire, and finances in one beautiful workspace.
+                        </Text>
+                        <Text className="text-indigo-300 text-sm md:text-base text-center max-w-xl font-medium mb-10">
+                            ✨ Start free - no credit card required. Upgrade only when you need more.
                         </Text>
 
                         <View className="flex-row flex-wrap justify-center gap-4 w-full px-4">
@@ -107,7 +120,7 @@ export default function LandingPage() {
                                 onPress={() => router.push('/auth')}
                                 className="bg-indigo-600 px-8 py-4 rounded-full shadow-xl shadow-indigo-600/20 w-full md:w-auto items-center"
                             >
-                                <Text className="text-white font-bold text-lg">Get Started Free</Text>
+                                <Text className="text-white font-bold text-lg">Start Free - No Credit Card</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
@@ -128,11 +141,12 @@ export default function LandingPage() {
                         {/* Glow */}
                         <View className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-indigo-500/20 blur-[100px] rounded-full" />
 
-                        {/* Placeholder for App Screenshot - In real life we'd use a real asset */}
-                        <View className="flex-1 items-center justify-center">
-                            <Ionicons name="desktop-outline" size={64} color="#64748b" />
-                            <Text className="text-slate-600 font-bold mt-4">App Interface Preview</Text>
-                        </View>
+                        {/* App Screenshot */}
+                        <Image
+                            source={require('../../assets/brain/dashboard_screenshot.png')}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                        />
                     </View>
                 </View>
 

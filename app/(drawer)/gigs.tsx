@@ -208,7 +208,7 @@ export default function GigsScreen() {
                         <View className="flex-1 mr-4">
                             <View className="flex-row items-center mb-3">
                                 <Ionicons name="telescope" size={20} color="#a5b4fc" />
-                                <Text className="text-[#a5b4fc] font-black uppercase tracking-widest text-xs ml-2">OpusMode AI Coach</Text>
+                                <Text className="text-[#a5b4fc] font-black uppercase tracking-widest text-xs ml-2">The Navigator</Text>
                             </View>
                             <Text className="text-2xl font-black text-white mb-2 tracking-tight">
                                 Find new opportunities

@@ -310,7 +310,6 @@ export default function UpgradeModal() {
                             </View>
                         </View>
                     ))}
-
                     {/* Pro+ Upsell */}
                     <View className="mt-8 mx-6 p-4 rounded-xl border border-dashed border-zinc-800 bg-zinc-900/50">
                         <View className="flex-row items-center justify-between mb-2">
