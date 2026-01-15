@@ -169,7 +169,7 @@ export default function EventDashboard() {
                     {event.isPublicStagePlot && (
                         <TouchableOpacity
                             onPress={() => {
-                                const url = `https://opusmode.net/events/${event.id}`;
+                                const url = `https://opusmode.net/fan/${event.id}`;
                                 if (Platform.OS === 'web') {
                                     if (navigator.share) {
                                         navigator.share({ title: event.title, url });
