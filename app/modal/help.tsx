@@ -1,8 +1,7 @@
-import VideoPlayer from '@/components/VideoPlayer';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { LayoutAnimation, Linking, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LayoutAnimation, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const AccordionItem = ({ title, icon, children, defaultExpanded = false }: { title: string, icon: string, children: React.ReactNode, defaultExpanded?: boolean }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -43,13 +42,6 @@ const AccordionItem = ({ title, icon, children, defaultExpanded = false }: { tit
 
 export default function HelpScreen() {
     const router = useRouter();
-    const [currentVideo, setCurrentVideo] = useState<string | null>(null);
-
-    const tutorials = [
-        { id: '1', title: 'Add Activity (Studio)', duration: '1:00', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/OpusMode%20-%20Add%20Activity.mp4' },
-        { id: '2', title: 'Creating a Collection', duration: '0:26', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/Opusmode%20-%20Create%20a%20Collection.mp4' },
-        { id: '3', title: 'Adding a Musician Contact', duration: '0:40', url: 'https://iwobmkglhkuzwouheviu.supabase.co/storage/v1/object/public/Tutorials%20and%20Demos/Tutorials/Opusmode%20-%20Adding%20Musician%20Contact.mp4' },
-    ];
 
     const Step = ({ number, title, description }: { number: number, title: string, description: string }) => (
         <View className="flex-row mb-6">
@@ -98,37 +90,93 @@ export default function HelpScreen() {
                     <View className="flex-row items-center flex-1">
                         <Ionicons name="git-network-outline" size={24} color="#818cf8" style={{ marginRight: 12 }} />
                         <View>
-                            <Text className="text-base font-bold text-white">System Architecture</Text>
+                            <Text className="text-base font-bold text-white">Site Map</Text>
                             <Text className="text-xs text-slate-400">View visual map of the entire system</Text>
                         </View>
                     </View>
                     <Ionicons name="chevron-forward" size={20} color="#475569" />
                 </TouchableOpacity>
 
-                {/* Video Tutorials Section */}
-                <AccordionItem title="Video Tutorials" icon="videocam-outline" defaultExpanded={true}>
+                {/* Getting Started Tutorials */}
+                <AccordionItem title="Add Practice Activity" icon="musical-notes-outline" defaultExpanded={true}>
                     <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
-                        Watch these quick guides to master OpusMode.
+                        Log your practice sessions in The Studio to track your progress over time.
                     </Text>
 
-                    {tutorials.map((video) => (
-                        <TouchableOpacity
-                            key={video.id}
-                            onPress={() => {
-                                setCurrentVideo(video.url);
-                            }}
-                            className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-3 flex-row items-center active:bg-slate-100"
-                        >
-                            <View className="w-12 h-12 bg-white rounded-xl items-center justify-center shadow-sm mr-4 relative">
-                                <Ionicons name="play" size={20} color="#2563eb" style={{ marginLeft: 2 }} />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-bold text-slate-900 text-base">{video.title}</Text>
-                                <Text className="text-xs text-slate-500 font-bold uppercase tracking-wide">{video.duration}</Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
-                        </TouchableOpacity>
-                    ))}
+                    <Step
+                        number={1}
+                        title="Open The Studio"
+                        description="Tap the 'Studio' tab in the bottom navigation bar."
+                    />
+                    <Step
+                        number={2}
+                        title="Create a Practice Artifact"
+                        description="Tap the '+' button to create a new practice item. This could be a scale, exercise, excerpt, or full song."
+                    />
+                    <Step
+                        number={3}
+                        title="Add Details"
+                        description="Give it a name, add notes or instructions, and optionally attach a PDF or image (like sheet music)."
+                    />
+                    <Step
+                        number={4}
+                        title="Save & Practice"
+                        description="Tap 'Save'. Your artifact is now in your library. Check it off during practice sessions to track completion."
+                    />
+                </AccordionItem>
+
+                <AccordionItem title="Create a Collection (Practice Routine)" icon="albums-outline">
+                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                        Assemble multiple practice artifacts into a complete routine that you can print as a single PDF.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Go to Collections"
+                        description="In The Studio, tap the 'Collections' tab at the top."
+                    />
+                    <Step
+                        number={2}
+                        title="Create New Collection"
+                        description="Tap the '+' button to start a new collection (routine)."
+                    />
+                    <Step
+                        number={3}
+                        title="Add Artifacts"
+                        description="Select practice artifacts from your library to add to this routine. Arrange them in the order you want to practice."
+                    />
+                    <Step
+                        number={4}
+                        title="Name & Save"
+                        description="Give your collection a name (e.g., 'Morning Warmup' or 'Audition Prep') and tap 'Save'."
+                    />
+                </AccordionItem>
+
+                <AccordionItem title="Add a Musician Contact" icon="person-add-outline">
+                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                        Build your roster of musicians, venues, and students for easy booking and collaboration.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Open Contacts"
+                        description="Tap the 'People' tab in the bottom navigation."
+                    />
+                    <Step
+                        number={2}
+                        title="Add New Contact"
+                        description="Tap the '+' button in the top-right corner."
+                    />
+                    <Step
+                        number={3}
+                        title="Fill in Details"
+                        description="Enter their name, role (e.g., 'Drummer', 'Venue Manager'), phone, email, and any notes."
+                    />
+                    <Step
+                        number={4}
+                        title="Save"
+                        description="Tap 'Save'. This contact is now available when building rosters for gigs or sending invites."
+                    />
                 </AccordionItem>
 
                 <AccordionItem title="Roster Management Icons" icon="people-outline">
@@ -182,11 +230,10 @@ export default function HelpScreen() {
                         icon="person-remove-outline"
                         label="Remove Person"
                         description="Clear the musician from the slot while keeping the role open."
-                        color="#4b5563" // Fixed typo in previous color in my thought process, just careful copying
+                        color="#4b5563"
                         bgColor="#f3f4f6"
                     />
                 </AccordionItem>
-                {/* ... Rest of existing accordions ... */}
 
                 <AccordionItem title="Calendar Sync (Google/Gmail)" icon="calendar-outline">
                     {Platform.OS === 'web' ? (
@@ -243,7 +290,7 @@ export default function HelpScreen() {
 
                 <AccordionItem title="Using The Navigator (AI)" icon="compass-outline">
                     <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
-                        The Navigator generates "Prompts"—specific instructions—that you can feed into powerful AI assistants to find leads. You need a separate account for these services.
+                        The Navigator generates specialized AI prompts to help you find gigs, venues, and opportunities. One mission is free for all users—upgrade to Pro to unlock the full toolkit.
                     </Text>
 
                     <Step
@@ -263,7 +310,7 @@ export default function HelpScreen() {
                     <Step
                         number={2}
                         title="Generate & Copy"
-                        description="Use The Navigator to select your mission (e.g., 'Gig Hunt'). Fill in the details (City, Genre) and tap 'COPY' to grab the specialized prompt."
+                        description="Use The Navigator to select your mission. The 'Student/Community Gig Hunt' is free for all users. Pro missions (Professional Gig Hunt, Teaching, Tour Stop, etc.) require an upgrade."
                     />
 
                     <Step
@@ -308,18 +355,18 @@ export default function HelpScreen() {
 
                     <Step
                         number={1}
-                        title="Puddle-Proof Backup"
-                        description="On the Free Tier, your data is safely backed up to the cloud instantly. If you lose your phone, your work is safe."
+                        title="Puddle-Proof Backup (All Tiers)"
+                        description="Your data is safely backed up to the cloud instantly. If you lose your phone, your work is safe."
                     />
                     <Step
                         number={2}
-                        title="Two Islands (Free Tier)"
-                        description="Free accounts work on 'Two Islands'. Data you create on your iPhone stays on your iPhone. Data you create on the Web stays on the Web. They are both safe, but they do not talk to each other."
+                        title="Free Tier: Manual Sync"
+                        description="Free accounts can push data to the cloud (backup), but must manually refresh to pull updates from other devices. Your iPhone and Web data are separate until you manually sync."
                     />
                     <Step
                         number={3}
-                        title="Pro Sync"
-                        description="Upgrading to Pro bridges the islands. All your data merges instantly and stays in sync across all your devices (iPhone, iPad, Web) in real-time."
+                        title="Pro Tier: Realtime Sync"
+                        description="Upgrading to Pro enables realtime sync across all your devices (iPhone, iPad, Web). Changes appear instantly everywhere—no manual refresh needed."
                     />
                 </AccordionItem>
 
@@ -353,26 +400,9 @@ export default function HelpScreen() {
 
                 <View className="mt-12 items-center">
                     <Text className="text-gray-400 text-[10px] font-black uppercase tracking-[2px]">OpusMode Help Center</Text>
-                    <Text className="text-muted-foreground mt-2 font-medium text-xs">Built with Zen Architecture • © 2025</Text>
+                    <Text className="text-muted-foreground mt-2 font-medium text-xs">Puddle Proof Technology • © 2025</Text>
                 </View>
             </ScrollView>
-
-            {/* Video Player Modal */}
-            <Modal
-                visible={!!currentVideo}
-                transparent={false}
-                animationType="slide"
-                onRequestClose={() => setCurrentVideo(null)}
-            >
-                <View className="flex-1 bg-black">
-                    {currentVideo && (
-                        <VideoPlayer
-                            source={currentVideo}
-                            onClose={() => setCurrentVideo(null)}
-                        />
-                    )}
-                </View>
-            </Modal>
         </View >
     );
 }

@@ -540,12 +540,12 @@ export const useContentStore = create<ContentState>()(
                     ]);
 
 
-                    // 2. Pull stage: Universal (Data Portability)
-                    // Free users can pull, but they don't get Realtime updates.
-                    // This ensures they can restore from backup on login/refresh.
+                    // 2. Pull stage: Two Islands Strategy
+                    // Free users only pull data from their current platform (web OR native)
+                    // Pro users pull data from all platforms
                     console.log('[FullSync] Starting Pull...');
                     const [cloudData, cloudProfile] = await Promise.all([
-                        pullFromCloud(),
+                        pullFromCloud(state.profile.isPremium || false),
                         pullProfileFromCloud(),
                     ]);
 
@@ -739,10 +739,61 @@ export const useContentStore = create<ContentState>()(
                 const userId = state.profile.id;
                 console.log('[Realtime] Initializing subscription for user:', userId);
 
+                // Create table-specific subscriptions
                 const channel = supabase.channel('db-changes')
                     .on(
                         'postgres_changes',
-                        { event: '*', schema: 'public', filter: `user_id=eq.${userId}` },
+                        { event: '*', schema: 'public', table: 'events', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'blocks', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'routines', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'categories', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'people', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'learning_paths', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'user_progress', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'proof_of_work', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'songs', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'set_lists', filter: `user_id=eq.${userId}` },
+                        (payload) => state.handleRealtimeEvent(payload)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
                         (payload) => state.handleRealtimeEvent(payload)
                     )
                     .subscribe((status) => {

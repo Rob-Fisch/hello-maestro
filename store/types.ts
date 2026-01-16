@@ -15,6 +15,7 @@ export interface ContentBlock {
     categoryId?: string;
     mediaUri?: string;
     linkUrl?: string;
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
 }
 
@@ -36,6 +37,7 @@ export interface Routine {
     expiresAt?: string; // ISO date string. If set, link is invalid after this date.
     originalRoutineId?: string; // If cloned, points to source
     clonedFromUserId?: string; // If cloned, points to teacher
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
 }
 
@@ -107,6 +109,7 @@ export interface AppEvent {
     publicDescription?: string; // Fan-facing notes (separate from private 'notes')
     showSetlist?: boolean;
     socialLink?: string; // Event-specific link (e.g. Band Website for this specific gig)
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
 }
 
 /**
@@ -133,6 +136,7 @@ export interface Person {
     venueName?: string; // For Venue Managers
     venueType?: string; // e.g. "Club", "Festival"
     venueLocation?: string; // City, State
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
 }
 
@@ -225,6 +229,7 @@ export interface LearningPath {
     originatorName?: string;
     originatorPathTitle?: string;
     isPublic: boolean;
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
     updatedAt: string;
 }
@@ -234,6 +239,7 @@ export interface UserProgress {
     userId: string;
     pathId: string;
     nodeId: string;
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     completedAt: string;
 }
 
@@ -245,6 +251,7 @@ export interface ProofOfWork {
     proofUrl: string;
     proofType?: 'github' | 'youtube' | 'dropbox' | 'website' | 'other';
     notes?: string;
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
 }
 
@@ -317,6 +324,7 @@ export interface Song {
     links: { label: string; url: string }[];
     notes?: string;
     tags?: string[];
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
     deletedAt?: string;
 }
@@ -339,6 +347,7 @@ export interface SetList {
     eventId?: string; // Optional link to a specific gig
     originalSetListId?: string; // If forked/imported, points to master
     items: SetListItem[];
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
     deletedAt?: string;
 }

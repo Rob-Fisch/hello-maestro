@@ -97,10 +97,11 @@ export async function syncToCloud(table: TableName, data: any) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return; // User not logged in, skip cloud sync
 
-    // Add user_id and map keys to snake_case
+    // Add user_id, platform tag, and map keys to snake_case
     const payload = {
         ...mapToDb(data),
         user_id: session.user.id,
+        platform: data.platform || getCurrentPlatform(), // Auto-tag platform for Two Islands
         last_synced_at: new Date().toISOString(),
     };
 
@@ -316,6 +317,7 @@ export async function pushAllToCloud(table: TableName, dataArray: any[]) {
     const payloads = dataArray.map(item => ({
         ...mapToDb(item),
         user_id: session.user.id,
+        platform: item.platform || getCurrentPlatform(), // Auto-tag platform for Two Islands
         last_synced_at: new Date().toISOString(),
     }));
 
@@ -356,8 +358,12 @@ export async function pullProfileFromCloud() {
 
 /**
  * Fetches all user data from cloud for reconciliation
+ * 
+ * Two Islands Strategy:
+ * - Free users: Only pull data from current platform (web OR native)
+ * - Pro users: Pull data from all platforms
  */
-export async function pullFromCloud() {
+export async function pullFromCloud(isPremium: boolean = false) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;
 
@@ -366,10 +372,19 @@ export async function pullFromCloud() {
 
     try {
         for (const table of tables) {
-            const { data, error } = await supabase
+            let query = supabase
                 .from(table)
                 .select('*')
                 .eq('user_id', session.user.id);
+
+            // Two Islands: Free users only see their current platform's data
+            if (!isPremium) {
+                const currentPlatform = getCurrentPlatform();
+                query = query.eq('platform', currentPlatform);
+                console.log(`[Two Islands] Free tier - filtering ${table} by platform: ${currentPlatform}`);
+            }
+
+            const { data, error } = await query;
 
             if (error) {
                 throw new Error(`[Pull Error] ${table}: ${error.message}`);
