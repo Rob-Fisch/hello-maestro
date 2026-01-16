@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { getCurrentPlatform } from './platform';
 import { supabase } from './supabase';
 
 export type TableName = 'blocks' | 'routines' | 'events' | 'categories' | 'people' | 'learning_paths' | 'user_progress' | 'proof_of_work' | 'gear_assets' | 'pack_lists' | 'transactions' | 'songs' | 'set_lists';

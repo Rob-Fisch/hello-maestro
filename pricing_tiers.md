@@ -108,3 +108,125 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Support** | Community | Email | Priority | | | | |
 | 2 | **Branding (Report Logo)** | No | Yes | Yes | Add your logo to every stage plot, quote, and invoice. | | | `profiles.avatar_url` |
+
+---
+
+## Apple App Store Launch Notes
+
+> [!IMPORTANT]
+> **Two Islands Sync Strategy** - Implemented and deployed (Jan 2026)
+> 
+> Free users can only sync within their platform (Web OR Native App). Pro users get full cross-platform sync. This creates a strong upgrade incentive for users who want to use both laptop (web) and iPhone (native app).
+
+### Implementation Status
+
+**✅ Completed (Jan 16, 2026)**
+- Database migration: Added `platform` column to all user data tables
+- TypeScript types: Added `platform: 'web' | 'native'` field to all data models
+- Auto-tagging: All data is automatically tagged with platform on creation
+- Sync filtering: Free users only pull data from their current platform
+- Pro users: Get full cross-platform sync automatically
+
+**📋 Pending App Store Launch**
+- Merge prompt: When Pro users upgrade, show prompt to merge Web + Native data
+- Testing: Full Two Islands testing requires App Store build
+- Documentation: Update help screen with App Store-specific guidance
+
+### How Two Islands Works
+
+**Platform Detection:**
+- `web` = Any browser (Safari, Chrome, Firefox, etc.) on any device
+- `native` = iOS App Store / Android Play Store apps
+
+**Free Tier Behavior:**
+- User creates event on Web → tagged as `platform: 'web'`
+- User opens Native app → only sees `platform: 'native'` data
+- **Result**: Data is isolated by platform (Two Islands)
+
+**Pro Tier Behavior:**
+- User creates event on Web → tagged as `platform: 'web'`
+- User opens Native app → sees ALL data (both `web` and `native`)
+- **Result**: Full cross-platform sync
+
+**Intentional Loophole:**
+- PWA on iPhone = `platform: 'web'` (same as browser)
+- Free users who use PWA on all devices get cross-browser sync
+- **By design**: If they're savvy enough to figure this out, they've earned it!
+
+### Upgrade Flow (When App Store Launches)
+
+**Scenario**: Free user has data on both Web and Native, then upgrades to Pro
+
+1. **Detection**: Check if user has data on both platforms
+2. **Prompt**: Show merge dialog with counts:
+   ```
+   Merge Your Data?
+   
+   Web: 15 events, 42 songs
+   Native App: 12 events, 38 songs
+   
+   ⚠️ Note: If you entered the same data on both 
+   platforms, you'll see duplicates after merging.
+   
+   [Keep Web Only] [Keep Native Only] [Merge All]
+   ```
+3. **Action**: User chooses to merge or keep one platform
+4. **Result**: Pro user gets unified data or continues with single platform
+
+### Testing Plan (Post App Store Launch)
+
+**Test 1: Free User - Single Platform**
+- Sign in as Free user on Web
+- Create event "Test - Web"
+- Open Native app
+- **Expected**: Event does NOT appear ✅
+
+**Test 2: Pro User - Cross-Platform**
+- Sign in as Pro user on Web
+- Create event "Test - Pro"
+- Open Native app
+- **Expected**: Event appears automatically ✅
+
+**Test 3: Upgrade Flow**
+- Free user with data on both platforms
+- Upgrade to Pro
+- **Expected**: Merge prompt appears with counts ✅
+
+### Technical Details
+
+**Database Schema:**
+```sql
+-- All user data tables have:
+platform TEXT DEFAULT 'web' CHECK (platform IN ('web', 'native'))
+```
+
+**Code Files:**
+- `lib/platform.ts` - Platform detection helpers
+- `lib/sync.ts` - Auto-tagging and filtering logic
+- `lib/crossPlatformHelpers.ts` - Merge prompt and detection
+- `store/types.ts` - TypeScript type definitions
+- `migration_add_platform_column.sql` - Database migration
+
+**Key Functions:**
+- `getCurrentPlatform()` - Returns 'web' or 'native'
+- `pullFromCloud(isPremium)` - Filters by platform for Free users
+- `detectCrossPlatformData(userId)` - Checks for data on other platform
+- `showCrossPlatformMergePrompt()` - Shows upgrade merge dialog
+
+### Marketing Messaging
+
+**Free Tier:**
+"Choose your platform - Web or Native App. Your data stays on your chosen platform."
+
+**Pro Tier:**
+"Seamless sync across Web and Native Apps. Work anywhere, your data follows you."
+
+**Upgrade Prompt (in-app):**
+"Unlock Cross-Platform Sync - Use both laptop and phone? Upgrade to Pro to access your data everywhere!"
+
+### Future Considerations
+
+- **Android Play Store**: Same logic applies (native vs web)
+- **Tablet apps**: Treated as native platform
+- **Desktop apps**: If we build Electron app, treated as native
+- **Data portability**: All data is backed up regardless of tier (Puddle Proof)
