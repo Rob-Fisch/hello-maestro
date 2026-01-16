@@ -41,6 +41,7 @@ export default function SiteMapScreen() {
             items: [
                 { label: "Gig Calendar", path: "/events", icon: "calendar-outline", desc: "Schedule and manage events", tier: "free" },
                 { label: "Event Details", path: "/events", icon: "information-circle-outline", desc: "Logistics, roster, and setlists", tier: "free" },
+                { label: "Stage Plot", path: "/events", icon: "share-social-outline", desc: "Share public event pages with fans", tier: "free" },
             ]
         },
         {
@@ -50,6 +51,7 @@ export default function SiteMapScreen() {
             color: "#34d399",
             items: [
                 { label: "Finance Manager", path: "/finance", icon: "wallet-outline", desc: "Track income and expenses", tier: "pro" },
+                { label: "Venue CRM", path: "/people", icon: "business-outline", desc: "Build your venue black book", tier: "freemium" },
                 { label: "The Navigator", path: "/coach", icon: "compass-outline", desc: "AI assistant for career growth", tier: "freemium" },
                 { label: "Settings", path: "/settings", icon: "settings-outline", desc: "Account and preferences", tier: "free" },
             ]
@@ -62,7 +64,7 @@ export default function SiteMapScreen() {
         } else if (tier === "pro") {
             return <View className="bg-indigo-500/20 px-2 py-0.5 rounded-full flex-row items-center gap-1"><Ionicons name="lock-closed" size={8} color="#818cf8" /><Text className="text-indigo-300 text-[9px] font-bold">PRO</Text></View>;
         } else {
-            return <View className="bg-teal-500/20 px-2 py-0.5 rounded-full"><Text className="text-teal-300 text-[9px] font-bold">TRY FREE</Text></View>;
+            return <View className="bg-teal-500/20 px-2 py-0.5 rounded-full"><Text className="text-teal-300 text-[9px] font-bold">FREE/PRO</Text></View>;
         }
     };
 
@@ -146,82 +148,125 @@ export default function SiteMapScreen() {
                 {/* Pricing Comparison */}
                 <View className="px-4 mt-12">
                     <View className="mb-6">
-                        <Text className="text-2xl font-black text-white text-center mb-2">Free vs Pro</Text>
-                        <Text className="text-slate-400 text-center text-sm">Compare tier features and limits</Text>
+                        <Text className="text-2xl font-black text-white text-center mb-2">Pricing Tiers</Text>
+                        <Text className="text-slate-400 text-center text-sm">Compare features and limits</Text>
                     </View>
 
-                    <View className="flex-row gap-4">
-                        {/* FREE Column */}
-                        <View className="flex-1 bg-slate-800/50 border border-slate-700 rounded-2xl overflow-hidden">
-                            <View className="bg-slate-700 p-4 items-center border-b border-slate-600">
-                                <Text className="text-slate-300 font-black text-lg">FREE</Text>
-                                <Text className="text-slate-500 text-xs mt-1">$0 forever</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4 px-4">
+                        <View className="flex-row gap-3">
+                            {/* FREE Column */}
+                            <View className="w-64 bg-slate-800/50 border border-slate-700 rounded-2xl overflow-hidden">
+                                <View className="bg-slate-700 p-4 items-center border-b border-slate-600">
+                                    <Text className="text-slate-300 font-black text-lg">FREE</Text>
+                                    <Text className="text-slate-500 text-xs mt-1">$0 forever</Text>
+                                </View>
+                                <View className="p-4 gap-2.5">
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="checkmark-circle" size={14} color="#10b981" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">Unlimited Gigs</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">50 Songs Max</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">~100MB Storage</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="checkmark-circle" size={14} color="#10b981" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">Practice Tracking (3 mo.)</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="checkmark-circle" size={14} color="#10b981" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">Stage Plot Sharing</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">5 Venues Max</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="checkmark-circle" size={14} color="#10b981" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">Manual Sync Only</Text>
+                                    </View>
+                                </View>
                             </View>
-                            <View className="p-4 gap-3">
-                                <View className="flex-row items-start">
-                                    <Ionicons name="checkmark-circle" size={16} color="#10b981" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-slate-300 text-sm flex-1">Unlimited Gigs</Text>
+
+                            {/* PRO Column */}
+                            <TouchableOpacity
+                                onPress={() => router.push('/modal/upgrade')}
+                                className="w-64 bg-indigo-900/20 border border-indigo-500/50 rounded-2xl overflow-hidden"
+                            >
+                                <View className="bg-indigo-600 p-4 items-center border-b border-indigo-500/50">
+                                    <Text className="text-white font-black text-lg">PRO</Text>
+                                    <Text className="text-indigo-200 text-xs mt-1">$9.99/month</Text>
                                 </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="alert-circle-outline" size={16} color="#f59e0b" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-slate-300 text-sm flex-1">50 Songs Max</Text>
+                                <View className="p-4 gap-2.5">
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="infinite" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Unlimited Songs</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="cloud-upload" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">~5GB Storage</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="time" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Unlimited History</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="copy" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Gig Set Lists</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="sync" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Realtime Sync</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="infinite" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Unlimited Venues</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="compass" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Full Navigator</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="wallet" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Finance Dashboard</Text>
+                                    </View>
                                 </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="checkmark-circle" size={16} color="#10b981" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-slate-300 text-sm flex-1">Basic Practice Tracking</Text>
+                            </TouchableOpacity>
+
+                            {/* PRO+ Column */}
+                            <TouchableOpacity
+                                onPress={() => router.push('/modal/upgrade')}
+                                className="w-64 bg-purple-900/20 border border-purple-500/50 rounded-2xl overflow-hidden"
+                            >
+                                <View className="bg-purple-600 p-4 items-center border-b border-purple-500/50">
+                                    <Text className="text-white font-black text-lg">PRO+</Text>
+                                    <Text className="text-purple-200 text-xs mt-1">$19.99/month</Text>
                                 </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="checkmark-circle" size={16} color="#10b981" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-slate-300 text-sm flex-1">Contact Management</Text>
+                                <View className="p-4 gap-2.5">
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="infinite" size={14} color="#c084fc" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-purple-200 text-xs flex-1 font-bold">Unlimited Songs</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="cloud-upload" size={14} color="#c084fc" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-purple-200 text-xs flex-1 font-bold">~20GB Storage</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="checkmark-done" size={14} color="#c084fc" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-purple-200 text-xs flex-1 font-bold">All Pro Features</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="headset" size={14} color="#c084fc" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-purple-200 text-xs flex-1 font-bold">Priority Support</Text>
+                                    </View>
                                 </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="checkmark-circle" size={16} color="#10b981" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-slate-300 text-sm flex-1">Auto Sync</Text>
-                                </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="checkmark-circle" size={16} color="#10b981" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-slate-300 text-sm flex-1">Try The Navigator</Text>
-                                </View>
-                            </View>
+                            </TouchableOpacity>
                         </View>
-
-                        {/* PRO Column */}
-                        <TouchableOpacity
-                            onPress={() => router.push('/modal/upgrade')}
-                            className="flex-1 bg-indigo-900/20 border border-indigo-500/50 rounded-2xl overflow-hidden"
-                        >
-                            <View className="bg-indigo-600 p-4 items-center border-b border-indigo-500/50">
-                                <Text className="text-white font-black text-lg">PRO</Text>
-                                <Text className="text-indigo-200 text-xs mt-1">$9.99/month</Text>
-                            </View>
-                            <View className="p-4 gap-3">
-                                <View className="flex-row items-start">
-                                    <Ionicons name="infinite" size={16} color="#818cf8" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-indigo-200 text-sm flex-1 font-bold">Unlimited Songs</Text>
-                                </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="infinite" size={16} color="#818cf8" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-indigo-200 text-sm flex-1 font-bold">Unlimited Storage</Text>
-                                </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="sync" size={16} color="#818cf8" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-indigo-200 text-sm flex-1 font-bold">Cloud Sync Across Devices</Text>
-                                </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="compass" size={16} color="#818cf8" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-indigo-200 text-sm flex-1 font-bold">Full Navigator Access</Text>
-                                </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="wallet" size={16} color="#818cf8" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-indigo-200 text-sm flex-1 font-bold">Finance Manager</Text>
-                                </View>
-                                <View className="flex-row items-start">
-                                    <Ionicons name="bar-chart" size={16} color="#818cf8" style={{ marginRight: 8, marginTop: 2 }} />
-                                    <Text className="text-indigo-200 text-sm flex-1 font-bold">Advanced Analytics</Text>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                    </ScrollView>
                 </View>
 
                 {/* Footer */}
