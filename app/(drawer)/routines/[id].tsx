@@ -545,7 +545,7 @@ export default function CollectionDetail() {
                         <View className={`flex-row items-center px-3 py-1.5 rounded-full border ${isPublic ? 'bg-blue-500/20 border-blue-500/30' : 'bg-white/5 border-white/10'} `}>
                             <Ionicons name={isPublic ? "earth" : "lock-closed"} size={12} color={isPublic ? "#60a5fa" : "#94a3b8"} />
                             <Text className={`text-xs font-bold ml-1.5 ${isPublic ? 'text-blue-400' : 'text-slate-400'} `}>
-                                {isPublic ? 'Public' : 'Private'}
+                                {isPublic ? 'Shareable' : 'Private'}
                             </Text>
                         </View>
 

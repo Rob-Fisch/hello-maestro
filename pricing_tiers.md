@@ -3,89 +3,106 @@
 > [!NOTE]
 > Living document. Edit in Typora.
 > **Format**: Separate tables per module. Row numbers reset for each table.
+> 
+> **Pricing (Launch)**: 
+> - **Free**: $0
+> - **Pro**: $9.99/month or $99/year (Lemon Squeezy approved)
+> - **Pro+ / Team**: $19.99/month or $199/year (pending - will add to Lemon Squeezy after approval)
+> 
+> **Monetization Philosophy**: Practice room features (Studio, Practice Tracking) are generous/free to build user base. We monetize when musicians start earning money - gigs, venues, finance tracking, set list management for paid performances. Target market: Weekend Warriors + Pro musicians (anyone earning from gigs).
+> 
+> **Pro+ Tier Note**: Pro+ exists primarily to enforce reasonable storage limits and prevent abuse (e.g., users uploading entire college PDF libraries). Need to qualify "unlimited" claims on website.
+> 
+> **Roster Naming**: "Roster" is a placeholder term. Need better generic label that works for bands, chamber groups, orchestras, freelancers, subs, etc.
 
 ### 1. Standard Events (Non-Gigs)
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Create Events** | Unlimited | Unlimited | Unlimited | Plan your schedule with robust event types for rehearsals, lessons, and more. | Rehearsals, etc. | |
-| 2 | **Recurring Events** | Basic | Advanced | Advanced | Easily set sophisticated repeat patterns for weekly rehearsals or semester lessons. | Repeat patterns. | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Create Events** | Unlimited | Unlimited | Unlimited | Plan your schedule with robust event types for rehearsals, lessons, and more. | Rehearsals, lessons, etc. | | `events` table, `type` field |
+| 2 | **Recurring Events** | Yes | Yes | Yes | Easily set sophisticated repeat patterns for weekly rehearsals or semester lessons. | Repeat patterns. | Simplified - no tier difference needed | `events.schedule` JSONB |
 
 ### 2. Gigs & Booking
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Create Gigs** | Unlimited | Unlimited | Unlimited | Manage every detail of your performance life in one place. | Performance events. | |
-| 2 | **Gig Templates** | No | Yes | Yes | Save recurring gig formats to book standard club dates in seconds. | Save recurring formats. | |
-| 3 | Stage Plot | | | | | | |
-| 4 | **QR code generator (Fan email list)** | - | - | - | **(Coming Soon)** Build your fanbase effortlessly from the stage. | **POST MVP** | |
-| 5 | **Public Gig Listing** | Basic | Enhanced | Enhanced | Publish your schedule with "Book Now" links to drive ticket sales. | "Book Now" buttons. | |
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Create Gigs** | Unlimited | Unlimited | Unlimited | Manage every detail of your performance life in one place. | Performance events. | | `events` table, `type='gig'` |
+| 2 | **Stage Plot (Public Event Sharing)** | Yes | Yes | Yes | Share a beautiful public event page with fans - include setlists, bio, tip jar, and mailing list signup. | Public event pages at `/fan/{eventId}`. | Available to all tiers. Future: QR codes. | `events.is_public_stage_plot`, `events.public_description`, `events.show_setlist`, `events.social_link`, `profiles` table |
+| 3 | **QR Code Generator (Fan Engagement)** | - | - | - | **(Coming Soon)** Build your fanbase effortlessly from the stage. | **POST MVP** | | Future enhancement to Stage Plot |
+| 4 | **Blog/Social Media Content Generator** | - | - | - | **(Future)** AI-powered blog and social post generator. Answer a few questions about your gig and get compelling content with a hook beyond just "time, place, band." | **POST MVP** | Help musicians promote gigs with engaging stories | Future Navigator/Promotion feature |
 
 ### 3. Song Library & Set Lists
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Song Capacity** | Limit: 50 | Unlimited | Unlimited | Build your repertoire database. | | |
-| 2 | **Master Setlists** | Limit: 5 | Unlimited | Unlimited | Create perfect "Master" lists you can import and tweak for any show. | Reusable lists. | |
-| 3 | **File Storage** | ~100MB | ~5GB | ~20GB | Keep all your PDFs, charts, and diagrams attached directly to songs. | PDFs/Images. | |
-| 4 | **Custom Setlists within a Gig (forking Setlists)** | No | Unlimited | Unlimited | Tweak the set for *tonight* without messing up your Master list. | | |
-| 5 | | | | | | | |
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Song Library** | Limit: 50 | Unlimited* | Unlimited* | Build your complete repertoire database with charts, lyrics, and notes for every song you know. | Master song database | *Qualify "unlimited" on website | `songs` table |
+| 2 | **Master Set Lists (Templates)** | Limit: 5 | Unlimited* | Unlimited* | Create reusable set list templates like "Wedding Gig," "Jazz Standards," or "Dance Party" from your song library. | Reusable templates (not tied to specific gigs) | *Qualify "unlimited". These are the templates you fork for specific gigs. | `routines` table where `eventId` is null |
+| 3 | **File Storage** | ~100MB | ~5GB | ~20GB | Keep all your PDFs, charts, and diagrams attached directly to songs. | PDFs/Images. | Pro+ prevents library dumping | Supabase Storage, `blocks.media_uri` |
+| 4 | **Gig-Specific Set Lists (Forking)** | No | Unlimited | Unlimited | Import a Master Set List and customize it for tonight's gig - add/remove songs without affecting your template. | Fork master lists for specific events | Free tier can't fork - must use master lists as-is or create from scratch each time | `routines` table where `eventId` is set, `originalSetListId` tracks the source |
+
+> [!NOTE]
+> **How Set Lists Work**: 
+> 1. **Song Library** - Your complete repertoire (e.g., 200 songs you know)
+> 2. **Master Set Lists** - Reusable templates you create from your library (e.g., "Wedding List", "Dance Gig", "Jazz Standards")
+> 3. **Gig-Specific Set Lists** - For each gig, import a Master Set List and customize it (fork it) for that specific event. A wedding might need 3 hours, a club gig might be 90 minutes - same template, different customization.
 
 ### 4. Sync & Data
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Cloud Backup (Push)** | Yes | Yes | Yes | "Puddle Proof" your career. Never lose data if you break your phone. | "Puddle Proofing". | |
-| 2 | **Active Sync (Pull)** | Manual Only | Realtime | Realtime | Seamlessly move between iPhone, iPad, and Desktop. | Pro stays in sync. | |
-| 3 | **Cross-Platform Sync** | No ("Two Islands") | Yes | Yes | Start working on your commute (Mobile), finish at your desk (Web). | Free: Devices are separate islands. | |
-| 4 | | | | | | | |
-| 5 | | | | | | | |
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Cloud Backup (Push)** | Yes | Yes | Yes | "Puddle Proof" your career. Never lose data if you break your phone. | "Puddle Proofing". | | Supabase sync |
+| 2 | **Active Sync (Pull)** | Manual Only | Realtime | Realtime | Seamlessly move between iPhone, iPad, and Desktop. | Pro stays in sync. | | Realtime subscriptions |
+| 3 | **Cross-Platform Sync** | No ("Two Islands") | Yes | Yes | Start working on your commute (Mobile), finish at your desk (Web). | Free: Devices are separate islands. Can push but not pull. | | Web + Mobile sync |
 
-### 5. Practice & Routines
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Public Routines** | Access All | Access All | Access All | Train like the pros with community-shared practice routines. | Community features. | |
-| 2 | **Private Routines** | Limit: 3 | Unlimited | Unlimited | Design your own custom drills and warm-up regimens. | Custom drills. | |
-| 3 | **Analytics** | Basic | Advanced | Advanced | Visualize your progress with detailed practice heatmaps and stats. | Heatmaps etc. | |
-| 4 | **History Log** | Limit: 3 Months | Unlimited | Unlimited | Look back at your lifetime of practice (Free limited to 90 days). | Free: view last 90 days only. | |
-| 5 | | | | | | | |
+### 5. The Studio (Practice & Routines)
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Practice Artifacts (Building Blocks)** | Limit: 50 | Unlimited* | Unlimited* | Create individual practice items: excerpts, exercises, full songs, or narrative instructions (e.g., "C scale, 2 octaves, repeat twice"). | Level 1: Individual practice items | *Qualify "unlimited". Combined with 100MB storage limit for Free tier, this prevents abuse while remaining generous. | `blocks` table |
+| 2 | **Collections (Practice Routines)** | Limit: 3 | Unlimited* | Unlimited* | Assemble multiple artifacts into a complete practice routine. Print as a single PDF instead of flipping through multiple books. | Level 2: Assembled routines | *Qualify "unlimited". "Collections" is placeholder term - need better name | `routines` table |
+| 3 | **Public Collections (Teacher Sharing)** | Access All | Access All | Access All | Teachers can share practice routines with students via time-limited public links. Students must sign up to view. | Growth hook: requires login | Time-limited links to prevent abuse. Teachers share with students. | `routines.is_public`, time-limited share links |
+| 4 | **Practice Tracking & Session Logging** | Yes | Yes | Yes | Check off completed items during practice. Log sessions with ratings and notes to track your progress and stay motivated. | Session logging with progress tracking | Practice room features are free - we monetize when musicians start earning (gigs, venues, finance) | `user_progress` table |
+| 5 | **History Log** | Limit: 3 Months | Unlimited | Unlimited | Review your lifetime of practice sessions with notes. Free users see last 90 days only. | Free: view last 90 days only. | Keeps you motivated and on track | `user_progress` table with date filtering |
 
-### 6. Team & Roster
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Roster Management** | Basic (Name/Role) | Advanced | Advanced | Keep a Rolodex of every sub, sound guy, and bandmate. | Full contact info, subs, notes. | |
-| 2 | **Collaborative Editing** | No | Yes? | Yes | Let the whole band view and edit setlists in real-time. | Live bandmate edits. | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
+> [!NOTE]
+> **How The Studio Works**: 
+> 1. **Practice Artifacts** - Individual building blocks: scales, excerpts, exercises, songs, or narrative instructions (e.g., "Play C major scale, 2 octaves, twice. Increase tempo as you build strength")
+> 2. **Collections (Routines)** - Assemble multiple artifacts into a complete practice routine. Print as one PDF instead of juggling multiple books.
+> 3. **Practice Sessions** - As you practice, check off completed items. Add notes at the end of each session to track progress and stay motivated.
+> 4. **Teacher Sharing** - Teachers can create Collections and share them publicly via time-limited links. Students must sign up to access (growth hook).
+
+### 6. Team & Contacts
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Contact Management** | Basic (Name/Role) | Advanced | Advanced | Keep a Rolodex of every sub, sound guy, and bandmate. | Full contact info, subs, notes. | "Roster" is placeholder - need better term | `people` table |
 
 ### 7. The Navigator
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Gig Hunt** | No (Locked) | Yes | Yes | Instantly find venues booking your genre in any city. | Find venues. | |
-| 2 | **Teaching** | No (Locked) | Yes | Yes | Discover music schools and stores hiring teachers near you. | Find schools/stores. | |
-| 3 | **Tour Stop** | No (Locked) | Yes | Yes | Fill awkward gaps in your tour schedule with smart routing suggestions. | Fill schedule gaps. | |
-| 4 | **Promotion** | No (Locked) | Yes | Yes | Build a hit-list of local radio stations and press outlets. | Find press/radio. | |
-| 5 | **Pro Shops** | No (Locked) | Yes | Yes | Locate the best luthiers and repair techs in town. | Find repair techs. | |
-| 6 | **Usage Limit** | No Access | Unlimited | Unlimited | Your secret weapon for career growth. | Protect "Secret Sauce". | |
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Gig Hunt (Student/Community)** | Yes (Demo) | Yes | Yes | Find community venues, libraries, coffee shops, and open mics perfect for students and emerging artists. | Free mission as demo | Shows value without giving away premium missions | AI-powered search, copy/paste prompts |
+| 2 | **Gig Hunt (Professional)** | No (Locked) | Yes | Yes | Instantly find venues booking your genre in any city - listening rooms, clubs, and musician-centric spots. | Find venues. | Pro-only | AI-powered search |
+| 3 | **Teaching** | No (Locked) | Yes | Yes | Discover music schools and stores hiring teachers near you. | Find schools/stores. | Pro-only | AI-powered search |
+| 4 | **Tour Stop** | No (Locked) | Yes | Yes | Fill awkward gaps in your tour schedule with smart routing suggestions. | Fill schedule gaps. | Pro-only | AI-powered routing |
+| 5 | **Promotion** | No (Locked) | Yes | Yes | Build a hit-list of local radio stations and press outlets. | Find press/radio. | Pro-only | AI-powered search |
+| 6 | **Pro Shops** | No (Locked) | Yes | Yes | Locate the best luthiers and repair techs in town. | Find repair techs. | Pro-only | AI-powered search |
+
+> [!NOTE]
+> **Navigator Strategy**: The "Student" mission is free for all users as a demo to show the power of The Navigator. Once users see the value, they'll upgrade for the professional missions. No API integration for MVP - users copy/paste the generated prompts into ChatGPT/Claude.
 
 ### 8. Venue CRM
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Venue Database** | Limit: 5 | Unlimited | Unlimited | Build your own black book of venues and contacts. | Address, Booking Contacts. | |
-| 2 | **Interaction History** | No | Yes | Yes | Track every call, email, and deal so you never drop the ball. | Calls, emails, notes. | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Venue Database** | Limit: 5 | Unlimited* | Unlimited* | Build your own black book of venues and contacts. | Address, Booking Contacts. | *Qualify "unlimited" | `people` table with role='venue_manager' |
+| 2 | **Interaction Timeline** | No | Yes | Yes | Never drop the ball - log every call, email, meeting, and gig with venue managers. Manual timeline keeps your relationship history in one place. | Manual logging: calls, emails, meetings, gigs, rehearsals, jam sessions | Should integrate with Schedule - click venue in gig to navigate to CRM timeline | `people` table with interaction history (JSONB field) |
 
 ### 9. Finance Module
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Gig Financials** | Basic (Income) | Advanced | Advanced | Track income, expenses, and splits for every gig. | Income, Splits, Expenses. | |
-| 2 | **Reports / Export** | No | Yes | Yes | Breezy tax reports at the end of the year. | Tax time usage. | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Per-Gig Finance Tracking** | Yes | Yes | Yes | Track income, expenses, and musician splits for each gig. We keep the totals for you. | Per-gig tracking in Finance tab | Free users can enter data, we track totals. Messaging: "Start tracking now - when you need tax reports, upgrade to Pro" | `event_finance`, `expenses`, `transactions` tables |
+| 2 | **Finance Dashboard & Reports** | No | Yes | Yes | See your complete financial picture with reports, tax exports, and year-end summaries. | Reports, tax exports, analytics | Pro unlocks the Finance module with reports across all gigs | Export functionality, dashboard views |
 
-### 10. Other / Custom
-| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Support** | Community | Email | Priority | | | |
-| 2 | **Branding (Report Logo)** | No | Yes | Yes | Add your logo to every stage plot, quote, and invoice. | | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
+### 10. Gear & Equipment
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Gear Inventory** | - | - | - | **(Future)** Track your instruments, amps, and pedals with photos and serial numbers. | **NOT FOR MVP** | Tabled for future backlog | `gear_assets` table exists |
+
+### 11. Other / Custom
+| # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Support** | Community | Email | Priority | | | | |
+| 2 | **Branding (Report Logo)** | No | Yes | Yes | Add your logo to every stage plot, quote, and invoice. | | | `profiles.avatar_url` |
