@@ -275,7 +275,7 @@ export default function ScheduleScreen() {
 
         return (
             <View
-                className={`mb-4 rounded-[32px] overflow-hidden`}
+                className={`mb-3 rounded-[32px] overflow-hidden`}
                 style={{
                     backgroundColor: theme.card, // Glass
                     borderColor: isToday ? '#60a5fa' : theme.border, // Blue border if today
@@ -283,14 +283,14 @@ export default function ScheduleScreen() {
                 }}
             >
                 <TouchableOpacity
-                    className="p-5"
+                    className="p-4"
                     onPress={() => {
                         const pathname = isRoutine ? '/modal/routine-editor' : '/event/[id]';
                         const relatedId = isRoutine ? (item.originalItem as Routine).id : (item.originalItem as AppEvent).id;
                         router.push({ pathname, params: { id: relatedId } });
                     }}
                 >
-                    <View className="flex-row justify-between items-start mb-3">
+                    <View className="flex-row justify-between items-start mb-2">
                         <View className="flex-1 mr-2">
                             <View className={`self-start px-2 py-0.5 rounded-lg mb-2 ${badge.className}`}>
                                 <Text className={`text-[9px] uppercase font-black tracking-widest ${badge.className.split(' ').find(c => c.startsWith('text-'))}`}>{badge.label}</Text>
@@ -356,7 +356,7 @@ export default function ScheduleScreen() {
                         )}
                     </View>
 
-                    <View className="mt-4 border-t border-white/5 pt-3">
+                    <View className="mt-3 border-t border-white/5 pt-2">
                         {/* Musicians / Slots Row */}
                         {!isRoutine && (
                             <View className="flex-row flex-wrap gap-2 mb-2">
