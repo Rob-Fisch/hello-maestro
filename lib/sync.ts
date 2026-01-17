@@ -409,10 +409,11 @@ export async function pullFromCloud(isPremium: boolean = false) {
                 .eq('user_id', session.user.id);
 
             // Two Islands: Free users only see their current platform's data
+            // Also include null platform values for backward compatibility (pre-Two Islands data)
             if (!isPremium) {
                 const currentPlatform = getCurrentPlatform();
-                query = query.eq('platform', currentPlatform);
-                console.log(`[Two Islands] Free tier - filtering ${table} by platform: ${currentPlatform}`);
+                query = query.or(`platform.eq.${currentPlatform},platform.is.null`);
+                console.log(`[Two Islands] Free tier - filtering ${table} by platform: ${currentPlatform} or null`);
             }
 
             const { data, error } = await query;
