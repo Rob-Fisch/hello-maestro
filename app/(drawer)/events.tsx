@@ -75,7 +75,7 @@ export default function ScheduleScreen() {
 
     // Reset to overview when screen comes into focus
     useFocusEffect(
-        React.useCallback(() => {
+        useCallback(() => {
             setSelectedMonth(null);
         }, [])
     );
