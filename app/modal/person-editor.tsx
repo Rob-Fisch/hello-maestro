@@ -122,19 +122,6 @@ export default function PersonEditor() {
             return;
         }
 
-        // FREEMIUM LIMIT CHECK
-        if (type === 'venue_manager' && !isEditing) {
-            const currentCount = people.filter(p => p.type === 'venue_manager').length;
-            if (currentCount >= 10) {
-                if (Platform.OS === 'web') {
-                    alert('Free Plan Limit: You can only manage 10 Venues. Upgrade to Premium for unlimited entries.');
-                } else {
-                    Alert.alert('Limit Reached', 'You have reached the limit of 10 Venues. Upgrade to add more.');
-                }
-                return;
-            }
-        }
-
         const personData: Person = {
             id: id || Date.now().toString(),
             firstName: firstName.trim(),
@@ -205,15 +192,6 @@ export default function PersonEditor() {
                             if (!firstName.trim()) {
                                 Alert.alert('Error', 'Please enter a first name');
                                 return;
-                            }
-                            // Save logic (duplicate) - Refactor ideal but sticking to inline for speed/safety
-                            if (type === 'venue_manager' && !isEditing) {
-                                const currentCount = people.filter(p => p.type === 'venue_manager').length;
-                                if (currentCount >= 10) {
-                                    if (Platform.OS === 'web') alert('Limit Reached');
-                                    else Alert.alert('Limit Reached', 'You have reached the limit of 10 Venues.');
-                                    return;
-                                }
                             }
 
                             const personData: Person = {
@@ -391,16 +369,9 @@ export default function PersonEditor() {
                 {/* Venue Details (Conditional) */}
                 {type === 'venue_manager' && (
                     <View className="bg-orange-50 p-6 rounded-[32px] border border-orange-100 mb-6">
-                        <View className="flex-row justify-between items-center mb-4">
-                            <View className="flex-row items-center">
-                                <Ionicons name="business" size={18} color="#ea580c" />
-                                <Text className="text-[10px] uppercase font-black text-orange-600 tracking-widest ml-2">Venue Details</Text>
-                            </View>
-                            {!isEditing && (
-                                <Text className="text-[10px] font-bold text-orange-400">
-                                    {people.filter(p => p.type === 'venue_manager').length} / 10 Free Used
-                                </Text>
-                            )}
+                        <View className="flex-row items-center">
+                            <Ionicons name="business" size={18} color="#ea580c" />
+                            <Text className="text-[10px] uppercase font-black text-orange-600 tracking-widest ml-2">Venue Details</Text>
                         </View>
 
                         <Text className="text-[10px] uppercase font-bold text-orange-700/70 mb-1">Venue Name</Text>
