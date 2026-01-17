@@ -3,7 +3,7 @@ import { AppEvent, AppEventType, Person, Routine } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
-import { Link, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { Link, useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
