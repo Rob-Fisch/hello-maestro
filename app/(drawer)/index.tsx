@@ -252,17 +252,8 @@ export default function HomeScreen() {
                                 })
                             }]
                         }}
-                        className="mb-6 relative"
+                        className="mb-6"
                     >
-                        {/* Arrow pointing to menu */}
-                        <View className="absolute -top-2 left-4 w-0 h-0" style={{
-                            borderLeftWidth: 12,
-                            borderRightWidth: 12,
-                            borderBottomWidth: 16,
-                            borderLeftColor: 'transparent',
-                            borderRightColor: 'transparent',
-                            borderBottomColor: '#3b82f6',
-                        }} />
 
                         {/* Tooltip content */}
                         <View className="bg-blue-600 rounded-2xl p-4 shadow-lg border border-blue-500">
@@ -272,8 +263,15 @@ export default function HomeScreen() {
                                         <Ionicons name="information-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
                                         <Text className="text-white font-black text-base">New to OpusMode?</Text>
                                     </View>
+                                    <View className="flex-row items-center flex-wrap mb-2">
+                                        <Text className="text-blue-100 text-sm leading-relaxed mr-2">Tap the</Text>
+                                        <View className="bg-blue-500 rounded-lg p-2 mr-2">
+                                            <Ionicons name="menu" size={20} color="#fff" />
+                                        </View>
+                                        <Ionicons name="arrow-back" size={18} color="#fbbf24" style={{ marginRight: 6 }} />
+                                    </View>
                                     <Text className="text-blue-100 text-sm leading-relaxed">
-                                        Tap the menu icon above to explore{' '}
+                                        to explore{' '}
                                         <Text className="font-bold text-white">Site Map</Text>
                                         {' '}and{' '}
                                         <Text className="font-bold text-white">Help</Text>
