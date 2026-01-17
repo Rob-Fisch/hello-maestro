@@ -412,7 +412,8 @@ export async function pullFromCloud(isPremium: boolean = false) {
             // Also include null platform values for backward compatibility (pre-Two Islands data)
             if (!isPremium) {
                 const currentPlatform = getCurrentPlatform();
-                query = query.or(`platform.eq.${currentPlatform},platform.is.null`);
+                // Use .in() to match current platform or null (more reliable than .or())
+                query = query.in('platform', [currentPlatform, null]);
                 console.log(`[Two Islands] Free tier - filtering ${table} by platform: ${currentPlatform} or null`);
             }
 
