@@ -544,10 +544,12 @@ export const useContentStore = create<ContentState>()(
                     // Free users only pull data from their current platform (web OR native)
                     // Pro users pull data from all platforms
                     console.log('[FullSync] Starting Pull...');
+                    console.log('[FullSync] isPremium:', state.profile.isPremium);
                     const [cloudData, cloudProfile] = await Promise.all([
                         pullFromCloud(state.profile.isPremium || false),
                         pullProfileFromCloud(),
                     ]);
+                    console.log('[FullSync] Pull complete. cloudData:', cloudData ? 'received' : 'NULL');
 
                     if (cloudData) {
                         console.log('[FullSync] Pulled Data:', Object.keys(cloudData).map(k => `${k}: ${cloudData[k]?.length}`));
