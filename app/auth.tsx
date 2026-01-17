@@ -120,11 +120,7 @@ export default function AuthScreen() {
 
                 if (data.user) {
                     const profileData = data.user.user_metadata || {};
-                    console.log('🔍 [AUTH DEBUG] Full Metadata:', JSON.stringify(profileData, null, 2));
-                    console.log('🔍 [AUTH DEBUG] is_premium raw:', profileData.is_premium);
-
                     const isPremium = !!profileData.is_premium;
-                    console.log('🔍 [AUTH DEBUG] Final isPremium:', isPremium);
 
                     setProfile({
                         id: data.user.id,
@@ -417,11 +413,6 @@ export default function AuthScreen() {
 
                     <Text className="text-white/20 text-xs font-bold uppercase tracking-[4px]">Puddle-Proof Technology</Text>
                     <Text className="text-white/20 text-[10px] mt-2">v{BuildInfo.version} (b{BuildInfo.buildNumber})</Text>
-                    {Platform.OS === 'web' && (
-                        <Text className="text-red-500/50 text-[10px] mt-1 px-4 text-center">
-                            DEBUG: {typeof window !== 'undefined' ? window.location.href.substring(0, 150) : 'N/A'}
-                        </Text>
-                    )}
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>

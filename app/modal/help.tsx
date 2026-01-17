@@ -179,7 +179,7 @@ export default function HelpScreen() {
                     />
                 </AccordionItem>
 
-                <AccordionItem title="Roster Management Icons" icon="people-outline">
+                <AccordionItem title="Contact Management Icons" icon="people-outline">
                     <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
                         Managing your session personnel is easy with these tools in the Event Editor:
                     </Text>

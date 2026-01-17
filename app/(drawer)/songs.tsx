@@ -77,18 +77,18 @@ export default function SongLibraryScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
-            <View className="flex-1 bg-slate-50">
+        <SafeAreaView className="flex-1 bg-slate-900">
+            <View className="flex-1 bg-slate-900">
                 {/* Header */}
-                <View className="bg-white px-6 pt-4 pb-4 border-b border-slate-200">
+                <View className="bg-slate-800 px-6 pt-4 pb-4 border-b border-slate-700">
                     <View className="flex-row items-center justify-between mb-4">
                         <View className="flex-row items-center">
                             <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())} className="mr-4">
-                                <Ionicons name="menu" size={28} color="#1e293b" />
+                                <Ionicons name="menu" size={28} color="#ffffff" />
                             </TouchableOpacity>
                             <View>
-                                <Text className="text-2xl font-bold text-slate-900">Song Library</Text>
-                                <Text className="text-slate-500">{songs.length} Songs</Text>
+                                <Text className="text-2xl font-bold text-white">Song Library</Text>
+                                <Text className="text-slate-400">{songs.length} Songs</Text>
                             </View>
                         </View>
                         <TouchableOpacity
@@ -101,11 +101,12 @@ export default function SongLibraryScreen() {
                     </View>
 
                     {/* Search Bar */}
-                    <View className="flex-row items-center bg-slate-100 rounded-xl px-4 py-3">
+                    <View className="flex-row items-center bg-slate-700 rounded-xl px-4 py-3">
                         <Ionicons name="search" size={20} color="#94a3b8" />
                         <TextInput
-                            className="flex-1 ml-2 text-base text-slate-800"
+                            className="flex-1 ml-2 text-base text-white"
                             placeholder="Search songs, artists..."
+                            placeholderTextColor="#94a3b8"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
@@ -121,9 +122,9 @@ export default function SongLibraryScreen() {
                 <ScrollView className="flex-1 px-4 pt-4">
                     {filteredSongs.length === 0 ? (
                         <View className="items-center justify-center py-20">
-                            <Ionicons name="musical-notes-outline" size={64} color="#cbd5e1" />
-                            <Text className="text-slate-500 text-lg mt-4 font-medium">No songs found</Text>
-                            <Text className="text-slate-400 text-center mt-2 px-8">
+                            <Ionicons name="musical-notes-outline" size={64} color="#475569" />
+                            <Text className="text-slate-400 text-lg mt-4 font-medium">No songs found</Text>
+                            <Text className="text-slate-500 text-center mt-2 px-8">
                                 Add songs to your library to start building set lists.
                             </Text>
                         </View>
@@ -132,22 +133,22 @@ export default function SongLibraryScreen() {
                             <TouchableOpacity
                                 key={song.id}
                                 onPress={() => handleEdit(song)}
-                                className="bg-white rounded-xl p-4 mb-3 flex-row items-center shadow-sm border border-slate-100"
+                                className="bg-slate-800 rounded-xl p-4 mb-3 flex-row items-center shadow-sm border border-slate-700"
                             >
-                                <View className="h-12 w-12 bg-indigo-50 rounded-full items-center justify-center mr-4">
-                                    <Text className="text-indigo-600 font-bold text-lg">
+                                <View className="h-12 w-12 bg-indigo-900 rounded-full items-center justify-center mr-4">
+                                    <Text className="text-indigo-300 font-bold text-lg">
                                         {song.key || '?'}
                                     </Text>
                                 </View>
 
                                 <View className="flex-1">
-                                    <Text className="text-slate-900 font-bold text-lg">{song.title || 'Untitled'}</Text>
-                                    <Text className="text-slate-500">{song.artist || 'Unknown Artist'}</Text>
+                                    <Text className="text-white font-bold text-lg">{song.title || 'Untitled'}</Text>
+                                    <Text className="text-slate-400">{song.artist || 'Unknown Artist'}</Text>
                                 </View>
 
                                 {song.bpm && (
-                                    <View className="bg-slate-100 px-2 py-1 rounded mr-3">
-                                        <Text className="text-xs text-slate-600 font-medium">{song.bpm} BPM</Text>
+                                    <View className="bg-slate-700 px-2 py-1 rounded mr-3">
+                                        <Text className="text-xs text-slate-300 font-medium">{song.bpm} BPM</Text>
                                     </View>
                                 )}
 

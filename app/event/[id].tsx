@@ -206,7 +206,7 @@ export default function EventDashboard() {
                         <View className="w-10 h-10 bg-indigo-50 rounded-full items-center justify-center mb-3">
                             <Ionicons name="people" size={20} color="#4f46e5" />
                         </View>
-                        <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Roster</Text>
+                        <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Contacts</Text>
                         <View className="flex-row items-baseline">
                             <Text className="text-2xl font-black text-slate-900">{confirmedCount}</Text>
                             <Text className="text-sm text-slate-400 font-bold"> / {slots.length}</Text>

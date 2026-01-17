@@ -169,7 +169,7 @@ export default function PeopleScreen() {
                             People
                         </Text>
                         <Text className="text-4xl font-black tracking-tight text-white">
-                            Roster
+                            Contacts
                         </Text>
                     </View>
                     <View className="flex-row gap-3">

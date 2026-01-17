@@ -57,7 +57,7 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
 
     const Tabs = [
         { id: 'logistics', label: 'Logistics', icon: 'location' },
-        { id: 'roster', label: 'Roster', icon: 'people' },
+        { id: 'roster', label: 'Contacts', icon: 'people' },
         { id: 'setlist', label: 'Set List', icon: 'list' },
         { id: 'finance', label: 'Finance', icon: 'cash' },
         { id: 'sharing', label: 'Sharing', icon: 'share-social' },
