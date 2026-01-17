@@ -143,7 +143,7 @@ export default function EventDashboard() {
                                 {event.type}
                             </Text>
                         </View>
-                        {event.isPublicStagePlot && (
+                        {event.isPublicPromo && (
                             <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
                                 <Ionicons name="globe" size={12} color="#16a34a" />
                                 <Text className="text-[10px] font-bold uppercase text-green-700 ml-1.5">Public</Text>
@@ -166,10 +166,10 @@ export default function EventDashboard() {
                 {/* ACTION BAR */}
                 <View className="flex-row gap-3 mb-8">
                     {/* Share Button (Keep Existing) */}
-                    {event.isPublicStagePlot && (
+                    {event.isPublicPromo && (
                         <TouchableOpacity
                             onPress={() => {
-                                const url = `https://opusmode.net/fan/${event.id}`;
+                                const url = `https://opusmode.net/promo/${event.id}`;
                                 if (Platform.OS === 'web') {
                                     if (navigator.share) {
                                         navigator.share({ title: event.title, url });
@@ -184,7 +184,7 @@ export default function EventDashboard() {
                             className="flex-1 bg-green-500 py-3 rounded-2xl flex-row items-center justify-center shadow-lg shadow-green-500/20"
                         >
                             <Ionicons name="share-outline" size={20} color="white" />
-                            <Text className="text-white font-bold ml-2">Share Link</Text>
+                            <Text className="text-white font-bold ml-2">Share Promo</Text>
                         </TouchableOpacity>
                     )}
 

@@ -54,9 +54,19 @@ export function useEventForm({ existingEvent, initialType = 'performance', onSav
             routines: [],
             totalFee: '',
             musicianFee: '',
-            // Default recurring schedule is null/undefined
-            // Fan Engagement defaults
-            isPublicStagePlot: false,
+            // Venue Address (Structured)
+            venueAddressLine1: '',
+            venueAddressLine2: '',
+            venueCity: '',
+            venueStateProvince: '',
+            venuePostalCode: '',
+            venueCountry: '',
+            // Performer Page
+            isPerformerPageEnabled: false,
+            loadInTime: '',
+            soundcheckTime: '',
+            // Performance Promo (renamed from Stage Plot)
+            isPublicPromo: false,
             showSetlist: false
         } as EventFormValues;
     };

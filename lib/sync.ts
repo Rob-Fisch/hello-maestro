@@ -28,6 +28,13 @@ function mapToDb(data: any): any {
         venueName: 'venue_name',
         venueType: 'venue_type',
         venueLocation: 'venue_location',
+        // Structured Venue Address
+        venueAddressLine1: 'venue_address_line1',
+        venueAddressLine2: 'venue_address_line2',
+        venueCity: 'venue_city',
+        venueStateProvince: 'venue_state_province',
+        venuePostalCode: 'venue_postal_code',
+        venueCountry: 'venue_country',
 
         instruments: 'instruments',
         totalFee: 'total_fee',
@@ -61,14 +68,18 @@ function mapToDb(data: any): any {
         relatedEventId: 'related_event_id',
         expiresAt: 'expires_at',
         receiptUri: 'receipt_url',
-        isPublicStagePlot: 'is_public_stage_plot',
+        // Performance Promo (renamed from Stage Plot)
+        isPublicPromo: 'is_public_promo',
         publicDescription: 'public_description',
         showSetlist: 'show_setlist',
+        // Performer Page
+        isPerformerPageEnabled: 'is_performer_page_enabled',
+        loadInTime: 'load_in_time',
+        soundcheckTime: 'soundcheck_time',
         deletedAt: 'deleted_at',
         // Songs
         durationSeconds: 'duration_seconds',
         lastSyncedAt: 'last_synced_at',
-        // Set Lists
         // Set Lists
         items: 'items',
         originalSetListId: 'original_set_list_id',
@@ -252,6 +263,13 @@ export function mapFromDb(data: any): any {
         fee: 'fee',
         slots: 'slots',
         verified_phone: 'verifiedPhone',
+        // Structured Venue Address
+        venue_address_line1: 'venueAddressLine1',
+        venue_address_line2: 'venueAddressLine2',
+        venue_city: 'venueCity',
+        venue_state_province: 'venueStateProvince',
+        venue_postal_code: 'venuePostalCode',
+        venue_country: 'venueCountry',
         instruments: 'instruments',
         total_fee: 'totalFee',
         musician_fee: 'musicianFee',
@@ -284,11 +302,15 @@ export function mapFromDb(data: any): any {
         related_event_id: 'relatedEventId',
         expires_at: 'expiresAt',
         receipt_uri: 'receiptUri',
-        is_public_stage_plot: 'isPublicStagePlot',
+        // Performance Promo (renamed from Stage Plot)
+        is_public_promo: 'isPublicPromo',
         public_description: 'publicDescription',
         show_setlist: 'showSetlist',
+        // Performer Page
+        is_performer_page_enabled: 'isPerformerPageEnabled',
+        load_in_time: 'loadInTime',
+        soundcheck_time: 'soundcheckTime',
         deleted_at: 'deletedAt',
-        // original_set_list_id: 'originalSetListId',
     };
 
 

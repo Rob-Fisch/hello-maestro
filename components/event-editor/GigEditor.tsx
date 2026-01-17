@@ -8,8 +8,8 @@ import { FlatList, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacit
 import SetListBuilder from '../setlist/SetListBuilder';
 import FinanceModule from './FinanceModule';
 import { WebDatePicker, WebTimePicker } from './FormComponents';
+import PerformanceSharingConfig from './PerformanceSharingConfig';
 import RosterEngine from './RosterEngine';
-import StagePlotConfig from './StagePlotConfig';
 
 interface GigEditorProps {
     values: EventFormValues;
@@ -21,7 +21,7 @@ interface GigEditorProps {
 export default function GigEditor({ values, eventId, onChange, isSaving }: GigEditorProps) {
     const { setLists, addSetList, updateSetList } = useContentStore();
     const linkedSetList = eventId ? setLists.find(sl => sl.eventId === eventId) : undefined;
-    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'stageplot' | 'setlist'>('logistics');
+    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'sharing' | 'setlist'>('logistics');
 
     // Import Setlist Logic
     const [showImportModal, setShowImportModal] = useState(false);
@@ -60,7 +60,7 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
         { id: 'roster', label: 'Roster', icon: 'people' },
         { id: 'setlist', label: 'Set List', icon: 'list' },
         { id: 'finance', label: 'Finance', icon: 'cash' },
-        { id: 'stageplot', label: 'Stage Plot', icon: 'map' },
+        { id: 'sharing', label: 'Sharing', icon: 'share-social' },
     ];
 
     // Type Selector Options
@@ -178,6 +178,95 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
                             </View>
                         </View>
 
+                        {/* Structured Venue Address (Optional) */}
+                        <View className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                            <Text className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">
+                                Full Venue Address (Optional)
+                            </Text>
+                            <Text className="text-slate-500 text-xs mb-4">
+                                Add a complete address for map links and directions
+                            </Text>
+
+                            {/* Street Address */}
+                            <TextInput
+                                className="border border-slate-200 rounded-xl px-4 py-3 mb-3 bg-slate-50 text-slate-800"
+                                placeholder="Street Address"
+                                value={values.venueAddressLine1}
+                                onChangeText={(text) => onChange('venueAddressLine1', text)}
+                                placeholderTextColor="#94a3b8"
+                            />
+
+                            {/* Address Line 2 */}
+                            <TextInput
+                                className="border border-slate-200 rounded-xl px-4 py-3 mb-3 bg-slate-50 text-slate-800"
+                                placeholder="Apt, Suite, etc. (optional)"
+                                value={values.venueAddressLine2}
+                                onChangeText={(text) => onChange('venueAddressLine2', text)}
+                                placeholderTextColor="#94a3b8"
+                            />
+
+                            {/* City, State, Zip row */}
+                            <View className="flex-row gap-2 mb-3">
+                                <TextInput
+                                    className="flex-1 border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-800"
+                                    placeholder="City"
+                                    value={values.venueCity}
+                                    onChangeText={(text) => onChange('venueCity', text)}
+                                    placeholderTextColor="#94a3b8"
+                                />
+                                <TextInput
+                                    className="w-20 border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-800"
+                                    placeholder="State"
+                                    value={values.venueStateProvince}
+                                    onChangeText={(text) => onChange('venueStateProvince', text)}
+                                    placeholderTextColor="#94a3b8"
+                                />
+                                <TextInput
+                                    className="w-24 border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-800"
+                                    placeholder="Zip"
+                                    value={values.venuePostalCode}
+                                    onChangeText={(text) => onChange('venuePostalCode', text)}
+                                    placeholderTextColor="#94a3b8"
+                                />
+                            </View>
+                        </View>
+
+                        {/* Performer Logistics (Optional) */}
+                        <View className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                            <Text className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">
+                                Performer Logistics (Optional)
+                            </Text>
+                            <Text className="text-slate-500 text-xs mb-4">
+                                Share load-in and soundcheck times with your ensemble
+                            </Text>
+
+                            <View className="flex-row gap-4">
+                                <View className="flex-1">
+                                    <Text className="text-xs font-bold text-slate-400 uppercase mb-2">
+                                        Load-In Time
+                                    </Text>
+                                    {Platform.OS === 'web' && (
+                                        <WebTimePicker
+                                            value={values.loadInTime || ''}
+                                            onChange={(t) => onChange('loadInTime', t)}
+                                        />
+                                    )}
+                                </View>
+
+                                <View className="flex-1">
+                                    <Text className="text-xs font-bold text-slate-400 uppercase mb-2">
+                                        Soundcheck Time
+                                    </Text>
+                                    {Platform.OS === 'web' && (
+                                        <WebTimePicker
+                                            value={values.soundcheckTime || ''}
+                                            onChange={(t) => onChange('soundcheckTime', t)}
+                                        />
+                                    )}
+                                </View>
+                            </View>
+                        </View>
+
                         {/* Event Note */}
                         <View className="bg-amber-50 rounded-3xl p-5 shadow-sm border border-amber-100">
                             <Text className="text-xs font-bold text-amber-500 uppercase mb-2 tracking-widest">Internal Notes</Text>
@@ -256,9 +345,9 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
                     <FinanceModule values={values as any} onChange={onChange} />
                 )}
 
-                {/* STAGE PLOT TAB */}
-                {activeTab === 'stageplot' && (
-                    <StagePlotConfig values={values as any} onChange={onChange as any} />
+                {/* SHARING TAB (Performance Promo + Performer Page) */}
+                {activeTab === 'sharing' && (
+                    <PerformanceSharingConfig values={values as any} onChange={onChange as any} />
                 )}
 
             </ScrollView>

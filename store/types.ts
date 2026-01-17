@@ -104,8 +104,21 @@ export interface AppEvent {
     schedule?: Schedule;
     createdAt: string;
 
-    // Fan Engagement / Digital Stage Plot
-    isPublicStagePlot?: boolean;
+    // Venue Information (Structured)
+    venueAddressLine1?: string;
+    venueAddressLine2?: string;
+    venueCity?: string;
+    venueStateProvince?: string;
+    venuePostalCode?: string;
+    venueCountry?: string;
+
+    // Performer Page (Logistics for ensemble members)
+    isPerformerPageEnabled?: boolean;
+    loadInTime?: string;
+    soundcheckTime?: string;
+
+    // Performance Promo (Public fan engagement - renamed from Stage Plot)
+    isPublicPromo?: boolean; // Renamed from isPublicStagePlot
     publicDescription?: string; // Fan-facing notes (separate from private 'notes')
     showSetlist?: boolean;
     socialLink?: string; // Event-specific link (e.g. Band Website for this specific gig)
@@ -171,7 +184,7 @@ export interface UserProfile {
     tipUrl?: string;          // Venmo/CashApp/PayPal (Global)
     mailingListUrl?: string;  // Mailchimp/Google Form (Global)
     // socialUrl removed in favor of Event-specific link
-    bio?: string;            // Short artist bio for Stage Plot
+    bio?: string;            // Short artist bio for Performance Promo
 }
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';
