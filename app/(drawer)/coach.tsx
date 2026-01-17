@@ -64,7 +64,7 @@ const SCOUT_TEMPLATES = [
         icon: 'build',
         color: 'bg-emerald-500',
         description: 'Find luthiers & repair techs.',
-        isFree: false,
+        isFree: true,
         template: "Act as a veteran {{location}} session musician and instrument technician.\nI am a professional musician located in {{location}}. I need a curated list of the \"industry standard\" repair shops, luthiers, and vintage gear dealers within a {{radius}}-mile radius.\n\nThe Rules:\n1. Strictly Exclude: Big box retailers (Guitar Center, Sam Ash) or general music schools.\n2. Focus On: Artisan/craftsman shops where professional symphony and session players take their gear.\n3. Categories Needed:\n* Woodwind & Brass Repair (Sax, Trumpet, etc.)\n* Orchestral Strings/Luthier (specifically for Upright Bass)\n* Vintage Keys & Piano (Rhodes, Wurlitzer, Acoustic tuning)\n* {{genre}} Guitar/Amp Repair (Archtop setups, Tube amp techs)\n* Percussion (Vintage drums/cymbals)\n\nOutput Format: Please present this as a table with the following columns:\n* Category (e.g., Woodwinds)\n* Shop/Technician Name\n* The \"Vibe\" & Reputation (e.g., \"Gritty workshop, legendary for fretwork,\" or \"High-end showroom\")\n* Location/Contact Method",
         goldenSample: "SAMPLE RESULT (Chicago, IL - Repair):\n\n| Category | Shop | Vibe | Contact |\n|----------|------|------|---------|\n| Sax/Woodwind | PM Woodwind Repair | The gold standard. Waiting list is 3 weeks long. | 847-xxx-xxxx |\n| Strings (Bass) | Sonksen Strings | Master luthier for CSO players. | By appointment only. |\n| Vintage Keys | Borish Electronics | Gritty shop, can fix any Rhodes or Wurlitzer. | Walk-ins okay. |"
     }
