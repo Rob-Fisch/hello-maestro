@@ -41,7 +41,8 @@ export default function SiteMapScreen() {
             items: [
                 { label: "Gig Calendar", path: "/events", icon: "calendar-outline", desc: "Schedule and manage events", tier: "free" },
                 { label: "Event Details", path: "/events", icon: "information-circle-outline", desc: "Logistics, roster, and setlists", tier: "free" },
-                { label: "Stage Plot", path: "/events", icon: "share-social-outline", desc: "Share public event pages with fans", tier: "free" },
+                { label: "Performance Promo", path: "/events", icon: "share-social-outline", desc: "Share public event pages with fans", tier: "free" },
+                { label: "Performer Page", path: "/events", icon: "people-outline", desc: "Share logistics with ensemble members", tier: "free" },
             ]
         },
         {
@@ -167,7 +168,7 @@ export default function SiteMapScreen() {
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 1 }} />
-                                        <Text className="text-slate-300 text-xs flex-1">50 Songs Max</Text>
+                                        <Text className="text-slate-300 text-xs flex-1">Single Platform Sync</Text>
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 1 }} />
@@ -179,7 +180,11 @@ export default function SiteMapScreen() {
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="checkmark-circle" size={14} color="#10b981" style={{ marginRight: 6, marginTop: 1 }} />
-                                        <Text className="text-slate-300 text-xs flex-1">Stage Plot Sharing</Text>
+                                        <Text className="text-slate-300 text-xs flex-1">Performance Promo</Text>
+                                    </View>
+                                    <View className="flex-row items-start">
+                                        <Ionicons name="checkmark-circle" size={14} color="#10b981" style={{ marginRight: 6, marginTop: 1 }} />
+                                        <Text className="text-slate-300 text-xs flex-1">Performer Page (Auth)</Text>
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 1 }} />

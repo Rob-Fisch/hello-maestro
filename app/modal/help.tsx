@@ -370,6 +370,52 @@ export default function HelpScreen() {
                     />
                 </AccordionItem>
 
+                <AccordionItem title="Performance Promo vs Performer Page" icon="share-social-outline">
+                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                        OpusMode offers two ways to share event information—one for fans, one for your ensemble.
+                    </Text>
+
+                    <View className="mb-6 bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-4">
+                        <View className="flex-row items-center mb-3">
+                            <Ionicons name="share-social" size={20} color="#818cf8" style={{ marginRight: 8 }} />
+                            <Text className="text-base font-black text-white">Performance Promo</Text>
+                        </View>
+                        <Text className="text-slate-300 text-sm leading-relaxed mb-2">
+                            <Text className="font-bold">For Fans:</Text> Share a public event page with your audience. No login required.
+                        </Text>
+                        <Text className="text-slate-400 text-xs leading-relaxed">
+                            • Displays setlist, artist bio, and event details{'\n'}
+                            • Includes tip jar and mailing list signup{'\n'}
+                            • Accessible at /promo/[eventId]
+                        </Text>
+                    </View>
+
+                    <View className="bg-emerald-900/20 border border-emerald-500/30 rounded-2xl p-4">
+                        <View className="flex-row items-center mb-3">
+                            <Ionicons name="people" size={20} color="#10b981" style={{ marginRight: 8 }} />
+                            <Text className="text-base font-black text-white">Performer Page</Text>
+                        </View>
+                        <Text className="text-slate-300 text-sm leading-relaxed mb-2">
+                            <Text className="font-bold">For Ensemble Members:</Text> Share logistics with your band. Requires free OpusMode account.
+                        </Text>
+                        <Text className="text-slate-400 text-xs leading-relaxed">
+                            • Shows load-in and soundcheck times{'\n'}
+                            • Full setlist with charts and notes{'\n'}
+                            • Venue address with map link{'\n'}
+                            • Accessible at /performer/[eventId]
+                        </Text>
+                    </View>
+
+                    <View className="mt-4 bg-amber-900/20 border border-amber-500/30 rounded-xl p-3">
+                        <View className="flex-row items-start">
+                            <Ionicons name="information-circle" size={16} color="#fbbf24" style={{ marginRight: 8, marginTop: 2 }} />
+                            <Text className="text-amber-200 text-xs flex-1 leading-relaxed">
+                                <Text className="font-bold">Why require login for Performer Page?</Text> This helps us grow! When your band members sign up for a free account, it expands our community of musicians.
+                            </Text>
+                        </View>
+                    </View>
+                </AccordionItem>
+
                 <AccordionItem title="Privacy & Security" icon="lock-closed-outline">
                     <Text className="text-slate-200 leading-relaxed text-sm">
                         OpusMode stores your data locally on your device. We never sell your personal information or the details of your gigs. Your financial notes and roster details are private to you.
