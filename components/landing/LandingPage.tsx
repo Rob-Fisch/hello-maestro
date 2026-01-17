@@ -78,7 +78,7 @@ export default function LandingPage() {
         {
             name: "Free",
             price: "$0",
-            desc: "No credit card needed to get started.",
+            desc: "Everything you need to get organized.",
             features: ["Unlimited Gigs", "50 Songs Max", "Basic Practice Tracking", "Contact Management", "Auto Sync", "Try The Navigator"],
             cta: "Start Free - No Credit Card",
             primary: false
