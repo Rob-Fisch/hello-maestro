@@ -399,6 +399,10 @@ export async function pullFromCloud(isPremium: boolean = false) {
     if (!session?.user) return null;
 
     const tables: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'user_progress', 'proof_of_work', 'gear_assets', 'pack_lists', 'transactions', 'songs', 'set_lists'];
+
+    // Tables that have the platform column (from migration_add_platform_column.sql)
+    const tablesWithPlatform: TableName[] = ['blocks', 'routines', 'events', 'categories', 'people', 'learning_paths', 'songs', 'set_lists', 'user_progress', 'proof_of_work'];
+
     const results: any = {};
 
     try {
@@ -409,10 +413,10 @@ export async function pullFromCloud(isPremium: boolean = false) {
                 .eq('user_id', session.user.id);
 
             // Two Islands: Free users only see their current platform's data
-            // Also include null platform values for backward compatibility (pre-Two Islands data)
-            if (!isPremium) {
+            // Only apply platform filter to tables that have the platform column
+            if (!isPremium && tablesWithPlatform.includes(table)) {
                 const currentPlatform = getCurrentPlatform();
-                // Use .in() to match current platform or null (more reliable than .or())
+                // Use .in() to match current platform or null (backward compatibility)
                 query = query.in('platform', [currentPlatform, null]);
                 console.log(`[Two Islands] Free tier - filtering ${table} by platform: ${currentPlatform} or null`);
             }
