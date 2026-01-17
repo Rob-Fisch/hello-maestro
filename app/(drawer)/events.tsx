@@ -571,47 +571,80 @@ export default function ScheduleScreen() {
                 ListFooterComponent={
                     <>
                         {/* Overview Mode: Month List */}
-                        {!selectedMonth && eventsByMonth.length > 0 && (
-                            <View className="mt-8">
-                                <Text className="text-2xl font-black text-white mb-4 px-6">All Events by Month</Text>
+                        {!selectedMonth && (
+                            <View className="px-6 mt-6">
+                                <Text className="text-xl font-black mb-4" style={{ color: theme.text }}>All Events by Month</Text>
                                 {eventsByMonth.map((monthData) => {
-                                    const isPastMonth = monthData.month < new Date().toISOString().substring(0, 7);
-                                    const isLocked = isPastMonth && !profile?.isPremium;
+                                    // Free tier: Lock months older than 30 days
+                                    const thirtyDaysAgo = new Date();
+                                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                                    const monthDate = new Date(monthData.month + '-01');
+                                    const isOlderThan30Days = monthDate < thirtyDaysAgo;
+                                    const isLocked = isOlderThan30Days && !profile?.isPremium;
 
                                     return (
                                         <TouchableOpacity
                                             key={monthData.month}
                                             onPress={() => {
                                                 if (isLocked) {
-                                                    router.push('/modal/upgrade');
+                                                    Alert.alert(
+                                                        'Upgrade to Pro',
+                                                        'Access your full event history with OpusMode Pro. Free users can view events from the past 30 days.',
+                                                        [
+                                                            { text: 'Not Now', style: 'cancel' },
+                                                            { text: 'Upgrade', onPress: () => router.push('/modal/upgrade') }
+                                                        ]
+                                                    );
                                                 } else {
                                                     setSelectedMonth(monthData.month);
                                                 }
                                             }}
-                                            className="mx-6 mb-3 p-4 rounded-2xl border flex-row justify-between items-center"
+                                            className="mb-3 p-4 rounded-2xl border border-white/10 flex-row justify-between items-center"
                                             style={{
-                                                backgroundColor: isLocked ? theme.card + '40' : theme.card,
-                                                borderColor: isLocked ? theme.border + '40' : theme.border
+                                                backgroundColor: isLocked ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+                                                opacity: isLocked ? 0.6 : 1
                                             }}
                                         >
                                             <View className="flex-row items-center flex-1">
-                                                {isLocked && <Ionicons name="lock-closed" size={16} color="#a78bfa" style={{ marginRight: 8 }} />}
-                                                <Text
-                                                    className="text-lg font-bold"
-                                                    style={{ color: isLocked ? theme.mutedText : theme.text }}
-                                                >
+                                                {isLocked && (
+                                                    <Ionicons name="lock-closed" size={16} color={theme.mutedText} style={{ marginRight: 8 }} />
+                                                )}
+                                                <Text className="text-base font-bold" style={{ color: theme.text }}>
                                                     {formatMonth(monthData.month)}
                                                 </Text>
                                             </View>
-                                            <Text
-                                                className="text-sm font-bold"
-                                                style={{ color: isLocked ? theme.mutedText : theme.accent }}
-                                            >
-                                                {monthData.count} event{monthData.count !== 1 ? 's' : ''}
+                                            <Text className="text-sm font-bold" style={{ color: theme.accent }}>
+                                                {monthData.count} {monthData.count === 1 ? 'event' : 'events'}
                                             </Text>
                                         </TouchableOpacity>
                                     );
                                 })}
+
+                                {/* History Upgrade Prompt */}
+                                {!profile?.isPremium && eventsByMonth.some(m => {
+                                    const thirtyDaysAgo = new Date();
+                                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                                    const monthDate = new Date(m.month + '-01');
+                                    return monthDate < thirtyDaysAgo;
+                                }) && (
+                                        <View className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                                            <View className="flex-row items-start">
+                                                <Ionicons name="time-outline" size={20} color="#60a5fa" style={{ marginRight: 12, marginTop: 2 }} />
+                                                <View className="flex-1">
+                                                    <Text className="font-bold text-blue-200 mb-1">More History Available</Text>
+                                                    <Text className="text-xs text-blue-200/60 leading-relaxed mb-3">
+                                                        Upgrade to Pro to unlock your full event history older than 30 days.
+                                                    </Text>
+                                                    <TouchableOpacity
+                                                        onPress={() => router.push('/modal/upgrade')}
+                                                        className="bg-blue-600 py-2 px-4 rounded-lg self-start"
+                                                    >
+                                                        <Text className="text-white font-bold text-sm">Upgrade to Pro</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    )}
                             </View>
                         )}
 

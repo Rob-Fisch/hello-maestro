@@ -19,7 +19,8 @@
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Create Events** | Unlimited | Unlimited | Unlimited | Plan your schedule with robust event types for rehearsals, lessons, and more. | Rehearsals, lessons, etc. | | `events` table, `type` field |
-| 2 | **Recurring Events** | Yes | Yes | Yes | Easily set sophisticated repeat patterns for weekly rehearsals or semester lessons. | Repeat patterns. | Simplified - no tier difference needed | `events.schedule` JSONB |
+| 2 | **Event History** | Past 30 Days | Unlimited | Unlimited | Free users can view events from the past 30 days + all future events. Pro users get unlimited history. | Free: 30-day lookback window | Clear restriction - recent enough to be useful, incentivizes Pro for long-term archive | Date filtering in `events.tsx` month navigation |
+| 3 | **Recurring Events** | Yes | Yes | Yes | Easily set sophisticated repeat patterns for weekly rehearsals or semester lessons. | Repeat patterns. | Simplified - no tier difference needed | `events.schedule` JSONB |
 
 ### 2. Gigs & Booking
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
