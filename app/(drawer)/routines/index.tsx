@@ -184,7 +184,7 @@ export default function RoutinesScreen() {
                 </View>
 
                 {item.schedule && activeTab === 'mine' && (
-                    <View className="flex-row items-center mb-6">
+                    <View className="flex-row items-center">
                         <View className="bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 flex-row items-center">
                             <Ionicons name="calendar" size={12} color="#2563eb" />
                             <Text className="text-[10px] text-blue-600 font-black ml-1.5 uppercase tracking-wide">
@@ -195,23 +195,6 @@ export default function RoutinesScreen() {
                         </View>
                     </View>
                 )}
-
-                <View className="flex-row mt-2 gap-3">
-                    {item.blocks.slice(0, 6).map((block, i) => (
-                        <View key={block.id || i} className="w-12 h-12 rounded-2xl items-center justify-center border shadow-inner" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                            <Ionicons
-                                name={block.type === 'sheet_music' ? 'musical-notes' : 'document-text'}
-                                size={22}
-                                color={theme.mutedText}
-                            />
-                        </View>
-                    ))}
-                    {item.blocks.length > 6 && (
-                        <View className="w-12 h-12 rounded-2xl bg-gray-50 items-center justify-center border border-gray-100">
-                            <Text className="text-xs font-black text-gray-400">+{item.blocks.length - 6}</Text>
-                        </View>
-                    )}
-                </View>
             </TouchableOpacity>
 
             {activeTab === 'mine' && (
