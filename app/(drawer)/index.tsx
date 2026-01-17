@@ -132,9 +132,8 @@ export default function HomeScreen() {
         <ScrollView
             className="flex-1"
             style={{ backgroundColor: theme.background, height: Platform.OS === 'web' ? '100vh' as any : undefined }}
-            contentContainerStyle={{ alignItems: 'center' }} // Center content for web
         >
-            <View className="w-full max-w-3xl p-4 md:p-6 mb-8" style={{ marginTop: Math.max(insets.top, 20) }}>
+            <View className="w-full max-w-3xl p-4 md:p-6 mb-8 mx-auto" style={{ marginTop: Math.max(insets.top, 20) }}>
                 {/* Header Profile Section */}
                 <View className="flex-row justify-between items-center mb-6">
                     <View className="flex-row items-center flex-1 mr-4">
