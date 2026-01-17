@@ -18,6 +18,67 @@ export default function HomeScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
+    // Onboarding tooltip state
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    // Check if user has seen onboarding tooltip
+    useEffect(() => {
+        const checkOnboarding = async () => {
+            try {
+                console.log('[Onboarding] Checking if user has seen onboarding...');
+                // Use localStorage for web, AsyncStorage for native
+                let hasSeenOnboarding: string | null = null;
+                if (Platform.OS === 'web') {
+                    hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+                } else {
+                    hasSeenOnboarding = await AsyncStorage.getItem('hasSeenOnboarding');
+                }
+                console.log('[Onboarding] hasSeenOnboarding value:', hasSeenOnboarding);
+
+                if (!hasSeenOnboarding) {
+                    console.log('[Onboarding] First time user! Showing tooltip in 1 second...');
+                    // Show tooltip after short delay
+                    setTimeout(() => {
+                        console.log('[Onboarding] Displaying tooltip now!');
+                        setShowOnboarding(true);
+                        Animated.timing(fadeAnim, {
+                            toValue: 1,
+                            duration: 500,
+                            easing: Easing.out(Easing.cubic),
+                            useNativeDriver: true,
+                        }).start();
+                    }, 1000);
+                } else {
+                    console.log('[Onboarding] User has already seen onboarding, skipping.');
+                }
+            } catch (error) {
+                console.log('[Onboarding] Error checking onboarding status:', error);
+            }
+        };
+        checkOnboarding();
+    }, []);
+
+    const dismissOnboarding = async () => {
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setShowOnboarding(false);
+        });
+        try {
+            // Use localStorage for web, AsyncStorage for native
+            if (Platform.OS === 'web') {
+                localStorage.setItem('hasSeenOnboarding', 'true');
+            } else {
+                await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+            }
+        } catch (error) {
+            console.log('Error saving onboarding status:', error);
+        }
+    };
+
     const today = new Date();
     const todayStr = today.toLocaleDateString('en-CA');
     const todayDay = today.getDay();
@@ -178,6 +239,58 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
+
+                {/* Onboarding Tooltip for New Users */}
+                {showOnboarding && (
+                    <Animated.View
+                        style={{
+                            opacity: fadeAnim,
+                            transform: [{
+                                translateY: fadeAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [-20, 0]
+                                })
+                            }]
+                        }}
+                        className="mb-6 relative"
+                    >
+                        {/* Arrow pointing to menu */}
+                        <View className="absolute -top-2 left-4 w-0 h-0" style={{
+                            borderLeftWidth: 12,
+                            borderRightWidth: 12,
+                            borderBottomWidth: 16,
+                            borderLeftColor: 'transparent',
+                            borderRightColor: 'transparent',
+                            borderBottomColor: '#3b82f6',
+                        }} />
+
+                        {/* Tooltip content */}
+                        <View className="bg-blue-600 rounded-2xl p-4 shadow-lg border border-blue-500">
+                            <View className="flex-row items-start justify-between">
+                                <View className="flex-1 mr-3">
+                                    <View className="flex-row items-center mb-2">
+                                        <Ionicons name="information-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
+                                        <Text className="text-white font-black text-base">New to OpusMode?</Text>
+                                    </View>
+                                    <Text className="text-blue-100 text-sm leading-relaxed">
+                                        Tap the menu icon above to explore{' '}
+                                        <Text className="font-bold text-white">Site Map</Text>
+                                        {' '}and{' '}
+                                        <Text className="font-bold text-white">Help</Text>
+                                        {' '}to get started!
+                                    </Text>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={dismissOnboarding}
+                                    className="bg-blue-500 rounded-full p-1"
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
+                                    <Ionicons name="close" size={18} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Animated.View>
+                )}
 
                 {/* Greeting */}
                 <Text className="text-3xl md:text-4xl font-black tracking-tighter leading-tight text-white mb-6" numberOfLines={2} adjustsFontSizeToFit>

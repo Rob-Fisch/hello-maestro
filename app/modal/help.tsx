@@ -75,7 +75,13 @@ export default function HelpScreen() {
                     <Text className="text-2xl font-black text-foreground">Support & FAQ</Text>
                     <Text className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">How can we help?</Text>
                 </View>
-                <TouchableOpacity onPress={() => router.back()} className="bg-gray-100 p-2 rounded-full">
+                {/* Larger X button with 44x44pt minimum hit area for iPad accessibility */}
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="bg-gray-100 rounded-full items-center justify-center"
+                    style={{ width: 44, height: 44 }}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
                     <Ionicons name="close" size={24} color="#6b7280" />
                 </TouchableOpacity>
             </View>
@@ -130,6 +136,11 @@ export default function HelpScreen() {
                         Assemble multiple practice artifacts into a complete routine that you can print as a single PDF.
                     </Text>
 
+                    <Step
+                        number={0}
+                        title="Ensure Activities Exist"
+                        description="Make sure you have practice artifacts in your library first (see 'Add Practice Activity' above). Collections are built from existing activities."
+                    />
                     <Step
                         number={1}
                         title="Go to Collections"
@@ -232,6 +243,119 @@ export default function HelpScreen() {
                         description="Clear the musician from the slot while keeping the role open."
                         color="#4b5563"
                         bgColor="#f3f4f6"
+                    />
+                </AccordionItem>
+
+                <AccordionItem title="Song Library" icon="musical-note-outline">
+                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                        Build your complete repertoire database with charts, lyrics, and notes for every song you know.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Open Song Library"
+                        description="Tap the 'Songs' tab in the bottom navigation."
+                    />
+                    <Step
+                        number={2}
+                        title="Add New Song"
+                        description="Tap the '+' button to create a new song entry."
+                    />
+                    <Step
+                        number={3}
+                        title="Enter Song Details"
+                        description="Add title, artist, key, and any notes. Optionally attach PDF charts or lyrics."
+                    />
+                    <Step
+                        number={4}
+                        title="Save to Library"
+                        description="Tap 'Save'. Your song is now in your library and available for set lists."
+                    />
+                </AccordionItem>
+
+                <AccordionItem title="Set Lists" icon="list-outline">
+                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                        Create reusable set list templates and customize them for specific gigs.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Go to Set Lists"
+                        description="Tap the 'Set Lists' tab in the bottom navigation."
+                    />
+                    <Step
+                        number={2}
+                        title="Create Master Set List"
+                        description="Tap '+' to create a template (e.g., 'Wedding Gig', 'Jazz Standards'). This is your reusable template."
+                    />
+                    <Step
+                        number={3}
+                        title="Add Songs from Library"
+                        description="Select songs from your Song Library to build your set list. Arrange them in performance order."
+                    />
+                    <Step
+                        number={4}
+                        title="Fork for Specific Gigs (Pro)"
+                        description="When creating an event, you can fork (copy) a master set list and customize it for that specific gig without affecting your template."
+                    />
+                </AccordionItem>
+
+                <AccordionItem title="Venue Management" icon="business-outline">
+                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                        Track venues and build relationships with venue managers using the contact system.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Add Venue as Contact"
+                        description="In the People tab, add a new contact with role 'Venue Manager'. Include venue name, manager's name, and contact details."
+                    />
+                    <Step
+                        number={2}
+                        title="Fill in Venue Details"
+                        description="Add the venue address, phone, email, and any notes about the space (capacity, equipment, etc.)."
+                    />
+                    <Step
+                        number={3}
+                        title="Log Interactions"
+                        description="Use the contact's detail page to track your relationship: log calls, emails, meetings, and past gigs."
+                    />
+                    <Step
+                        number={4}
+                        title="Link to Events"
+                        description="When creating a gig, select this venue from your contacts to automatically fill in location details."
+                    />
+                </AccordionItem>
+
+                <AccordionItem title="Log Practice Sessions" icon="checkmark-done-outline">
+                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                        Track your practice sessions to stay motivated and see your progress over time.
+                    </Text>
+
+                    <Step
+                        number={1}
+                        title="Open a Collection"
+                        description="In The Studio, tap on a Collection (practice routine) to start practicing."
+                    />
+                    <Step
+                        number={2}
+                        title="Check Off Completed Items"
+                        description="As you practice, tap the checkboxes next to each activity you complete."
+                    />
+                    <Step
+                        number={3}
+                        title="Log Your Session"
+                        description="When done practicing, tap 'Log Session' to save your progress."
+                    />
+                    <Step
+                        number={4}
+                        title="Add Notes & Rating"
+                        description="Rate your session and add notes about what went well or what needs work."
+                    />
+                    <Step
+                        number={5}
+                        title="View History"
+                        description="Check the History tab to review past sessions. Free users see the last 3 months; Pro users get unlimited history."
                     />
                 </AccordionItem>
 
