@@ -190,7 +190,7 @@ export default function EventDashboard() {
 
                     {/* Set List Button */}
                     <TouchableOpacity
-                        onPress={() => router.push(`/live/${event.id}`)}
+                        onPress={() => router.push({ pathname: '/modal/event-editor', params: { id: event.id, type: event.type, tab: 'setlist' } })}
                         className="flex-1 bg-neutral-900 py-3 rounded-2xl flex-row items-center justify-center shadow-lg shadow-neutral-500/20"
                     >
                         <Ionicons name="list" size={20} color="white" />
