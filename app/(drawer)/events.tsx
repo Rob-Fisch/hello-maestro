@@ -70,6 +70,9 @@ export default function ScheduleScreen() {
         return ['performance', 'lesson', 'rehearsal', 'practice'];
     });
 
+    // Month navigation state
+    const [selectedMonth, setSelectedMonth] = useState<string | null>(null); // Format: "2026-01" or null for overview
+
 
     const toggleFilter = (filter: ScheduleFilter) => {
         if (activeFilters.includes(filter)) {
@@ -167,6 +170,50 @@ export default function ScheduleScreen() {
                 return a.time.localeCompare(b.time);
             });
     }, [events, routines, activeFilters]);
+
+    // Helper: Get next 7 days of events
+    const next7Days = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const sevenDaysLater = new Date(today);
+        sevenDaysLater.setDate(today.getDate() + 7);
+
+        return unifiedData.filter(item => {
+            const itemDate = new Date(item.date + 'T00:00:00');
+            return itemDate >= today && itemDate < sevenDaysLater;
+        });
+    }, [unifiedData]);
+
+    // Helper: Group events by month with counts
+    const eventsByMonth = useMemo(() => {
+        const groups: { [key: string]: { month: string, count: number, events: UnifiedItem[] } } = {};
+
+        unifiedData.forEach(item => {
+            const monthKey = item.date.substring(0, 7); // "2026-01"
+            if (!groups[monthKey]) {
+                groups[monthKey] = { month: monthKey, count: 0, events: [] };
+            }
+            groups[monthKey].count++;
+            groups[monthKey].events.push(item);
+        });
+
+        // Convert to array and sort by month
+        return Object.values(groups).sort((a, b) => a.month.localeCompare(b.month));
+    }, [unifiedData]);
+
+    // Helper: Format month for display
+    const formatMonth = (monthKey: string) => {
+        const [year, month] = monthKey.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    };
+
+    // Helper: Get events for selected month
+    const selectedMonthEvents = useMemo(() => {
+        if (!selectedMonth) return [];
+        const monthData = eventsByMonth.find(m => m.month === selectedMonth);
+        return monthData?.events || [];
+    }, [selectedMonth, eventsByMonth]);
 
     const handleDeleteEvent = (id: string, type: string) => {
         if (Platform.OS === 'web') {
@@ -498,7 +545,7 @@ export default function ScheduleScreen() {
                         </View>
                     </>
                 }
-                data={unifiedData}
+                data={selectedMonth ? selectedMonthEvents : next7Days}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
@@ -512,6 +559,98 @@ export default function ScheduleScreen() {
                             Adjust your filters or add a new event/routine to fill your schedule.
                         </Text>
                     </View>
+                }
+                ListFooterComponent={
+                    <>
+                        {/* Overview Mode: Month List */}
+                        {!selectedMonth && eventsByMonth.length > 0 && (
+                            <View className="mt-8">
+                                <Text className="text-2xl font-black text-white mb-4 px-6">All Events by Month</Text>
+                                {eventsByMonth.map((monthData) => {
+                                    const isPastMonth = monthData.month < new Date().toISOString().substring(0, 7);
+                                    const isLocked = isPastMonth && !profile?.isPremium;
+
+                                    return (
+                                        <TouchableOpacity
+                                            key={monthData.month}
+                                            onPress={() => {
+                                                if (isLocked) {
+                                                    router.push('/modal/upgrade');
+                                                } else {
+                                                    setSelectedMonth(monthData.month);
+                                                }
+                                            }}
+                                            className="mx-6 mb-3 p-4 rounded-2xl border flex-row justify-between items-center"
+                                            style={{
+                                                backgroundColor: isLocked ? theme.card + '40' : theme.card,
+                                                borderColor: isLocked ? theme.border + '40' : theme.border
+                                            }}
+                                        >
+                                            <View className="flex-row items-center flex-1">
+                                                {isLocked && <Ionicons name="lock-closed" size={16} color="#a78bfa" style={{ marginRight: 8 }} />}
+                                                <Text
+                                                    className="text-lg font-bold"
+                                                    style={{ color: isLocked ? theme.mutedText : theme.text }}
+                                                >
+                                                    {formatMonth(monthData.month)}
+                                                </Text>
+                                            </View>
+                                            <Text
+                                                className="text-sm font-bold"
+                                                style={{ color: isLocked ? theme.mutedText : theme.accent }}
+                                            >
+                                                {monthData.count} event{monthData.count !== 1 ? 's' : ''}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        )}
+
+                        {/* Month Detail Mode: Navigation */}
+                        {selectedMonth && (
+                            <View className="mt-6 px-6">
+                                <View className="flex-row justify-between items-center">
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            const currentIndex = eventsByMonth.findIndex(m => m.month === selectedMonth);
+                                            if (currentIndex > 0) {
+                                                setSelectedMonth(eventsByMonth[currentIndex - 1].month);
+                                            }
+                                        }}
+                                        disabled={eventsByMonth.findIndex(m => m.month === selectedMonth) === 0}
+                                        className="flex-row items-center py-2 px-4 rounded-full"
+                                        style={{
+                                            backgroundColor: eventsByMonth.findIndex(m => m.month === selectedMonth) === 0 ? theme.card + '40' : theme.card,
+                                            opacity: eventsByMonth.findIndex(m => m.month === selectedMonth) === 0 ? 0.5 : 1
+                                        }}
+                                    >
+                                        <Ionicons name="chevron-back" size={16} color={theme.text} />
+                                        <Text className="text-sm font-bold ml-1" style={{ color: theme.text }}>Prev Month</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            const currentIndex = eventsByMonth.findIndex(m => m.month === selectedMonth);
+                                            if (currentIndex < eventsByMonth.length - 1) {
+                                                setSelectedMonth(eventsByMonth[currentIndex + 1].month);
+                                            }
+                                        }}
+                                        disabled={eventsByMonth.findIndex(m => m.month === selectedMonth) === eventsByMonth.length - 1}
+                                        className="flex-row items-center py-2 px-4 rounded-full"
+                                        style={{
+                                            backgroundColor: eventsByMonth.findIndex(m => m.month === selectedMonth) === eventsByMonth.length - 1 ? theme.card + '40' : theme.card,
+                                            opacity: eventsByMonth.findIndex(m => m.month === selectedMonth) === eventsByMonth.length - 1 ? 0.5 : 1
+                                        }}
+                                    >
+                                        <Text className="text-sm font-bold mr-1" style={{ color: theme.text }}>Next Month</Text>
+                                        <Ionicons name="chevron-forward" size={16} color={theme.text} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+                    </>
+                }
                 }
             />
         </View>
