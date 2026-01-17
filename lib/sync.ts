@@ -28,6 +28,14 @@ function mapToDb(data: any): any {
         venueName: 'venue_name',
         venueType: 'venue_type',
         venueLocation: 'venue_location',
+        // Contact Address Fields
+        addressLine1: 'address_line1',
+        addressLine2: 'address_line2',
+        city: 'city',
+        stateProvince: 'state_province',
+        postalCode: 'postal_code',
+        country: 'country',
+        mapLink: 'map_link',
         // Structured Venue Address
         venueAddressLine1: 'venue_address_line1',
         venueAddressLine2: 'venue_address_line2',

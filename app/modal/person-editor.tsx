@@ -33,6 +33,15 @@ export default function PersonEditor() {
     const [venueType, setVenueType] = useState('');
     const [venueLocation, setVenueLocation] = useState('');
 
+    // Address Fields
+    const [addressLine1, setAddressLine1] = useState('');
+    const [addressLine2, setAddressLine2] = useState('');
+    const [city, setCity] = useState('');
+    const [stateProvince, setStateProvince] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+    const [country, setCountry] = useState('');
+    const [mapLink, setMapLink] = useState('');
+
 
     const initializedIdRef = useRef<string | null>(null);
 
@@ -55,6 +64,15 @@ export default function PersonEditor() {
             setVenueName(existingPerson.venueName || '');
             setVenueType(existingPerson.venueType || '');
             setVenueLocation(existingPerson.venueLocation || '');
+
+            // Address fields
+            setAddressLine1(existingPerson.addressLine1 || '');
+            setAddressLine2(existingPerson.addressLine2 || '');
+            setCity(existingPerson.city || '');
+            setStateProvince(existingPerson.stateProvince || '');
+            setPostalCode(existingPerson.postalCode || '');
+            setCountry(existingPerson.country || '');
+            setMapLink(existingPerson.mapLink || '');
 
             initializedIdRef.current = existingPerson.id;
 
@@ -133,6 +151,16 @@ export default function PersonEditor() {
             venueName: type === 'venue_manager' ? venueName : undefined,
             venueType: type === 'venue_manager' ? venueType : undefined,
             venueLocation: type === 'venue_manager' ? venueLocation : undefined,
+
+            // Address fields
+            addressLine1: addressLine1.trim() || undefined,
+            addressLine2: addressLine2.trim() || undefined,
+            city: city.trim() || undefined,
+            stateProvince: stateProvince.trim() || undefined,
+            postalCode: postalCode.trim() || undefined,
+            country: country.trim() || undefined,
+            mapLink: mapLink.trim() || undefined,
+
             createdAt: existingPerson?.createdAt || new Date().toISOString(),
         };
 
@@ -203,6 +231,16 @@ export default function PersonEditor() {
                                 venueName: type === 'venue_manager' ? venueName : undefined,
                                 venueType: type === 'venue_manager' ? venueType : undefined,
                                 venueLocation: type === 'venue_manager' ? venueLocation : undefined,
+
+                                // Address fields
+                                addressLine1: addressLine1.trim() || undefined,
+                                addressLine2: addressLine2.trim() || undefined,
+                                city: city.trim() || undefined,
+                                stateProvince: stateProvince.trim() || undefined,
+                                postalCode: postalCode.trim() || undefined,
+                                country: country.trim() || undefined,
+                                mapLink: mapLink.trim() || undefined,
+
                                 createdAt: existingPerson?.createdAt || new Date().toISOString(),
                             };
 

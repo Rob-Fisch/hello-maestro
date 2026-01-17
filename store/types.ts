@@ -149,6 +149,16 @@ export interface Person {
     venueName?: string; // For Venue Managers
     venueType?: string; // e.g. "Club", "Festival"
     venueLocation?: string; // City, State
+
+    // Address Fields
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    stateProvince?: string;
+    postalCode?: string;
+    country?: string;
+    mapLink?: string; // Google Maps share link (PIN drop URL)
+
     platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
 }
