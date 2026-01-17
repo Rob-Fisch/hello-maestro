@@ -626,7 +626,15 @@ export default function ScheduleScreen() {
                                         }}
                                     >
                                         <Ionicons name="chevron-back" size={16} color={theme.text} />
-                                        <Text className="text-sm font-bold ml-1" style={{ color: theme.text }}>Prev Month</Text>
+                                        <Text className="text-sm font-bold ml-1" style={{ color: theme.text }}>
+                                            {(() => {
+                                                const currentIndex = eventsByMonth.findIndex(m => m.month === selectedMonth);
+                                                if (currentIndex > 0) {
+                                                    return formatMonth(eventsByMonth[currentIndex - 1].month);
+                                                }
+                                                return 'Start';
+                                            })()}
+                                        </Text>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
@@ -643,7 +651,15 @@ export default function ScheduleScreen() {
                                             opacity: eventsByMonth.findIndex(m => m.month === selectedMonth) === eventsByMonth.length - 1 ? 0.5 : 1
                                         }}
                                     >
-                                        <Text className="text-sm font-bold mr-1" style={{ color: theme.text }}>Next Month</Text>
+                                        <Text className="text-sm font-bold mr-1" style={{ color: theme.text }}>
+                                            {(() => {
+                                                const currentIndex = eventsByMonth.findIndex(m => m.month === selectedMonth);
+                                                if (currentIndex < eventsByMonth.length - 1) {
+                                                    return formatMonth(eventsByMonth[currentIndex + 1].month);
+                                                }
+                                                return 'End';
+                                            })()}
+                                        </Text>
                                         <Ionicons name="chevron-forward" size={16} color={theme.text} />
                                     </TouchableOpacity>
                                 </View>
