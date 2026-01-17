@@ -3,8 +3,8 @@ import { AppEvent, AppEventType, Person, Routine } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
-import { Link, useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { Link, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -74,11 +74,12 @@ export default function ScheduleScreen() {
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null); // Format: "2026-01" or null for overview
 
     // Reset to overview when screen comes into focus
-    useFocusEffect(
-        useCallback(() => {
-            setSelectedMonth(null);
-        }, [])
-    );
+    // TEMPORARILY DISABLED - testing if this causes offline mode issue
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         setSelectedMonth(null);
+    //     }, [])
+    // );
 
 
     const toggleFilter = (filter: ScheduleFilter) => {
