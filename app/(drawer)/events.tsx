@@ -1,6 +1,5 @@
 import { useContentStore } from '@/store/contentStore';
 import { AppEvent, AppEventType, Person, Routine } from '@/store/types';
-import { addUnifiedToCalendar, downloadIcs, openGoogleCalendar } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
@@ -390,132 +389,131 @@ export default function ScheduleScreen() {
                         )}
 
                     </View>
+                </TouchableOpacity>
             </View>
-                </TouchableOpacity >
-            </View >
         );
-};
+    };
 
-const filterOptions: { key: ScheduleFilter; label: string; icon: string }[] = [
-    { key: 'performance', label: 'Performance', icon: '🎸' },
-    { key: 'lesson', label: 'Lessons', icon: '👨‍🏫' },
-    { key: 'rehearsal', label: 'Rehearsals', icon: '👥' },
-    { key: 'practice', label: 'Routines', icon: '🎼' },
-];
+    const filterOptions: { key: ScheduleFilter; label: string; icon: string }[] = [
+        { key: 'performance', label: 'Performance', icon: '🎸' },
+        { key: 'lesson', label: 'Lessons', icon: '👨‍🏫' },
+        { key: 'rehearsal', label: 'Rehearsals', icon: '👥' },
+        { key: 'practice', label: 'Routines', icon: '🎼' },
+    ];
 
-return (
-    <View className="flex-1" style={{ backgroundColor: theme.background }}>
-        {/* Header with Home Button - Top of Page (Replicated from Studio) */}
-        <View className="px-6 flex-row items-start pt-8 mb-2" style={{ paddingTop: insets.top }}>
-            {source === 'gigs' ? (
-                <TouchableOpacity
-                    onPress={() => router.push('/gigs')}
-                    className="mr-5 p-2 rounded-full bg-rose-500/10 border border-rose-500/20"
-                >
-                    <Ionicons name="arrow-back" size={24} color="#fb7185" />
-                </TouchableOpacity>
-            ) : (
-                <TouchableOpacity
-                    onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-                    className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
-                >
-                    <Ionicons name="menu" size={24} color="white" />
-                </TouchableOpacity>
-            )}
-            <View className="flex-1 flex-row justify-between items-start">
-                <View>
-                    <Text className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-1">
-                        Calendar
-                    </Text>
-                    <Text className="text-4xl font-black tracking-tight text-white">
-                        Schedule
-                    </Text>
-                </View>
-                <View className="flex-row gap-2">
-                    <Link href="/modal/event-editor" asChild>
-                        <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center bg-indigo-600 shadow-lg shadow-indigo-500/20">
-                            <Ionicons name="add" size={28} color="white" />
-                        </TouchableOpacity>
-                    </Link>
+    return (
+        <View className="flex-1" style={{ backgroundColor: theme.background }}>
+            {/* Header with Home Button - Top of Page (Replicated from Studio) */}
+            <View className="px-6 flex-row items-start pt-8 mb-2" style={{ paddingTop: insets.top }}>
+                {source === 'gigs' ? (
+                    <TouchableOpacity
+                        onPress={() => router.push('/gigs')}
+                        className="mr-5 p-2 rounded-full bg-rose-500/10 border border-rose-500/20"
+                    >
+                        <Ionicons name="arrow-back" size={24} color="#fb7185" />
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+                        className="mr-5 p-2 rounded-full bg-white/5 border border-white/10"
+                    >
+                        <Ionicons name="menu" size={24} color="white" />
+                    </TouchableOpacity>
+                )}
+                <View className="flex-1 flex-row justify-between items-start">
+                    <View>
+                        <Text className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-1">
+                            Calendar
+                        </Text>
+                        <Text className="text-4xl font-black tracking-tight text-white">
+                            Schedule
+                        </Text>
+                    </View>
+                    <View className="flex-row gap-2">
+                        <Link href="/modal/event-editor" asChild>
+                            <TouchableOpacity className="w-12 h-12 rounded-2xl items-center justify-center bg-indigo-600 shadow-lg shadow-indigo-500/20">
+                                <Ionicons name="add" size={28} color="white" />
+                            </TouchableOpacity>
+                        </Link>
+                    </View>
                 </View>
             </View>
-        </View>
 
-        <FlatList
-            ListHeaderComponent={
-                <>
-                    {/* Hero Image Section - Dark & Moody */}
-                    <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40">
-                        <Animated.Image
-                            source={require('@/assets/images/schedule_clock.png')}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                borderRadius: 32,
-                                opacity: breathingOpacity
-                            }}
-                            resizeMode="contain"
-                        />
-                    </View>
-
-                    <View className="px-6 pb-4">
-                        {/* PRODUCT ADOPTION HOOK */}
-                        {/* PRODUCT ADOPTION HOOK - SUBTLE VERSION */}
-                        {!profile?.isPremium && (
-                            <TouchableOpacity
-                                onPress={() => router.push('/(drawer)/finance')}
-                                className="mb-6 flex-row items-center justify-between py-3 px-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20"
-                            >
-                                <View className="flex-row items-center flex-1">
-                                    <Ionicons name="cash-outline" size={16} color="#818cf8" style={{ marginRight: 8 }} />
-                                    <Text className="text-indigo-200 font-bold text-xs">
-                                        Want to track gig income? <Text className="text-indigo-400">See how Pro works</Text>
-                                    </Text>
-                                </View>
-                                <Ionicons name="chevron-forward" size={14} color="#818cf8" />
-                            </TouchableOpacity>
-                        )}
-
-                        <View className="flex-row flex-wrap gap-3 justify-center">
-                            {filterOptions.map(opt => {
-                                const isActive = activeFilters.includes(opt.key);
-                                return (
-                                    <TouchableOpacity
-                                        key={opt.key}
-                                        onPress={() => toggleFilter(opt.key)}
-                                        className={`flex-row items-center px-5 py-2.5 rounded-full border`}
-                                        style={{
-                                            backgroundColor: isActive ? 'white' : 'transparent',
-                                            borderColor: isActive ? 'white' : 'rgba(255,255,255,0.1)'
-                                        }}
-                                    >
-                                        <Text className="mr-2 text-sm">{opt.icon}</Text>
-                                        <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-black' : 'text-slate-400'}`}>
-                                            {opt.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
+            <FlatList
+                ListHeaderComponent={
+                    <>
+                        {/* Hero Image Section - Dark & Moody */}
+                        <View className="w-full aspect-square max-h-[300px] mb-6 self-center shadow-2xl shadow-indigo-900/40">
+                            <Animated.Image
+                                source={require('@/assets/images/schedule_clock.png')}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: 32,
+                                    opacity: breathingOpacity
+                                }}
+                                resizeMode="contain"
+                            />
                         </View>
+
+                        <View className="px-6 pb-4">
+                            {/* PRODUCT ADOPTION HOOK */}
+                            {/* PRODUCT ADOPTION HOOK - SUBTLE VERSION */}
+                            {!profile?.isPremium && (
+                                <TouchableOpacity
+                                    onPress={() => router.push('/(drawer)/finance')}
+                                    className="mb-6 flex-row items-center justify-between py-3 px-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20"
+                                >
+                                    <View className="flex-row items-center flex-1">
+                                        <Ionicons name="cash-outline" size={16} color="#818cf8" style={{ marginRight: 8 }} />
+                                        <Text className="text-indigo-200 font-bold text-xs">
+                                            Want to track gig income? <Text className="text-indigo-400">See how Pro works</Text>
+                                        </Text>
+                                    </View>
+                                    <Ionicons name="chevron-forward" size={14} color="#818cf8" />
+                                </TouchableOpacity>
+                            )}
+
+                            <View className="flex-row flex-wrap gap-3 justify-center">
+                                {filterOptions.map(opt => {
+                                    const isActive = activeFilters.includes(opt.key);
+                                    return (
+                                        <TouchableOpacity
+                                            key={opt.key}
+                                            onPress={() => toggleFilter(opt.key)}
+                                            className={`flex-row items-center px-5 py-2.5 rounded-full border`}
+                                            style={{
+                                                backgroundColor: isActive ? 'white' : 'transparent',
+                                                borderColor: isActive ? 'white' : 'rgba(255,255,255,0.1)'
+                                            }}
+                                        >
+                                            <Text className="mr-2 text-sm">{opt.icon}</Text>
+                                            <Text className={`text-xs uppercase font-black tracking-widest ${isActive ? 'text-black' : 'text-slate-400'}`}>
+                                                {opt.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    </>
+                }
+                data={unifiedData}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
+                ListEmptyComponent={
+                    <View className="flex-1 items-center justify-center pt-24">
+                        <View className="w-32 h-32 bg-white/5 rounded-full items-center justify-center mb-6 border border-white/10">
+                            <Text className="text-6xl">🗓️</Text>
+                        </View>
+                        <Text className="text-2xl font-black text-white">Nothing Scheduled</Text>
+                        <Text className="text-slate-400 text-center mt-3 px-12 leading-relaxed font-medium">
+                            Adjust your filters or add a new event/routine to fill your schedule.
+                        </Text>
                     </View>
-                </>
-            }
-            data={unifiedData}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
-            ListEmptyComponent={
-                <View className="flex-1 items-center justify-center pt-24">
-                    <View className="w-32 h-32 bg-white/5 rounded-full items-center justify-center mb-6 border border-white/10">
-                        <Text className="text-6xl">🗓️</Text>
-                    </View>
-                    <Text className="text-2xl font-black text-white">Nothing Scheduled</Text>
-                    <Text className="text-slate-400 text-center mt-3 px-12 leading-relaxed font-medium">
-                        Adjust your filters or add a new event/routine to fill your schedule.
-                    </Text>
-                </View>
-            }
-        />
-    </View>
-);
+                }
+            />
+        </View>
+    );
 }
