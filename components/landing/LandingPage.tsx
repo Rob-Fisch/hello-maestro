@@ -34,12 +34,12 @@ export default function LandingPage() {
         ]).start();
     }, []);
 
-    // Rotating Content (Logo + Messages)
+    // Rotating Content (Logo + Messages with Icons)
     const ROTATING_CONTENT = [
         { type: 'logo' as const },
-        { type: 'message' as const, text: "Is your musical life a scattered mess? Setlists in texts. Rehearsal notes lost in emails. Gig details missing. It's time to bring order to the chaos" },
-        { type: 'message' as const, text: "The Studio - Track practices, log history, and manage your repertoire metadata. Every hour counts" },
-        { type: 'message' as const, text: "The Navigator - Your digital co-pilot. Find venues, generate email drafts, and navigate the industry landscape" }
+        { type: 'message' as const, icon: 'alert-circle', iconColor: '#f59e0b', text: "Is your musical life a scattered mess? Setlists in texts. Rehearsal notes lost in emails. Gig details missing. It's time to bring order to the chaos" },
+        { type: 'message' as const, icon: 'layers', iconColor: '#0ea5e9', text: "The Studio - Track practices, log history, and manage your repertoire metadata. Every hour counts" },
+        { type: 'message' as const, icon: 'compass', iconColor: '#2dd4bf', text: "The Navigator - Your digital co-pilot. Find venues, generate email drafts, and navigate the industry landscape" }
     ];
 
     const [currentContentIndex, setCurrentContentIndex] = useState(0);
@@ -78,7 +78,7 @@ export default function LandingPage() {
         {
             name: "Free",
             price: "$0",
-            desc: "Perfect to get started.",
+            desc: "No credit card needed to get started.",
             features: ["Unlimited Gigs", "50 Songs Max", "Basic Practice Tracking", "Contact Management", "Auto Sync", "Try The Navigator"],
             cta: "Start Free",
             primary: false
@@ -144,8 +144,11 @@ export default function LandingPage() {
                         <Text className="text-slate-400 text-lg md:text-xl text-center max-w-2xl leading-relaxed mb-4">
                             Stop using spreadsheets and sticky notes. OpusMode connects your calendar, repertoire, and finances in one beautiful workspace.
                         </Text>
-                        <Text className="text-indigo-300 text-sm md:text-base text-center max-w-xl font-medium mb-10">
+                        <Text className="text-indigo-300 text-sm md:text-base text-center max-w-xl font-medium mb-2">
                             ✨ Start free - no credit card required. Upgrade only when you need more.
+                        </Text>
+                        <Text className="text-white text-lg md:text-xl text-center font-bold mb-10">
+                            Get started now
                         </Text>
 
                         <TouchableOpacity
@@ -175,29 +178,18 @@ export default function LandingPage() {
                                     resizeMode="contain"
                                 />
                             ) : (
-                                <Text className="text-slate-300 text-lg md:text-2xl text-center leading-relaxed font-medium">
-                                    {ROTATING_CONTENT[currentContentIndex].text}
-                                </Text>
+                                <View className="items-center">
+                                    {ROTATING_CONTENT[currentContentIndex].icon && (
+                                        <View className="w-16 h-16 rounded-2xl items-center justify-center mb-6" style={{ backgroundColor: ROTATING_CONTENT[currentContentIndex].iconColor + '20' }}>
+                                            <Ionicons name={ROTATING_CONTENT[currentContentIndex].icon as any} size={32} color={ROTATING_CONTENT[currentContentIndex].iconColor} />
+                                        </View>
+                                    )}
+                                    <Text className="text-slate-300 text-lg md:text-2xl text-center leading-relaxed font-medium">
+                                        {ROTATING_CONTENT[currentContentIndex].text}
+                                    </Text>
+                                </View>
                             )}
                         </Animated.View>
-                    </View>
-                </View>
-
-                {/* Features Grid */}
-                <View className="px-6 md:px-24 mb-32 max-w-7xl mx-auto w-full">
-                    <Text className="text-indigo-400 font-bold text-center uppercase tracking-widest mb-2">Everything You Need</Text>
-                    <Text className="text-3xl md:text-4xl font-black text-white text-center mb-16">Built for the Stage & Studio</Text>
-
-                    <View className="flex-row flex-wrap justify-center gap-6">
-                        {FEATURE_CARDS.map((card, i) => (
-                            <View key={i} className="w-full md:w-[48%] lg:w-[23%] bg-slate-900/50 border border-white/5 p-6 rounded-3xl hover:border-indigo-500/30 transition-all">
-                                <View className="w-12 h-12 rounded-2xl items-center justify-center mb-4 bg-opacity-10" style={{ backgroundColor: card.color + '20' }}>
-                                    <Ionicons name={card.icon as any} size={24} color={card.color} />
-                                </View>
-                                <Text className="text-white font-bold text-xl mb-2">{card.title}</Text>
-                                <Text className="text-slate-400 leading-relaxed text-sm">{card.desc}</Text>
-                            </View>
-                        ))}
                     </View>
                 </View>
 
