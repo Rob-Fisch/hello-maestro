@@ -73,6 +73,13 @@ export default function ScheduleScreen() {
     // Month navigation state
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null); // Format: "2026-01" or null for overview
 
+    // Reset to overview when screen comes into focus
+    useFocusEffect(
+        React.useCallback(() => {
+            setSelectedMonth(null);
+        }, [])
+    );
+
 
     const toggleFilter = (filter: ScheduleFilter) => {
         if (activeFilters.includes(filter)) {
