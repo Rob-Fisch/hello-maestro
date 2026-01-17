@@ -86,7 +86,7 @@
 | 3 | **Teaching** | No (Locked) | Yes | Yes | Discover music schools and stores hiring teachers near you. | Find schools/stores. | Pro-only | AI-powered search |
 | 4 | **Tour Stop** | No (Locked) | Yes | Yes | Fill awkward gaps in your tour schedule with smart routing suggestions. | Fill schedule gaps. | Pro-only | AI-powered routing |
 | 5 | **Promotion** | No (Locked) | Yes | Yes | Build a hit-list of local radio stations and press outlets. | Find press/radio. | Pro-only | AI-powered search |
-| 6 | **Pro Shops** | No (Locked) | Yes | Yes | Locate the best luthiers and repair techs in town. | Find repair techs. | Pro-only | AI-powered search |
+| 6 | **Pro Shops** | Yes (2 uses/day) | Yes | Yes | Locate the best luthiers and repair techs in town. | Find repair techs. | Free tier (2/day), Pro unlimited | AI-powered search |
 
 > [!NOTE]
 > **Navigator Strategy**: The "Student" mission is free for all users as a demo to show the power of The Navigator. Once users see the value, they'll upgrade for the professional missions. No API integration for MVP - users copy/paste the generated prompts into ChatGPT/Claude.
