@@ -80,7 +80,7 @@ export default function LandingPage() {
             price: "$0",
             desc: "No credit card needed to get started.",
             features: ["Unlimited Gigs", "50 Songs Max", "Basic Practice Tracking", "Contact Management", "Auto Sync", "Try The Navigator"],
-            cta: "Start Free",
+            cta: "Start Free - No Credit Card",
             primary: false
         },
         {
@@ -144,19 +144,9 @@ export default function LandingPage() {
                         <Text className="text-slate-400 text-lg md:text-xl text-center max-w-2xl leading-relaxed mb-4">
                             Stop using spreadsheets and sticky notes. OpusMode connects your calendar, repertoire, and finances in one beautiful workspace.
                         </Text>
-                        <Text className="text-indigo-300 text-sm md:text-base text-center max-w-xl font-medium mb-2">
-                            ✨ Start free - no credit card required. Upgrade only when you need more.
-                        </Text>
                         <Text className="text-white text-lg md:text-xl text-center font-bold mb-10">
                             Get started now
                         </Text>
-
-                        <TouchableOpacity
-                            onPress={() => router.push('/auth')}
-                            className="bg-indigo-600 px-8 py-4 rounded-full shadow-xl shadow-indigo-600/20 w-full md:w-auto items-center"
-                        >
-                            <Text className="text-white font-bold text-lg">Start Free - No Credit Card</Text>
-                        </TouchableOpacity>
                     </Animated.View>
                 </View>
 
