@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // --- WEB PICKER COMPONENTS ---
@@ -420,6 +420,41 @@ export default function PersonDetailScreen() {
                             </View>
                         )}
                     </View>
+
+                    {/* Address Section */}
+                    {(person.address_line1 || person.city || person.map_link) && (
+                        <View className="mt-4 p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <View className="flex-row items-center mb-3">
+                                <Ionicons name="location-outline" size={16} color={theme.mutedText} />
+                                <Text className="text-sm font-bold ml-2" style={{ color: theme.text }}>Address</Text>
+                            </View>
+
+                            {person.address_line1 && (
+                                <Text className="text-sm font-medium mb-1" style={{ color: theme.text }}>{person.address_line1}</Text>
+                            )}
+                            {person.address_line2 && (
+                                <Text className="text-sm font-medium mb-1" style={{ color: theme.text }}>{person.address_line2}</Text>
+                            )}
+                            {(person.city || person.state_province || person.postal_code) && (
+                                <Text className="text-sm font-medium mb-1" style={{ color: theme.text }}>
+                                    {[person.city, person.state_province, person.postal_code].filter(Boolean).join(', ')}
+                                </Text>
+                            )}
+                            {person.country && (
+                                <Text className="text-sm font-medium" style={{ color: theme.text }}>{person.country}</Text>
+                            )}
+
+                            {person.map_link && (
+                                <TouchableOpacity
+                                    onPress={() => Linking.openURL(person.map_link!)}
+                                    className="mt-3 bg-blue-600 py-2 px-4 rounded-lg flex-row items-center justify-center"
+                                >
+                                    <Ionicons name="map-outline" size={16} color="white" />
+                                    <Text className="text-white font-bold ml-2 text-sm">View on Map</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    )}
 
                     <TouchableOpacity
                         onPress={() => router.push(`/modal/person-editor?id=${person.id}`)}
