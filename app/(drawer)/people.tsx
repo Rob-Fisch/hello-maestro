@@ -54,8 +54,15 @@ export default function PeopleScreen() {
                 const matchFilter = activeFilter === 'all' || p.type === activeFilter;
                 const fName = (p.firstName || '').toLowerCase();
                 const lName = (p.lastName || '').toLowerCase();
+                const instruments = (p.instruments || []).join(' ').toLowerCase();
+                const city = (p.city || '').toLowerCase();
                 const s = searchQuery.toLowerCase();
-                return matchFilter && (fName.includes(s) || lName.includes(s));
+                return matchFilter && (
+                    fName.includes(s) ||
+                    lName.includes(s) ||
+                    instruments.includes(s) ||
+                    city.includes(s)
+                );
             });
         } catch (e) {
             return [];
