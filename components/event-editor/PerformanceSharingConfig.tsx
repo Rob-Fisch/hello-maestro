@@ -2,35 +2,65 @@
 import { AppEvent } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { Alert, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface PerformanceSharingConfigProps {
     values: Partial<AppEvent>;
     onChange: (field: keyof AppEvent, value: any) => void;
+    eventId?: string;
 }
 
-export default function PerformanceSharingConfig({ values, onChange }: PerformanceSharingConfigProps) {
+export default function PerformanceSharingConfig({ values, onChange, eventId }: PerformanceSharingConfigProps) {
     const isPromoEnabled = values.isPublicPromo || false;
     const isPerformerPageEnabled = values.isPerformerPageEnabled || false;
 
+    const copyToClipboard = async (text: string) => {
+        if (Platform.OS === 'web') {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return true;
+            }
+        } else {
+            await Clipboard.setStringAsync(text);
+            return true;
+        }
+    };
+
+    const showMessage = (title: string, message: string) => {
+        if (Platform.OS === 'web') {
+            alert(`${title}\n\n${message}`);
+        } else {
+            Alert.alert(title, message);
+        }
+    };
+
     const handleCopyPromoLink = async () => {
-        if (!values.id) {
-            Alert.alert('Save Event First', 'Please save this event before sharing the link.');
+        if (!eventId) {
+            showMessage('Save Event First', 'Please save this event before sharing the link.');
             return;
         }
-        const url = `https://opusmode.net/promo/${values.id}`;
-        await Clipboard.setStringAsync(url);
-        Alert.alert('Link Copied!', 'Share this link with your fans to promote your performance.');
+        const url = `https://opusmode.net/promo/${eventId}`;
+        await copyToClipboard(url);
+        showMessage('Link Copied!', 'Share this link with your fans to promote your performance.');
     };
 
     const handleCopyPerformerLink = async () => {
-        if (!values.id) {
-            Alert.alert('Save Event First', 'Please save this event before sharing the link.');
+        if (!eventId) {
+            showMessage('Save Event First', 'Please save this event before sharing the link.');
             return;
         }
-        const url = `https://opusmode.net/performer/${values.id}`;
-        await Clipboard.setStringAsync(url);
-        Alert.alert(
+        const url = `https://opusmode.net/performer/${eventId}`;
+        await copyToClipboard(url);
+        showMessage(
             'Performer Link Copied!',
             '💡 Reminder: Your performers will need to sign up for a free OpusMode account to access this page. It only takes 30 seconds!'
         );

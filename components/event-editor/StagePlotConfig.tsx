@@ -19,7 +19,7 @@ export default function StagePlotConfig({ values, onChange }: StagePlotConfigPro
                     <View className="flex-1 mr-4">
                         <Text className="text-lg font-black text-slate-800">Public Event Page</Text>
                         <Text className="text-slate-500 text-sm mt-1">
-                            Create a shareable web page for this event (Stage Plot, Setlist, and Details).
+                            Create a shareable web page for this event (Performance Promotion, Setlist, and Details).
                         </Text>
                     </View>
                     <Switch

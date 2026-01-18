@@ -264,11 +264,11 @@ export default function HomeScreen() {
                                         <Text className="text-white font-black text-base">New to OpusMode?</Text>
                                     </View>
                                     <View className="flex-row items-center flex-wrap mb-2">
-                                        <Text className="text-blue-100 text-sm leading-relaxed mr-2">Tap the</Text>
+                                        <Text className="text-blue-100 text-sm leading-relaxed mr-2">Tap the menu above</Text>
                                         <View className="bg-blue-500 rounded-lg p-2 mr-2">
                                             <Ionicons name="menu" size={20} color="#fff" />
                                         </View>
-                                        <Ionicons name="arrow-back" size={18} color="#fbbf24" style={{ marginRight: 6 }} />
+                                        <Ionicons name="arrow-back" size={18} color="#fde047" style={{ marginRight: 6 }} />
                                     </View>
                                     <Text className="text-blue-100 text-sm leading-relaxed">
                                         to explore{' '}

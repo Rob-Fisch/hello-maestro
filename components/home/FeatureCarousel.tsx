@@ -63,7 +63,7 @@ const SLIDES = [
     {
         id: 'stageplot',
         title: 'Visualize Your Setup',
-        narrative: 'Design professional stage plots in seconds. Ensure every venue knows exactly what you need.',
+        narrative: 'Design professional performance promotions in seconds. Ensure every venue knows exactly what you need.',
         ctaFree: 'Create Plot',
         ctaPro: 'Create Plot',
         route: '/gigs',

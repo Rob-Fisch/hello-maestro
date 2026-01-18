@@ -162,6 +162,8 @@ export default function RootLayout() {
     const inFanGroup = segments[0] === 'fan';
     const inRoutineGroup = segments[0] === 'routine';
     const inLiveGroup = segments[0] === 'live'; // Allow public access to /live
+    const inPrivacyPage = segments[0] === 'privacy'; // Allow public access to /privacy
+    const inTermsPage = segments[0] === 'terms'; // Allow public access to /terms
     const inOnboarding = segments[0] === 'modal' && segments[1] === 'onboarding-password';
 
     // If we are processing an invite (caught in ref), DO NOT redirect to /auth yet.
@@ -170,7 +172,8 @@ export default function RootLayout() {
       return;
     }
 
-    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup && !inOnboarding && segments[0] !== undefined) {
+    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup && !inPrivacyPage && !inTermsPage && !inOnboarding && segments[0] !== undefined) {
+      console.log(`[log][...RootLayout] Redirecting to auth: /${segments.join('/')}`);
       router.replace('/auth');
     } else if (profile && inAuthGroup) {
       router.replace('/');
@@ -216,6 +219,9 @@ export default function RootLayout() {
       <VersionChecker />
       <ThemeProvider value={DefaultTheme}>
         <Stack screenOptions={{ animation: 'slide_from_right' }}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="privacy" options={{ headerShown: false }} />
+          <Stack.Screen name="terms" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
           <Stack.Screen

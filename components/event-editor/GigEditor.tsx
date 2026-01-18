@@ -16,12 +16,13 @@ interface GigEditorProps {
     eventId?: string;
     onChange: <K extends keyof EventFormValues>(field: K, value: EventFormValues[K]) => void;
     isSaving: boolean;
+    initialTab?: 'logistics' | 'roster' | 'finance' | 'sharing' | 'setlist';
 }
 
-export default function GigEditor({ values, eventId, onChange, isSaving }: GigEditorProps) {
+export default function GigEditor({ values, eventId, onChange, isSaving, initialTab }: GigEditorProps) {
     const { setLists, addSetList, updateSetList } = useContentStore();
     const linkedSetList = eventId ? setLists.find(sl => sl.eventId === eventId) : undefined;
-    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'sharing' | 'setlist'>('logistics');
+    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'sharing' | 'setlist'>(initialTab || 'logistics');
 
     // Import Setlist Logic
     const [showImportModal, setShowImportModal] = useState(false);
@@ -40,8 +41,9 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
             items: masterList.items.map(item => ({ ...item, id: Platform.OS === 'web' ? crypto.randomUUID() : require('react-native-uuid').v4() })), // New IDs for items
             createdAt: new Date().toISOString()
         };
-        handleSaveSetList(newSetList);
+        // Close modal FIRST, then save (so alert appears after modal is gone)
         setShowImportModal(false);
+        handleSaveSetList(newSetList);
     };
 
     const handleSaveSetList = (setList: SetList) => {
@@ -347,7 +349,7 @@ export default function GigEditor({ values, eventId, onChange, isSaving }: GigEd
 
                 {/* SHARING TAB (Performance Promo + Performer Page) */}
                 {activeTab === 'sharing' && (
-                    <PerformanceSharingConfig values={values as any} onChange={onChange as any} />
+                    <PerformanceSharingConfig values={values as any} onChange={onChange as any} eventId={eventId} />
                 )}
 
             </ScrollView>

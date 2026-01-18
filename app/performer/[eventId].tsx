@@ -33,6 +33,22 @@ type PerformerEventData = {
     }[];
 };
 
+type SetListData = {
+    id: string;
+    title: string;
+    items: {
+        id: string;
+        type: 'song' | 'break';
+        songId?: string;
+        label?: string;
+        note?: string;
+        songTitle?: string; // Resolved from songs table
+        songArtist?: string;
+        songKey?: string;
+        songLinks?: { label: string; url: string }[]; // Song links
+    }[];
+};
+
 export default function PerformerPage() {
     const { eventId } = useLocalSearchParams();
     const router = useRouter();
@@ -40,6 +56,7 @@ export default function PerformerPage() {
 
     const [loading, setLoading] = useState(true);
     const [event, setEvent] = useState<PerformerEventData | null>(null);
+    const [setList, setSetList] = useState<SetListData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -89,6 +106,51 @@ export default function PerformerPage() {
                     .select('title, blocks')
                     .in('id', eventData.routines);
                 routineDetails = routines || [];
+            }
+
+            // Fetch Set List linked to this event
+            const { data: setListData } = await supabase
+                .from('set_lists')
+                .select('id, title, items')
+                .eq('event_id', eventId)
+                .is('deleted_at', null)
+                .single();
+
+            if (setListData && setListData.items) {
+                // Resolve song titles from the songs table
+                const songIds = setListData.items
+                    .filter((item: any) => item.type === 'song' && item.songId)
+                    .map((item: any) => item.songId);
+
+                let songsMap: Record<string, { title: string; artist?: string; key?: string; links?: { label: string; url: string }[] }> = {};
+                if (songIds.length > 0) {
+                    const { data: songs } = await supabase
+                        .from('songs')
+                        .select('id, title, artist, key, links')
+                        .in('id', songIds);
+
+                    if (songs) {
+                        songsMap = songs.reduce((acc: any, song: any) => {
+                            acc[song.id] = { title: song.title, artist: song.artist, key: song.key, links: song.links };
+                            return acc;
+                        }, {});
+                    }
+                }
+
+                // Enrich set list items with song details
+                const enrichedItems = setListData.items.map((item: any) => ({
+                    ...item,
+                    songTitle: item.songId ? songsMap[item.songId]?.title : undefined,
+                    songArtist: item.songId ? songsMap[item.songId]?.artist : undefined,
+                    songKey: item.songId ? songsMap[item.songId]?.key : undefined,
+                    songLinks: item.songId ? songsMap[item.songId]?.links : undefined,
+                }));
+
+                setSetList({
+                    id: setListData.id,
+                    title: setListData.title,
+                    items: enrichedItems,
+                });
             }
 
             setEvent({
@@ -310,7 +372,76 @@ export default function PerformerPage() {
                         </View>
                     )}
 
-                    {/* SETLIST SECTION */}
+                    {/* SET LIST SECTION (from set_lists table) */}
+                    {setList && setList.items && setList.items.length > 0 && (
+                        <View className="bg-slate-800 rounded-3xl p-6 mb-6 border border-slate-700">
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons name="list" size={24} color="#4f46e5" style={{ marginRight: 12 }} />
+                                <View>
+                                    <Text className="text-white font-black text-xl">Set List</Text>
+                                    {setList.title && (
+                                        <Text className="text-slate-400 text-sm">{setList.title}</Text>
+                                    )}
+                                </View>
+                            </View>
+
+                            <View className="space-y-2">
+                                {setList.items.map((item, index) => (
+                                    <View key={item.id || index} className={`flex-row items-center py-3 ${index !== setList.items.length - 1 ? 'border-b border-slate-700' : ''}`}>
+                                        <Text className="text-slate-500 font-mono text-sm w-8">{index + 1}.</Text>
+                                        {item.type === 'song' ? (
+                                            <View className="flex-1 flex-row items-center justify-between">
+                                                <View className="flex-1">
+                                                    <Text className="text-white font-bold text-base">
+                                                        {item.songTitle || 'Unknown Song'}
+                                                    </Text>
+                                                    {(item.songArtist || item.songKey) && (
+                                                        <Text className="text-slate-400 text-sm">
+                                                            {item.songArtist}{item.songKey && ` • Key of ${item.songKey}`}
+                                                        </Text>
+                                                    )}
+                                                    {item.note && (
+                                                        <Text className="text-indigo-400 text-xs mt-1 italic">
+                                                            📝 {item.note}
+                                                        </Text>
+                                                    )}
+                                                    {/* Song Links */}
+                                                    {item.songLinks && item.songLinks.length > 0 && (
+                                                        <View className="flex-row flex-wrap gap-2 mt-2">
+                                                            {item.songLinks.map((link, linkIdx) => (
+                                                                <TouchableOpacity
+                                                                    key={linkIdx}
+                                                                    onPress={() => Linking.openURL(link.url)}
+                                                                    className="flex-row items-center bg-indigo-600/20 border border-indigo-500/30 px-2 py-1 rounded-lg"
+                                                                >
+                                                                    <Ionicons
+                                                                        name={link.url.includes('youtube') ? 'logo-youtube' : link.url.includes('spotify') ? 'musical-notes' : 'link'}
+                                                                        size={12}
+                                                                        color="#818cf8"
+                                                                    />
+                                                                    <Text className="text-indigo-400 font-bold ml-1 text-xs">{link.label}</Text>
+                                                                </TouchableOpacity>
+                                                            ))}
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            </View>
+                                        ) : (
+                                            <View className="flex-1 flex-row items-center">
+                                                <View className="bg-amber-500/20 px-3 py-1 rounded-full">
+                                                    <Text className="text-amber-400 font-bold text-sm">
+                                                        ☕ {item.label || 'Break'}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    )}
+
+                    {/* ROUTINES SECTION (legacy) */}
                     {event.routines && event.routines.length > 0 && (
                         <View className="mb-6">
                             <View className="flex-row items-center mb-4">

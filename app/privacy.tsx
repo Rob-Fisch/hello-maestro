@@ -1,12 +1,10 @@
-import { useTheme } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function PrivacyModal() {
+export default function PrivacyPage() {
     const router = useRouter();
-    const theme = useTheme();
     const insets = useSafeAreaInsets();
 
     const Section = ({ title, children }: { title: string, children: React.ReactNode }) => (
@@ -32,7 +30,7 @@ export default function PrivacyModal() {
                     onPress={() => router.back()}
                     className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
                 >
-                    <Ionicons name="close" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
                 <Text className="text-white font-bold text-lg">Privacy Policy</Text>
                 <View className="w-10" />

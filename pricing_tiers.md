@@ -36,6 +36,7 @@
 | 9 | **Custom Branding** | - | - | Yes (Pro+) | **(Post-MVP)** Remove "Powered by OpusMode" from your Performance Promo pages. Add your own logo and colors. | **POST MVP** - White-label option for Pro+ users | Pro+ only. Premium feature for established artists who want full brand control | Custom CSS/theming system for promo pages |
 | 10 | **Performer Page Notifications** | - | Yes (Pro) | Yes (Pro) | **(Post-MVP)** Auto-notify ensemble members via SMS/email when logistics change (load-in time, venue address, etc.). | **POST MVP** - Automated notifications when event details are updated | Pro-only enhancement. Keeps band members in sync without manual communication | Integration with Twilio/SendGrid, notification preferences |
 | 11 | **Blog/Social Media Content Generator** | - | - | - | **(Future)** AI-powered blog and social post generator. Answer a few questions about your gig and get compelling content with a hook beyond just "time, place, band." | **POST MVP** | Help musicians promote gigs with engaging stories | Future Navigator/Promotion feature |
+| 12 | **Booking Manager Tier (Multi-Act Concurrent Booking)** | - | - | - | **(Post-MVP)** New tier for booking agents/managers who need to book multiple acts with overlapping time slots. Would require separate tier above Pro+ to allow concurrent gig bookings across multiple bands/acts. | **POST MVP** - Strategic tier for agencies/managers. Removes overlap prevention. May require multi-account architecture or workspace concept. | Addresses use case where one person manages multiple acts. Current Terms of Service 4.3 enforces one account per user, which naturally prevents this. Future tier would need to solve: authentication (one email = one account), data isolation per act, and pricing model. | Technical challenge: one email = one account in auth systems. May need workspace/organization model instead of multiple accounts. |
 
 ### 3. Song Library & Set Lists
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
@@ -113,7 +114,32 @@
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Support** | Community | Email | Priority | | | | |
-| 2 | **Branding (Report Logo)** | No | Yes | Yes | Add your logo to every stage plot, quote, and invoice. | | | `profiles.avatar_url` |
+| 2 | **Branding (Report Logo)** | No | Yes | Yes | Add your logo to every performance promotion, quote, and invoice. | | | `profiles.avatar_url` |
+
+---
+
+## MVP Launch Strategy
+
+> [!IMPORTANT]
+> **MVP = PWA (Web) Only** - Native iOS/Android apps are post-MVP
+> 
+> The initial launch targets Progressive Web App (PWA) users accessing OpusMode via browser on any device. This means:
+> - **SMS features** work via copy-to-clipboard (no direct SMS API on web)
+> - **Push notifications** are limited (web push only, if implemented)
+> - **"Two Islands" sync** doesn't apply yet (all PWA users are on `platform: 'web'`)
+> - **App Store submission** is a separate post-MVP milestone
+
+### PWA Advantages for MVP
+- Single codebase, instant deployment
+- No App Store review delays
+- Users can install to home screen
+- Works on iOS, Android, and desktop
+
+### Post-MVP Native App Plans
+- **iOS App Store**: Submit after MVP validation
+- **Android Play Store**: Likely concurrent with iOS
+- **"Two Islands" sync**: Activates when native apps launch
+- **Native SMS**: Will use `expo-sms` for direct messaging
 
 ---
 

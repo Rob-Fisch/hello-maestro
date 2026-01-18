@@ -20,6 +20,7 @@ export default function EventEditorShell() {
     // If ID is undefined, we are in CREATE mode.
     const activeId = params.id as string | undefined;
     const initialType = (params.type as AppEventType) || 'performance';
+    const initialTab = params.tab as 'logistics' | 'roster' | 'finance' | 'sharing' | 'setlist' | undefined;
 
     const { events } = useContentStore();
     const existingEvent = activeId ? events?.find(e => e.id === activeId) : undefined;
@@ -138,6 +139,7 @@ export default function EventEditorShell() {
                     eventId={activeId}
                     onChange={handleChange}
                     isSaving={isSaving}
+                    initialTab={initialTab}
                 />
             ) : (
                 <StandardEditor

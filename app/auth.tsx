@@ -410,6 +410,16 @@ export default function AuthScreen() {
 
                 {/* Footer Credits */}
                 <View className="pb-10 items-center">
+                    {/* Legal Links */}
+                    <View className="flex-row items-center mb-4 gap-4">
+                        <TouchableOpacity onPress={() => router.push('/privacy')}>
+                            <Text className="text-white/40 text-xs font-bold uppercase tracking-wider">Privacy</Text>
+                        </TouchableOpacity>
+                        <Text className="text-white/20">•</Text>
+                        <TouchableOpacity onPress={() => router.push('/terms')}>
+                            <Text className="text-white/40 text-xs font-bold uppercase tracking-wider">Terms</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     <Text className="text-white/20 text-xs font-bold uppercase tracking-[4px]">Puddle-Proof Technology</Text>
                     <Text className="text-white/20 text-[10px] mt-2">v{BuildInfo.version} (b{BuildInfo.buildNumber})</Text>

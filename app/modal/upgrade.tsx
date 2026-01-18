@@ -292,7 +292,7 @@ export default function UpgradeModal() {
                                         </View>
                                     )}
                                     {item.id === 'glory' && [
-                                        "Finance & Contracts", "Stage Plots & Setlists", "CRM & Roster"
+                                        "Finance & Contracts", "Performance Promotions & Setlists", "CRM & Roster"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}

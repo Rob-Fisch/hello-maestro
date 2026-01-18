@@ -260,6 +260,39 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
                                             <>
                                                 <Text className="font-bold text-slate-800 text-base">{song?.title || 'Unknown Song'}</Text>
                                                 <Text className="text-slate-500 text-xs">{song?.artist} {song?.key ? `• Key: ${song.key}` : ''}</Text>
+                                                {/* Song Links (YouTube, Spotify, etc.) */}
+                                                {song?.links && song.links.length > 0 && (
+                                                    <View className="flex-row gap-2 mt-1">
+                                                        {song.links.map((link, linkIndex) => (
+                                                            <TouchableOpacity
+                                                                key={linkIndex}
+                                                                onPress={() => {
+                                                                    if (Platform.OS === 'web') {
+                                                                        window.open(link.url, '_blank');
+                                                                    } else {
+                                                                        Linking.openURL(link.url);
+                                                                    }
+                                                                }}
+                                                                className="flex-row items-center bg-slate-100 px-2 py-1 rounded-full"
+                                                            >
+                                                                <Ionicons
+                                                                    name={
+                                                                        link.url.includes('youtube') ? 'logo-youtube' :
+                                                                            link.url.includes('spotify') ? 'logo-soundcloud' :
+                                                                                'link'
+                                                                    }
+                                                                    size={12}
+                                                                    color={
+                                                                        link.url.includes('youtube') ? '#FF0000' :
+                                                                            link.url.includes('spotify') ? '#1DB954' :
+                                                                                '#4f46e5'
+                                                                    }
+                                                                />
+                                                                <Text className="text-slate-600 text-[10px] ml-1 font-bold">{link.label || 'Link'}</Text>
+                                                            </TouchableOpacity>
+                                                        ))}
+                                                    </View>
+                                                )}
                                             </>
                                         )}
                                     </View>

@@ -232,8 +232,8 @@ export default function LandingPage() {
                         &copy; {new Date().getFullYear()} OpusMode. All rights reserved.
                     </Text>
                     <View className="flex-row justify-center gap-6">
-                        <Link href="/modal/privacy" asChild><Text className="text-slate-600 font-bold text-xs uppercase hover:text-slate-400">Privacy</Text></Link>
-                        <Link href="/modal/terms" asChild><Text className="text-slate-600 font-bold text-xs uppercase hover:text-slate-400">Terms</Text></Link>
+                        <Link href="/privacy" asChild><Text className="text-slate-600 font-bold text-xs uppercase hover:text-slate-400">Privacy</Text></Link>
+                        <Link href="/terms" asChild><Text className="text-slate-600 font-bold text-xs uppercase hover:text-slate-400">Terms</Text></Link>
                         <Link href="mailto:support@opusmode.net" asChild><Text className="text-slate-600 font-bold text-xs uppercase hover:text-slate-400">Contact</Text></Link>
                     </View>
                 </View>

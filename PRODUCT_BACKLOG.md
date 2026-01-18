@@ -28,3 +28,25 @@
 - [ ] **Reimagine Gear Vault**: Pivot from simple inventory to financial asset tracking.
     - **Features**: Track purchase dates, prices, depreciation, and insurance documentation.
     - **Goal**: Help professional musicians at tax time and with insurance claims.
+
+### Band Website Builder (Pro++ Tier)
+- [ ] **Auto-Generated Musician Websites**: Template-based website generator using existing OpusMode data.
+    - **Tier**: Pro++ (Premium tier, potential new tier above Pro+)
+    - **Value Proposition**: "Manage your music career AND get a professional website, all from one platform"
+    - **Core Pages**:
+        - Home (Hero image, bio snippet, CTA)
+        - About (Band bio, member profiles from Contacts)
+        - Upcoming Shows (Auto-populated from Events/Gigs)
+        - Listen (Setlists, streaming links)
+        - Merchandise (Optional, future integration)
+    - **Technical Approach**:
+        - 2-3 starter templates (Classic, Modern, Minimalist)
+        - Auto-populate from existing OpusMode data (Events, Setlists, Contacts, Profile)
+        - Static site generation (leverage existing Expo/React Native Web)
+        - Hosting: Subdomains (`bandname.opusmode.com`) or custom domains (Pro++ feature)
+    - **Monetization**:
+        - Pro+: Basic template + subdomain hosting
+        - Pro++: Advanced templates + custom domain support + priority support
+    - **Competitive Edge**: Combines management tools + web presence (vs. Bandzoogle, Wix for Musicians)
+    - **Data Sync**: Website auto-updates when user updates Events, Setlists, or Profile in OpusMode
+    - **Future Enhancements**: Custom CSS, merchandise integration, mailing list integration
