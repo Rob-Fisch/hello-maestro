@@ -39,8 +39,11 @@ export default function LandingPage() {
         { type: 'logo' as const },
         { type: 'message' as const, icon: 'musical-notes', iconColor: '#f472b6', text: "\"I forgot the setlist at home\" — Never again. Your entire repertoire lives on your phone." },
         { type: 'message' as const, icon: 'people', iconColor: '#818cf8', text: "\"My band doesn't know what we're playing\" — Share logistics instantly with your Performer Page." },
-        { type: 'message' as const, icon: 'cash', iconColor: '#34d399', text: "\"Did I ever get paid for that wedding?\" — Track every dollar with per-gig finance tracking." },
-        { type: 'message' as const, icon: 'calendar', iconColor: '#f59e0b', text: "\"Where's that gig contract again?\" — All your event details in one Event Dashboard." }
+        { type: 'message' as const, icon: 'compass', iconColor: '#f59e0b', text: "\"How do I find more gigs in my area?\" — The Navigator AI helps you discover opportunities." },
+        { type: 'message' as const, icon: 'person', iconColor: '#34d399', text: "\"Who played bass on that festival last year?\" — Your contact roster remembers everyone." },
+        { type: 'message' as const, icon: 'layers', iconColor: '#06b6d4', text: "\"I never practice what I meant to practice\" — Build routines in The Studio and track your progress." },
+        { type: 'message' as const, icon: 'school', iconColor: '#a78bfa', text: "\"Where do I even start looking for teaching gigs?\" — Navigator generates targeted AI prompts for you." },
+        { type: 'message' as const, icon: 'calendar', iconColor: '#ec4899', text: "\"What songs did we play at that wedding venue?\" — Every gig's setlist is saved and searchable." }
     ];
 
     const [currentContentIndex, setCurrentContentIndex] = useState(0);
@@ -140,7 +143,7 @@ export default function LandingPage() {
                             The Operating System for <Text className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Working Musicians</Text>
                         </Text>
                         <Text className="text-slate-400 text-lg md:text-xl text-center max-w-2xl leading-relaxed mb-4">
-                            Finally, gig details that don't live in texts. OpusMode keeps your setlists, schedules, and finances in one place.
+                            Finally, gig details that don't live in texts. OpusMode keeps your setlists, schedules, and contacts in one place.
                         </Text>
                         <TouchableOpacity
                             onPress={() => router.push('/auth')}

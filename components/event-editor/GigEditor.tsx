@@ -326,6 +326,7 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
                             onChange={(newSlots: BookingSlot[]) => onChange('slots', newSlots)}
                             onFormChange={onChange}
                             event={values as any}
+                            eventId={eventId}
                         />
                         <TabNavigation currentTab="roster" />
                     </View>
