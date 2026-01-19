@@ -1,0 +1,117 @@
+---
+description: OpusMode workspace-specific rules and context
+
+---
+
+# OpusMode Project Rules
+
+## Monetization Philosophy
+
+Free practice features (Studio, Practice Tracking) build user base. We monetize when musicians start earning money — gigs, venues, finance. Target market: Weekend Warriors + working musicians earning from performances.
+
+## Document Placement Guidance
+
+When asked to add information to a document, evaluate if it belongs in:
+
+- **Workspace rules** (`.agent/rules.md`) — Behavioral guidance, high-level principles
+- **`pricing_tiers.md`** — Feature specs, tier limits, Post-MVP ideas
+- **`backlog.md`** — Near-term actionable work with estimates
+
+Suggest the best location with reasoning before adding.
+
+## Deployment Method
+
+**IMPORTANT**: This project uses the **Netlify CLI** for deployments, NOT manual drag-and-drop or Git-based auto-deployment.
+
+### Standard Deployment Process
+
+1. **Bump version** (see `/bump_version` workflow):
+
+   ```bash
+   npm run bump-build
+   ```
+
+2. **Commit changes**:
+
+   ```bash
+   git add -A && git commit -m "v1.x.x bXX: Description of changes"
+   ```
+
+3. **Push to GitHub FIRST** (source of truth):
+
+   ```bash
+   git push origin develop
+   ```
+
+4. **Deploy to Netlify**:
+
+   ```bash
+   npx netlify deploy --prod --dir=dist
+   ```
+
+   - The `--prod` flag deploys to production (live site)
+   - The `--dir=dist` flag specifies the build output directory
+   - You must be authenticated with Netlify CLI (one-time setup: `npx netlify login`)
+
+> **Why GitHub first?** Git is the source of truth. Every production deployment should have a corresponding commit already backed up. If deployment fails, you can trace and rollback.
+
+### When to Deploy
+
+- After bumping version/build number (see `/bump_version` workflow)
+- After completing and testing significant feature changes
+- When deploying bug fixes to production
+
+### Notes
+
+- The Netlify CLI method provides immediate control over deployments
+- Always verify the build locally before deploying
+- The `dist` folder is gitignored and generated fresh for each deployment
+
+---
+
+## Feature Tiers & Monetization
+
+**IMPORTANT**: Refer to [`pricing_tiers.md`](file:///home/rob/OpusMode/pricing_tiers.md) for comprehensive information about:
+
+- Free vs Pro tier feature differentiation
+- Feature scope and availability
+- Monetization strategy
+- Target market and positioning
+- MVP vs Post-MVP features
+
+When implementing new features or modifying existing ones, always consult this document to ensure proper tier placement and feature gating.
+
+---
+
+## Documentation Updates (Site Map & Help Pages)
+
+Not every change requires updating the Site Map or Help pages. Use these guidelines:
+
+### When to UPDATE documentation:
+
+- **New user-facing features** (e.g., new screens, major functionality)
+- **Changes to existing workflows** that affect how users accomplish tasks
+- **New navigation paths** or menu items
+- **Feature removals** or deprecations
+- **Changes to Free vs Pro tier access** for existing features
+- **New integrations** or external service connections
+
+**Also update [`pricing_tiers.md`](file:///home/rob/OpusMode/pricing_tiers.md)** when:
+
+- Adding new features (document tier availability and limitations)
+- Changing feature tier placement (Free ↔ Pro)
+- Modifying feature scope or limitations
+- Moving features between MVP and Post-MVP status
+
+### When documentation updates are NOT needed:
+
+- Bug fixes that restore intended behavior
+- UI polish or styling improvements
+- Performance optimizations
+- Internal refactoring
+- Minor text/copy changes
+- Backend improvements invisible to users
+
+### When uncertain:
+
+**Always ask**: "Should we add this to the help and/or site map?" for changes that fall in a gray area. It's better to confirm than to leave documentation stale or over-document minor changes.

@@ -230,3 +230,23 @@ platform TEXT DEFAULT 'web' CHECK (platform IN ('web', 'native'))
 - **Tablet apps**: Treated as native platform
 - **Desktop apps**: If we build Electron app, treated as native
 - **Data portability**: All data is backed up regardless of tier (Puddle Proof)
+
+---
+
+## Post-MVP Backlog
+
+> Features intentionally deferred to streamline MVP. Revisit after launch.
+
+### Venue Management
+- [ ] **Pro Log History Export (CSV)**: Export interaction history with venues to CSV. *(Pro tier)*
+    - Useful for managers who need external reporting or analysis.
+
+### Finance & Business
+- [ ] **Gig Log (Finance Lite)**: Per-gig income tracker with payment status field.
+    - Fields: `Guaranteed Pay`, `Tips`, `Status` (Unpaid, Paid, Deposit Received)
+    - *Note: Core finance module was removed to simplify gig workflow. May add back.*
+
+### Gear & Assets
+- [ ] **Gear Vault Reimagined**: Pivot from inventory to financial asset tracking.
+    - Track purchase dates, prices, depreciation, insurance documentation.
+    - Goal: Help musicians at tax time and with insurance claims.
