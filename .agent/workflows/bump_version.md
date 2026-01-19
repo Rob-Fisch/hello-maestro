@@ -31,3 +31,9 @@ This workflow ensures that the application version and build number are updated 
     git add package.json app.json public/CurrentVersion.txt constants/Version.ts
     git commit -m "Bump version to <VERSION> (Build <BUILD_NUMBER>)"
     ```
+
+6.  **IMPORTANT: Deployment Approval Required**:
+    Before running `npx netlify-cli deploy --prod --dir=dist`, you MUST:
+    - Inform the user that the build is ready to deploy
+    - Wait for the user to say "proceed" or give explicit approval
+    - Do NOT auto-deploy without user confirmation
