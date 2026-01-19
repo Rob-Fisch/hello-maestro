@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { useFinanceStore } from '@/store/financeStore';
@@ -17,30 +18,27 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
     { name: 'index', icon: 'home-outline', label: 'Home', path: '/' },
-    { name: 'studio', icon: 'easel-outline', label: 'Studio', path: '/studio' },
-    { name: 'people', icon: 'people-outline', label: 'Contacts', path: '/people' },
-    { name: 'content', icon: 'library-outline', label: 'Level 1', path: '/content', hidden: true },
-    { name: 'routines', icon: 'layers-outline', label: 'Level 2', path: '/routines', hidden: true },
+    { name: 'stage', icon: 'mic-outline', label: 'The Stage', path: '/stage' },
+    { name: 'studio', icon: 'easel-outline', label: 'The Studio', path: '/studio' },
     { name: 'events', icon: 'calendar-outline', label: 'Schedule', path: '/events' },
     { name: 'coach', icon: 'compass-outline', label: 'The Navigator', path: '/coach' },
-    // { name: 'gear-vault', icon: 'briefcase-outline', label: 'Vault', path: '/gear-vault' },
-    // { name: 'gigs', icon: 'musical-notes-outline', label: 'Performance', path: '/gigs' },
+    { name: 'people', icon: 'people-outline', label: 'Contacts', path: '/people' },
     { name: 'setlists', icon: 'list-outline', label: 'Set Lists', path: '/setlists' },
     { name: 'songs', icon: 'mic-outline', label: 'Song Library', path: '/songs' },
     { name: 'finance', icon: 'wallet-outline', label: 'Finance', path: '/finance' },
-    { name: 'history', icon: 'bar-chart-outline', label: 'Analytics', path: '/history', hidden: true },
-    // Compass removed for V3 Consolidation
-
     { name: 'settings', icon: 'settings-outline', label: 'Settings', path: '/settings' },
 
-    // Hidden Routes (Explicitly defined to hide from Drawer)
+    // Hidden Routes
+    { name: 'home-legacy', icon: 'home', label: 'Home (Legacy)', path: '/home-legacy', hidden: true },
+    { name: 'content', icon: 'library-outline', label: 'Level 1', path: '/content', hidden: true },
+    { name: 'routines', icon: 'layers-outline', label: 'Level 2', path: '/routines', hidden: true },
+    { name: 'history', icon: 'bar-chart-outline', label: 'Analytics', path: '/history', hidden: true },
     { name: 'gigs', icon: 'musical-notes', label: 'Gigs', path: '/gigs', hidden: true },
     { name: 'gear-vault', icon: 'briefcase', label: 'Vault', path: '/gear-vault', hidden: true },
-
     { name: 'engagements', icon: 'musical-notes', label: 'Engagements', path: '/engagements', hidden: true },
-    { name: 'people/[id]', icon: 'person', label: 'Person', path: '/people/1', hidden: true }, // Dynamic route
-    { name: 'routines/[id]', icon: 'list', label: 'Routine', path: '/routines/1', hidden: true }, // Dynamic route
-    { name: 'routines/index', icon: 'list', label: 'Routines', path: '/routines', hidden: true }, // Explicit index
+    { name: 'people/[id]', icon: 'person', label: 'Person', path: '/people/1', hidden: true },
+    { name: 'routines/[id]', icon: 'list', label: 'Routine', path: '/routines/1', hidden: true },
+    { name: 'routines/index', icon: 'list', label: 'Routines', path: '/routines', hidden: true },
 ];
 
 function CustomDrawerContent(props: any) {
@@ -50,6 +48,9 @@ function CustomDrawerContent(props: any) {
     const handleLogout = async () => {
         const logoutLogic = async () => {
             try {
+                // Sign out of Supabase first
+                await supabase.auth.signOut();
+
                 // Wipe stores
                 const { wipeLocalData } = useContentStore.getState();
                 const { wipeData: wipeFinanceData } = useFinanceStore.getState();
@@ -64,8 +65,9 @@ function CustomDrawerContent(props: any) {
             }
         };
 
+        // On web, just sign out directly (confirm gets dismissed by drawer re-render)
         if (Platform.OS === 'web') {
-            if (confirm("Sign out?")) logoutLogic();
+            logoutLogic();
         } else {
             Alert.alert('Sign Out', 'Are you sure?', [
                 { text: 'Cancel', style: 'cancel' },

@@ -5,6 +5,7 @@ import { AppEventType, BookingSlot, SetList } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import uuid from 'react-native-uuid';
 import SetListBuilder from '../setlist/SetListBuilder';
 import FinanceModule from './FinanceModule';
 import { WebDatePicker, WebTimePicker } from './FormComponents';
@@ -34,11 +35,11 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
     const handleImport = (masterList: SetList) => {
         // Create a copy (Fork)
         const newSetList: SetList = {
-            id: Platform.OS === 'web' ? crypto.randomUUID() : require('react-native-uuid').v4(),
+            id: uuid.v4() as string,
             title: masterList.title, // Keep same name initially
             eventId: eventId,
             originalSetListId: masterList.id,
-            items: masterList.items.map(item => ({ ...item, id: Platform.OS === 'web' ? crypto.randomUUID() : require('react-native-uuid').v4() })), // New IDs for items
+            items: masterList.items.map(item => ({ ...item, id: uuid.v4() as string })), // New IDs for items
             createdAt: new Date().toISOString()
         };
         // Close modal FIRST, then save (so alert appears after modal is gone)
@@ -61,7 +62,6 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
         { id: 'logistics', label: 'Logistics', icon: 'location' },
         { id: 'roster', label: 'Contacts', icon: 'people' },
         { id: 'setlist', label: 'Set List', icon: 'list' },
-        { id: 'finance', label: 'Finance', icon: 'cash' },
         { id: 'sharing', label: 'Sharing', icon: 'share-social' },
     ];
 
@@ -72,6 +72,37 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
         { id: 'rehearsal', label: 'Rehearsal', icon: 'musical-notes' },
         { id: 'other', label: 'Practice/Other', icon: 'options' },
     ];
+
+    // Tab Navigation Helper
+    const TabNavigation = ({ currentTab }: { currentTab: string }) => {
+        const currentIndex = Tabs.findIndex(t => t.id === currentTab);
+        const prevTab = currentIndex > 0 ? Tabs[currentIndex - 1] : null;
+        const nextTab = currentIndex < Tabs.length - 1 ? Tabs[currentIndex + 1] : null;
+
+        return (
+            <View className="flex-row justify-between items-center mt-8 mb-4 pt-6 border-t border-slate-200">
+                {prevTab ? (
+                    <TouchableOpacity
+                        onPress={() => setActiveTab(prevTab.id as any)}
+                        className="flex-row items-center px-4 py-3 bg-slate-100 rounded-xl"
+                    >
+                        <Ionicons name="chevron-back" size={18} color="#4f46e5" />
+                        <Text className="text-indigo-600 font-bold ml-1">← {prevTab.label}</Text>
+                    </TouchableOpacity>
+                ) : <View />}
+
+                {nextTab ? (
+                    <TouchableOpacity
+                        onPress={() => setActiveTab(nextTab.id as any)}
+                        className="flex-row items-center px-4 py-3 bg-indigo-600 rounded-xl"
+                    >
+                        <Text className="text-white font-bold mr-1">{nextTab.label} →</Text>
+                        <Ionicons name="chevron-forward" size={18} color="white" />
+                    </TouchableOpacity>
+                ) : <View />}
+            </View>
+        );
+    };
 
     return (
         <View className="flex-1 bg-slate-50">
@@ -282,17 +313,22 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
                                 onChangeText={(text) => onChange('notes', text)}
                             />
                         </View>
+
+                        {/* Tab Navigation */}
+                        <TabNavigation currentTab="logistics" />
                     </View>
                 )}
 
-                {/* ROSTER TAB */}
                 {activeTab === 'roster' && (
-                    <RosterEngine
-                        slots={values.slots || []}
-                        onChange={(newSlots: BookingSlot[]) => onChange('slots', newSlots)}
-                        onFormChange={onChange}
-                        event={values as any}
-                    />
+                    <View>
+                        <RosterEngine
+                            slots={values.slots || []}
+                            onChange={(newSlots: BookingSlot[]) => onChange('slots', newSlots)}
+                            onFormChange={onChange}
+                            event={values as any}
+                        />
+                        <TabNavigation currentTab="roster" />
+                    </View>
                 )}
 
                 {/* SET LIST TAB - EMPTY STATE ONLY */}
@@ -327,7 +363,7 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
                             onPress={() => {
                                 // Default create new empty
                                 addSetList({
-                                    id: Platform.OS === 'web' ? crypto.randomUUID() : require('react-native-uuid').v4(),
+                                    id: uuid.v4() as string,
                                     title: `${values.title} Set List`,
                                     eventId: eventId,
                                     items: [],
@@ -339,6 +375,8 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
                             <Ionicons name="add-circle-outline" size={20} color="#64748b" style={{ marginRight: 8 }} />
                             <Text className="text-slate-600 font-bold text-base">Create from Scratch</Text>
                         </TouchableOpacity>
+
+                        <TabNavigation currentTab="setlist" />
                     </View>
                 )}
 
@@ -349,7 +387,10 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
 
                 {/* SHARING TAB (Performance Promo + Performer Page) */}
                 {activeTab === 'sharing' && (
-                    <PerformanceSharingConfig values={values as any} onChange={onChange as any} eventId={eventId} />
+                    <View>
+                        <PerformanceSharingConfig values={values as any} onChange={onChange as any} eventId={eventId} />
+                        <TabNavigation currentTab="sharing" />
+                    </View>
                 )}
 
             </ScrollView>

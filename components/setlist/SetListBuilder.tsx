@@ -15,7 +15,7 @@ interface SetListBuilderProps {
 import SongEditor from './SongEditor';
 
 export default function SetListBuilder({ existingSetList, eventId, onSave, onCancel }: SetListBuilderProps) {
-    const { songs, addSong } = useContentStore(); // Add addSong
+    const { songs, addSong, updateSong } = useContentStore(); // Add updateSong
     const [title, setTitle] = useState(existingSetList?.title || 'New Set List');
     const [items, setItems] = useState<SetListItem[]>(existingSetList?.items || []);
 
@@ -28,6 +28,9 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
     // New Song Creation
     const [isCreatingSong, setIsCreatingSong] = useState(false);
     const [newSongInitialState, setNewSongInitialState] = useState<Song | null>(null);
+
+    // Edit Song State
+    const [editingSong, setEditingSong] = useState<Song | null>(null);
 
     // Filter songs for picker
     const filteredSongs = songs.filter(s =>
@@ -87,6 +90,17 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
         newItems.splice(index, 1);
         setItems(newItems);
         setIsDirty(true);
+    };
+
+    // Edit song in library
+    const handleEditSong = (song: Song) => {
+        setEditingSong(song);
+    };
+
+    const handleSaveEditedSong = (song: Song) => {
+        updateSong(song.id, song);
+        setEditingSong(null);
+        setIsDirty(true); // Mark dirty so set list re-renders with updated song data
     };
 
     const moveItem = (index: number, direction: 'up' | 'down') => {
@@ -158,6 +172,19 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
             onCancel(); // This MUST close the modal. The parent GigEditor passes `setActiveTab('logistics')` or similar to close.
         }
     };
+
+    // Edit Song Modal
+    if (editingSong) {
+        return (
+            <Modal visible={true} animationType="slide">
+                <SongEditor
+                    initialSong={editingSong}
+                    onSave={handleSaveEditedSong}
+                    onCancel={() => setEditingSong(null)}
+                />
+            </Modal>
+        );
+    }
 
     if (isCreatingSong && newSongInitialState) {
         return (
@@ -299,7 +326,17 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
 
                                     {/* Actions */}
                                     <View className="flex-row items-center ml-2">
-                                        <View className="flex-col mr-2">
+                                        {/* Edit button for songs */}
+                                        {!isBreak && song && (
+                                            <TouchableOpacity
+                                                onPress={() => handleEditSong(song)}
+                                                className="p-2 bg-indigo-50 rounded-full mr-1"
+                                            >
+                                                <Ionicons name="create-outline" size={16} color="#4f46e5" />
+                                            </TouchableOpacity>
+                                        )}
+
+                                        <View className="flex-col mr-1">
                                             <TouchableOpacity
                                                 onPress={() => moveItem(index, 'up')}
                                                 disabled={index === 0}
@@ -316,8 +353,8 @@ export default function SetListBuilder({ existingSetList, eventId, onSave, onCan
                                             </TouchableOpacity>
                                         </View>
 
-                                        <TouchableOpacity onPress={() => removeItem(index)} className="p-2 bg-slate-100 rounded-full">
-                                            <Ionicons name="close" size={16} color="#94a3b8" />
+                                        <TouchableOpacity onPress={() => removeItem(index)} className="p-2 bg-red-50 rounded-full">
+                                            <Ionicons name="trash-outline" size={16} color="#ef4444" />
                                         </TouchableOpacity>
                                     </View>
                                 </View>

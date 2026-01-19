@@ -4,25 +4,49 @@ description: OpusMode workspace-specific rules and context
 
 # OpusMode Project Rules
 
+## Monetization Philosophy
+
+Free practice features (Studio, Practice Tracking) build user base. We monetize when musicians start earning money — gigs, venues, finance. Target market: Weekend Warriors + working musicians earning from performances.
+
+## Document Placement Guidance
+
+When asked to add information to a document, evaluate if it belongs in:
+- **Workspace rules** (`.agent/rules.md`) — Behavioral guidance, high-level principles
+- **`pricing_tiers.md`** — Feature specs, tier limits, Post-MVP ideas
+- **`backlog.md`** — Near-term actionable work with estimates
+
+Suggest the best location with reasoning before adding.
+
 ## Deployment Method
 
 **IMPORTANT**: This project uses the **Netlify CLI** for deployments, NOT manual drag-and-drop or Git-based auto-deployment.
 
 ### Standard Deployment Process
 
-1. **Build the web export**:
+1. **Bump version** (see `/bump_version` workflow):
    ```bash
-   npx expo export -p web
+   npm run bump-build
    ```
-   This generates the `dist` folder with optimized static files.
 
-2. **Deploy to Netlify**:
+2. **Commit changes**:
+   ```bash
+   git add -A && git commit -m "v1.x.x bXX: Description of changes"
+   ```
+
+3. **Push to GitHub FIRST** (source of truth):
+   ```bash
+   git push origin develop
+   ```
+
+4. **Deploy to Netlify**:
    ```bash
    npx netlify deploy --prod --dir=dist
    ```
    - The `--prod` flag deploys to production (live site)
    - The `--dir=dist` flag specifies the build output directory
    - You must be authenticated with Netlify CLI (one-time setup: `npx netlify login`)
+
+> **Why GitHub first?** Git is the source of truth. Every production deployment should have a corresponding commit already backed up. If deployment fails, you can trace and rollback.
 
 ### When to Deploy
 

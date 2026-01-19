@@ -1,5 +1,5 @@
 export const BuildInfo = {
     version: '1.3.1',
-    buildNumber: '58',
+    buildNumber: '62',
     gitCommit: 'HEAD'
 };

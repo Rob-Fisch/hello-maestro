@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 
 
@@ -285,128 +285,7 @@ export default function AuthScreen() {
                     </View>
                 </View>
 
-                {/* --- MARKETING SECTIONS --- */}
-                <View className="pb-20">
-                    {/* 1. The Chaos Problem */}
-                    <View className="mb-24 mt-12 items-center px-4">
-                        <View className="w-16 h-16 bg-red-500/10 rounded-full items-center justify-center mb-6 border border-red-500/20">
-                            <Ionicons name="flash" size={32} color="#f87171" />
-                        </View>
-                        <Text className="text-white font-black text-3xl text-center mb-4 leading-tight">
-                            Is your musical life a scattered mess?
-                        </Text>
-                        <Text className="text-slate-400 text-lg text-center leading-relaxed">
-                            Setlists in texts. Rehearsal notes lost in emails.
-                            Gig details missing. It's time to bring order to the chaos.
-                        </Text>
-                    </View>
 
-                    {/* 2. Features Grid */}
-                    <View className="mb-24">
-                        <Text className="text-indigo-400 font-bold text-xs uppercase tracking-[4px] text-center mb-10">
-                            The Toolkit
-                        </Text>
-
-                        {/* Feature 1: The Studio */}
-                        <View className="flex-col mb-16">
-                            <View className="flex-row items-center mb-6">
-                                <View className="w-12 h-12 bg-blue-500/10 rounded-2xl items-center justify-center mr-4 border border-blue-500/20">
-                                    <Ionicons name="mic" size={24} color="#60a5fa" />
-                                </View>
-                                <Text className="text-white font-bold text-2xl">The Studio</Text>
-                            </View>
-                            <Text className="text-slate-400 leading-7 text-lg mb-6">
-                                Track practices, log history, and manage your repertoire metadata. Every hour counts.
-                            </Text>
-                            {/* Golden Sample Image */}
-                            <View className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-blue-900/20">
-                                <Image
-                                    source={require('../assets/images/upgrade_studio_v3.png')}
-                                    style={{ width: '100%', height: 240 }}
-                                    resizeMode="cover"
-                                />
-                            </View>
-                        </View>
-
-                        {/* Feature 2: The Stage */}
-                        <View className="flex-col mb-16">
-                            <View className="flex-row items-center mb-6">
-                                <View className="w-12 h-12 bg-purple-500/10 rounded-2xl items-center justify-center mr-4 border border-purple-500/20">
-                                    <Ionicons name="musical-notes" size={24} color="#a78bfa" />
-                                </View>
-                                <Text className="text-white font-bold text-2xl">The Stage</Text>
-                            </View>
-                            <Text className="text-slate-400 leading-7 text-lg mb-6">
-                                Build dynamic setlists, manage rosters, and keep gig details perfectly organized.
-                            </Text>
-                            {/* Golden Sample Image */}
-                            <View className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/20">
-                                <Image
-                                    source={require('../assets/images/upgrade_gigs_v2.png')}
-                                    style={{ width: '100%', height: 240 }}
-                                    resizeMode="cover"
-                                />
-                            </View>
-                        </View>
-
-                        {/* Feature 3: The Navigator */}
-                        <View className="flex-col mb-12">
-                            <View className="flex-row items-center mb-6">
-                                <View className="w-12 h-12 bg-teal-500/10 rounded-2xl items-center justify-center mr-4 border border-teal-500/20">
-                                    <Ionicons name="compass" size={24} color="#2dd4bf" />
-                                </View>
-                                <Text className="text-white font-bold text-2xl">The Navigator</Text>
-                            </View>
-                            <Text className="text-slate-400 leading-7 text-lg mb-6">
-                                Your digital co-pilot. Find venues, generate email drafts, and navigate the industry landscape.
-                            </Text>
-                            {/* Golden Sample Image */}
-                            <View className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-teal-900/20">
-                                <Image
-                                    source={require('../assets/images/upgrade_coach_v5.png')}
-                                    style={{ width: '100%', height: 240 }}
-                                    resizeMode="cover"
-                                />
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* 3. Social Proof */}
-                    <View className="bg-white/5 border border-white/10 p-8 rounded-3xl mb-24 relative overflow-hidden">
-                        <Ionicons name="quote" size={64} color="white" className="absolute -top-2 -left-2 opacity-5" />
-                        <Text className="text-zinc-200 font-medium italic text-xl text-center leading-relaxed relative z-10">
-                            "The tool I wish I had when I started gigging. It's built to handle the chaos so you can focus on the music."
-                        </Text>
-                        <View className="mt-6 flex-row items-center justify-center">
-                            <View className="w-8 h-8 rounded-full bg-indigo-500 items-center justify-center mr-3">
-                                <Text className="text-white font-bold text-xs">RF</Text>
-                            </View>
-                            <Text className="text-zinc-500 font-bold text-xs uppercase tracking-widest">
-                                Rob Fisch, Founder
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* 4. Bottom CTA */}
-                    <View className="items-center mb-8">
-                        <Text className="text-white font-black text-2xl mb-6 text-center">
-                            Ready to get organized?
-                        </Text>
-
-                        <TouchableOpacity
-                            onPress={() => {
-                                if (Platform.OS === 'web') {
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
-                            }}
-                            className="bg-white px-8 py-4 rounded-full shadow-lg shadow-white/10"
-                        >
-                            <Text className="text-black font-black text-base uppercase tracking-wider">
-                                Start Now
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
 
                 {/* Footer Credits */}
                 <View className="pb-10 items-center">

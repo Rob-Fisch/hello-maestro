@@ -90,8 +90,11 @@ export default function SettingsScreen() {
     const handleLogout = () => {
         const logoutLogic = async () => {
             try {
+                // Sign out of Supabase first
+                await supabase.auth.signOut();
+
                 const { wipeLocalData } = useContentStore.getState();
-                const { wipeData: wipeFinanceData } = useFinanceStore.getState(); // Import this store
+                const { wipeData: wipeFinanceData } = useFinanceStore.getState();
 
                 await wipeLocalData();
                 await wipeFinanceData();
@@ -103,8 +106,9 @@ export default function SettingsScreen() {
             }
         };
 
+        // On web, just sign out directly (confirm gets dismissed by re-renders)
         if (Platform.OS === 'web') {
-            if (confirm("Are you sure you want to sign out?")) logoutLogic();
+            logoutLogic();
         } else {
             Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
                 { text: 'Cancel', style: 'cancel' },

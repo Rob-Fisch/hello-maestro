@@ -34,12 +34,13 @@ export default function LandingPage() {
         ]).start();
     }, []);
 
-    // Rotating Content (Logo + Messages with Icons)
+    // Rotating Content (Logo + Pain Points with Solutions)
     const ROTATING_CONTENT = [
         { type: 'logo' as const },
-        { type: 'message' as const, icon: 'alert-circle', iconColor: '#f59e0b', text: "Is your musical life a scattered mess? Setlists in texts. Rehearsal notes lost in emails. Gig details missing. It's time to bring order to the chaos" },
-        { type: 'message' as const, icon: 'layers', iconColor: '#0ea5e9', text: "The Studio - Track practices, log history, and manage your repertoire metadata. Every hour counts" },
-        { type: 'message' as const, icon: 'compass', iconColor: '#2dd4bf', text: "The Navigator - Your digital co-pilot. Find venues, generate email drafts, and navigate the industry landscape" }
+        { type: 'message' as const, icon: 'musical-notes', iconColor: '#f472b6', text: "\"I forgot the setlist at home\" — Never again. Your entire repertoire lives on your phone." },
+        { type: 'message' as const, icon: 'people', iconColor: '#818cf8', text: "\"My band doesn't know what we're playing\" — Share logistics instantly with your Performer Page." },
+        { type: 'message' as const, icon: 'cash', iconColor: '#34d399', text: "\"Did I ever get paid for that wedding?\" — Track every dollar with per-gig finance tracking." },
+        { type: 'message' as const, icon: 'calendar', iconColor: '#f59e0b', text: "\"Where's that gig contract again?\" — All your event details in one Event Dashboard." }
     ];
 
     const [currentContentIndex, setCurrentContentIndex] = useState(0);
@@ -133,25 +134,25 @@ export default function LandingPage() {
 
             <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                 {/* Hero Section */}
-                <View className="px-6 pt-32 pb-20 items-center md:pt-48 md:pb-32">
+                <View className="px-6 pt-24 pb-12 items-center md:pt-32 md:pb-16">
                     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], width: '100%', alignItems: 'center' }}>
-                        <View className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 rounded-full mb-6">
-                            <Text className="text-indigo-300 text-xs font-bold uppercase tracking-widest">v1.3.0 Now Available</Text>
-                        </View>
                         <Text className="text-5xl md:text-7xl font-black text-white text-center leading-tight mb-6 max-w-4xl tracking-tighter">
                             The Operating System for <Text className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Working Musicians</Text>
                         </Text>
                         <Text className="text-slate-400 text-lg md:text-xl text-center max-w-2xl leading-relaxed mb-4">
-                            Stop using spreadsheets and sticky notes. OpusMode connects your calendar, repertoire, and finances in one beautiful workspace.
+                            Finally, gig details that don't live in texts. OpusMode keeps your setlists, schedules, and finances in one place.
                         </Text>
-                        <Text className="text-white text-lg md:text-xl text-center font-bold mb-10">
-                            Get started now
-                        </Text>
+                        <TouchableOpacity
+                            onPress={() => router.push('/auth')}
+                            className="bg-indigo-600 px-8 py-4 rounded-full shadow-lg shadow-indigo-600/30 mt-2"
+                        >
+                            <Text className="text-white text-lg font-bold">Get Started Free</Text>
+                        </TouchableOpacity>
                     </Animated.View>
                 </View>
 
                 {/* Rotating Logo + Messages */}
-                <View className="px-4 md:px-12 mb-32 items-center">
+                <View className="px-4 md:px-12 mb-20 items-center">
                     <View className="w-full max-w-5xl aspect-square max-h-[400px] bg-slate-900 rounded-3xl border border-slate-700 overflow-hidden shadow-2xl shadow-indigo-900/40 relative items-center justify-center">
                         {/* Purple Glow */}
                         <View className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-indigo-500/20 blur-[100px] rounded-full" />

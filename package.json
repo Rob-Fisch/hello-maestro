@@ -10,7 +10,11 @@
     "bump-build": "node scripts/update-version.js build",
     "bump-patch": "node scripts/update-version.js patch",
     "bump-minor": "node scripts/update-version.js minor",
-    "bump-major": "node scripts/update-version.js major"
+    "bump-major": "node scripts/update-version.js major",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:smoke": "playwright test smoke.spec.ts",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@expo/vector-icons": "~14.0.4",
@@ -70,6 +74,7 @@
     "@babel/core": "^7.28.5",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@expo/metro-runtime": "~4.0.1",
+    "@playwright/test": "^1.57.0",
     "@types/react": "~18.3.12",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-import-meta": "^2.3.3",

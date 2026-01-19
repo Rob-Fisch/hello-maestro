@@ -75,8 +75,10 @@ export function useEventForm({ existingEvent, initialType = 'performance', onSav
     const [isDirty, setIsDirty] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Internal ID tracking to handle "New -> Edit" transition without remounting
-    const [internalId, setInternalId] = useState<string | undefined>(existingEvent?.id);
+    // Internal ID tracking - GENERATE UPFRONT for new events so set list etc can link immediately
+    const [internalId, setInternalId] = useState<string | undefined>(
+        existingEvent?.id || (uuid.v4() as string)
+    );
 
     // Track initial values for dirty checking? 
     // For now, simple "touched" approach might be enough or comparing JSON strings.
@@ -153,6 +155,7 @@ export function useEventForm({ existingEvent, initialType = 'performance', onSav
         save,
         isDirty,
         isSaving,
-        setValues // Exposed for complex bulk updates (like applying a template)
+        setValues, // Exposed for complex bulk updates (like applying a template)
+        eventId: internalId // Expose the event ID (available immediately for new events)
     };
 }

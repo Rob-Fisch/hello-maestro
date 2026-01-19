@@ -246,7 +246,7 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="modal/help"
-            options={{ presentation: 'modal', title: 'Help & FAQ', headerBackTitle: 'Back' }}
+            options={{ presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen
             name="modal/node-editor"

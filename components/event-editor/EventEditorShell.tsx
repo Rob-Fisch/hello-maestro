@@ -26,7 +26,7 @@ export default function EventEditorShell() {
     const existingEvent = activeId ? events?.find(e => e.id === activeId) : undefined;
 
     // 2. Initialize Logic Hook
-    const { values, handleChange, save, isSaving, isDirty, setValues } = useEventForm({
+    const { values, handleChange, save, isSaving, isDirty, setValues, eventId } = useEventForm({
         existingEvent,
         initialType,
         onSaveSuccess: () => {
@@ -136,7 +136,7 @@ export default function EventEditorShell() {
             {isGigMode ? (
                 <GigEditor
                     values={values}
-                    eventId={activeId}
+                    eventId={eventId}
                     onChange={handleChange}
                     isSaving={isSaving}
                     initialTab={initialTab}

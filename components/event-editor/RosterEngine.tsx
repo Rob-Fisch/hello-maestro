@@ -1,11 +1,10 @@
 
-import { SmsInviteModal } from '@/components/SmsInviteModal';
 import { EventFormValues } from '@/hooks/useEventForm';
 import { useContentStore } from '@/store/contentStore';
 import { AppEvent, BookingSlot, Person } from '@/store/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 
 import uuid from 'react-native-uuid';
@@ -19,16 +18,14 @@ interface RosterEngineProps {
 }
 
 export default function RosterEngine({ slots, onChange, onFormChange, event }: RosterEngineProps) {
-    const { people, addPerson, profile } = useContentStore();
-    const [inviteModalVisible, setInviteModalVisible] = useState(false);
-    const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
+    const { people, addPerson } = useContentStore();
 
     // Person Picker State
     const [pickerVisible, setPickerVisible] = useState(false);
+    const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Derived Logic
-    const activeSlot = useMemo(() => slots.find(s => s.id === activeSlotId), [slots, activeSlotId]);
 
     const filteredPeople = useMemo(() => {
         if (!searchQuery) return people;
@@ -73,7 +70,8 @@ export default function RosterEngine({ slots, onChange, onFormChange, event }: R
 
     const handleSelectPerson = (person: Person) => {
         if (!activeSlotId) return;
-        updateSlot(activeSlotId, { musicianId: person.id, status: 'open' });
+        // Simplified: assign immediately, no invite modal
+        updateSlot(activeSlotId, { musicianId: person.id, status: 'confirmed' });
         setPickerVisible(false);
         setActiveSlotId(null);
         setSearchQuery('');
@@ -110,32 +108,10 @@ export default function RosterEngine({ slots, onChange, onFormChange, event }: R
         }
     };
 
-    const handleInviteConfirm = (musicianId: string, inviteData?: any) => {
-        if (!activeSlotId) return;
-        updateSlot(activeSlotId, {
-            status: 'invited',
-            ...inviteData
-        });
-        setInviteModalVisible(false);
-    };
+
 
     const renderItem = useCallback(({ item, drag, isActive }: RenderItemParams<BookingSlot>) => {
         const assignedMusician = people.find(p => p.id === item.musicianId);
-
-        // Status Indicator Logic
-        let StatusIcon = <Ionicons name="chatbubble-ellipses" size={20} color="#3b82f6" />;
-        let statusBg = "bg-blue-50 border-blue-100";
-
-        if (item.status === 'invited') {
-            StatusIcon = <Ionicons name="time" size={20} color="#f59e0b" />;
-            statusBg = "bg-amber-50 border-amber-100";
-        } else if (item.status === 'confirmed') {
-            StatusIcon = <Ionicons name="checkmark-circle" size={20} color="#10b981" />;
-            statusBg = "bg-emerald-50 border-emerald-100";
-        } else if (item.status === 'declined') {
-            StatusIcon = <Ionicons name="close-circle" size={20} color="#ef4444" />;
-            statusBg = "bg-red-50 border-red-100";
-        }
 
         return (
             <ScaleDecorator>
@@ -161,11 +137,9 @@ export default function RosterEngine({ slots, onChange, onFormChange, event }: R
                             />
 
                             {assignedMusician ? (
-                                <View>
+                                <TouchableOpacity onPress={() => handleAssignClick(item.id)}>
                                     <Text className="text-lg font-bold text-slate-800">{assignedMusician.firstName} {assignedMusician.lastName}</Text>
-                                    {item.status === 'invited' && <Text className="text-[10px] font-bold text-amber-500 uppercase">Invited</Text>}
-                                    {item.status === 'confirmed' && <Text className="text-[10px] font-bold text-emerald-500 uppercase">Confirmed</Text>}
-                                </View>
+                                </TouchableOpacity>
                             ) : (
                                 <TouchableOpacity onPress={() => handleAssignClick(item.id)}>
                                     <Text className="text-lg font-bold text-slate-300 italic">Select Contact...</Text>
@@ -174,36 +148,9 @@ export default function RosterEngine({ slots, onChange, onFormChange, event }: R
                         </View>
                     </View>
 
-                    {/* Actions */}
+                    {/* Actions - Just trash icon now */}
                     <View className="flex-row items-center gap-2">
-                        {assignedMusician ? (
-                            <TouchableOpacity
-                                onPress={() => {
-                                    if (item.status === 'invited') {
-                                        if (Platform.OS === 'web') {
-                                            if (confirm(`Mark ${assignedMusician.firstName} as Confirmed?`)) {
-                                                updateSlot(item.id, { status: 'confirmed' });
-                                            }
-                                        } else {
-                                            Alert.alert(
-                                                'Confirm Musician',
-                                                `Mark ${assignedMusician.firstName} as fully confirmed?`,
-                                                [
-                                                    { text: 'Cancel', style: 'cancel' },
-                                                    { text: 'Confirm', onPress: () => updateSlot(item.id, { status: 'confirmed' }) }
-                                                ]
-                                            );
-                                        }
-                                    } else {
-                                        setActiveSlotId(item.id);
-                                        setInviteModalVisible(true);
-                                    }
-                                }}
-                                className={`w-10 h-10 rounded-full items-center justify-center border ${statusBg}`}
-                            >
-                                {StatusIcon}
-                            </TouchableOpacity>
-                        ) : (
+                        {!assignedMusician && (
                             <TouchableOpacity
                                 onPress={() => handleAssignClick(item.id)}
                                 className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center border border-slate-200"
@@ -291,18 +238,6 @@ export default function RosterEngine({ slots, onChange, onFormChange, event }: R
             />
 
             {renderPicker()}
-
-            {/* Invite Modal Wrapper */}
-            {activeSlot && activeSlot.musicianId && (
-                <SmsInviteModal
-                    visible={inviteModalVisible}
-                    onClose={() => setInviteModalVisible(false)}
-                    onConfirm={handleInviteConfirm}
-                    event={event}
-                    musician={people.find(p => p.id === activeSlot.musicianId)!}
-                    slot={activeSlot}
-                />
-            )}
         </View>
     );
 }
