@@ -1,6 +1,7 @@
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { FeatureDiscoveryCards } from '@/components/FeatureDiscoveryCards';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -149,6 +150,9 @@ export default function Home2Screen() {
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
+
+                {/* FEATURE DISCOVERY CARDS */}
+                <FeatureDiscoveryCards />
 
                 {/* QUICK ACCESS HINT */}
                 <View className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 mb-8">
