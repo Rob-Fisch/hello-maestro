@@ -91,7 +91,7 @@ const FEATURES: Feature[] = [
     },
 ];
 
-const ROTATION_INTERVAL = 4000; // 4 seconds per feature
+const ROTATION_INTERVAL = 8000; // 8 seconds per feature
 
 export function FeatureDiscoveryCards() {
     const router = useRouter();
