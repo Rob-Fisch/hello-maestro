@@ -11,6 +11,7 @@ Free practice features (Studio, Practice Tracking) build user base. We monetize 
 ## Document Placement Guidance
 
 When asked to add information to a document, evaluate if it belongs in:
+
 - **Workspace rules** (`.agent/rules.md`) — Behavioral guidance, high-level principles
 - **`pricing_tiers.md`** — Feature specs, tier limits, Post-MVP ideas
 - **`backlog.md`** — Near-term actionable work with estimates
@@ -24,24 +25,29 @@ Suggest the best location with reasoning before adding.
 ### Standard Deployment Process
 
 1. **Bump version** (see `/bump_version` workflow):
+
    ```bash
    npm run bump-build
    ```
 
 2. **Commit changes**:
+
    ```bash
    git add -A && git commit -m "v1.x.x bXX: Description of changes"
    ```
 
 3. **Push to GitHub FIRST** (source of truth):
+
    ```bash
    git push origin develop
    ```
 
 4. **Deploy to Netlify**:
+
    ```bash
    npx netlify deploy --prod --dir=dist
    ```
+
    - The `--prod` flag deploys to production (live site)
    - The `--dir=dist` flag specifies the build output directory
    - You must be authenticated with Netlify CLI (one-time setup: `npx netlify login`)
@@ -90,6 +96,7 @@ Not every change requires updating the Site Map or Help pages. Use these guideli
 - **New integrations** or external service connections
 
 **Also update [`pricing_tiers.md`](file:///Users/robfisch/Documents/OpusMode/pricing_tiers.md)** when:
+
 - Adding new features (document tier availability and limitations)
 - Changing feature tier placement (Free ↔ Pro)
 - Modifying feature scope or limitations

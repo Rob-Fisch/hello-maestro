@@ -6,12 +6,12 @@ This document tracks all external services, accounts, and infrastructure compone
 
 ### **Netlify** (Web Hosting)
 *   **Purpose**: Hosts the PWA (Progressive Web App). Accessible via browser.
-*   **Tier**: Free (Starter).
+*   **Tier**: Pro (~$9/month).
 *   **URL**: [app.netlify.com](https://app.netlify.com)
 *   **Key Settings**:
     *   **Site Name**: `opusmode-app` (or similar).
     *   **Domains**: `opusmode.net` (Primary).
-    *   **Deploy Method**: Manual Drag & Drop (currently).
+    *   **Deploy Method**: Netlify CLI (`npx netlify deploy --prod --dir=dist`).
 
 ### **AWS Route 53** (Domain Registrar & DNS)
 *   **Purpose**: Owns the domain name `opusmode.net` and manages DNS records.
@@ -26,7 +26,7 @@ This document tracks all external services, accounts, and infrastructure compone
 
 ### **Supabase** (Database)
 *   **Purpose**: The "Brain". Stores all user data (Events, Routines, Contacts, Gear) and handles Authentication.
-*   **Tier**: Free.
+*   **Tier**: Free (will upgrade when needed).
 *   **URL**: [supabase.com/dashboard](https://supabase.com/dashboard/project/_/settings/general)
 *   **Key Components**:
     *   **Authentication**: Email/Password.
@@ -36,7 +36,22 @@ This document tracks all external services, accounts, and infrastructure compone
 
 ---
 
-## 3. Mobile Build System
+## 3. Payments
+
+### **Lemon Squeezy + Stripe** (Payment Processing)
+*   **Purpose**: Handles Pro/Pro+ subscriptions, checkout, and recurring billing.
+*   **Tier**: Pending approval (as of Jan 2026).
+*   **URL**: [lemonsqueezy.com](https://www.lemonsqueezy.com)
+*   **Pricing**:
+    *   Free: $0 (no credit card required)
+    *   Pro Monthly: $9.99/month
+    *   Pro Annual: $99/year
+    *   Pro+ (future): $19.99/month or $199/year
+*   **Status**: Application submitted, awaiting approval.
+
+---
+
+## 4. Mobile Build System
 
 ### **Expo / EAS** (Expo Application Services)
 *   **Purpose**: The "Factory". Builds the native iOS (`.ipa`) and Android (`.apk`) apps. Also sends Over-the-Air (OTA) updates.
@@ -49,7 +64,7 @@ This document tracks all external services, accounts, and infrastructure compone
 
 ---
 
-## 4. Development Environment
+## 5. Development Environment
 
 ### **GitHub** (Source Code)
 *   **Purpose**: Backup and version control.
@@ -58,6 +73,23 @@ This document tracks all external services, accounts, and infrastructure compone
 
 ### **Cursor / Antigravity** (IDE & Agent)
 *   **Purpose**: The "Engineer". Writes code, manages files, runs terminal commands.
+
+---
+
+## Go-Live Strategy
+
+**Phase 1 (MVP)**: PWA only
+- Web-based Progressive Web App
+- Works on any device with a browser
+- No app store approval needed
+
+**Phase 2**: Apple App Store (iOS)
+- Native iOS app via Expo/EAS
+- Two Islands sync strategy implemented
+
+**Phase 3 (Maybe)**: Android
+- Google Play Store
+- Decision pending based on demand
 
 ---
 
