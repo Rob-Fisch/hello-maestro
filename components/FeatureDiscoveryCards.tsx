@@ -1,3 +1,4 @@
+import { getStorageItem, setStorageItem } from '@/lib/storage';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -15,6 +16,7 @@ interface Feature {
     isNew?: boolean;
 }
 
+// Define features - "isNew" items will be prioritized to show first
 const FEATURES: Feature[] = [
     {
         id: 'performer-page',
@@ -91,20 +93,66 @@ const FEATURES: Feature[] = [
     },
 ];
 
+// Reorder features: "What's New" (isNew: true) items first, then regular items
+function getOrderedFeatures(regularStartIndex: number): Feature[] {
+    const newFeatures = FEATURES.filter(f => f.isNew);
+    const regularFeatures = FEATURES.filter(f => !f.isNew);
+
+    // Rotate regular features to start from the persisted index
+    const rotatedRegular = [
+        ...regularFeatures.slice(regularStartIndex % regularFeatures.length),
+        ...regularFeatures.slice(0, regularStartIndex % regularFeatures.length),
+    ];
+
+    // New features always come first, then rotated regular features
+    return [...newFeatures, ...rotatedRegular];
+}
+
 const ROTATION_INTERVAL = 8000; // 8 seconds per feature
+const STORAGE_KEY = 'featureDiscovery_lastIndex';
 
 export function FeatureDiscoveryCards() {
     const router = useRouter();
     const { profile } = useContentStore();
     const isPro = profile?.isPremium === true;
 
+    const [orderedFeatures, setOrderedFeatures] = useState<Feature[]>(FEATURES);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isInitialized, setIsInitialized] = useState(false);
     const fadeAnim = useRef(new Animated.Value(1)).current;
+    const regularStartIndexRef = useRef(0);
 
-    const feature = FEATURES[currentIndex];
-    const isClickable = !!feature.route;
+    const feature = orderedFeatures[currentIndex];
+    const isClickable = !!feature?.route;
 
+    // Load persisted index on mount and set up ordered features
     useEffect(() => {
+        async function initializeOrder() {
+            try {
+                const savedIndex = await getStorageItem(STORAGE_KEY);
+                const startIndex = savedIndex ? parseInt(savedIndex, 10) : 0;
+                regularStartIndexRef.current = startIndex;
+
+                // Create ordered list with new features first
+                setOrderedFeatures(getOrderedFeatures(startIndex));
+
+                // Save incremented index for next visit
+                const regularCount = FEATURES.filter(f => !f.isNew).length;
+                const nextIndex = (startIndex + 1) % regularCount;
+                await setStorageItem(STORAGE_KEY, nextIndex.toString());
+            } catch (e) {
+                console.warn('[FeatureDiscovery] Storage error:', e);
+                setOrderedFeatures(getOrderedFeatures(0));
+            }
+            setIsInitialized(true);
+        }
+        initializeOrder();
+    }, []);
+
+    // Auto-rotation
+    useEffect(() => {
+        if (!isInitialized) return;
+
         const interval = setInterval(() => {
             // Fade out
             Animated.timing(fadeAnim, {
@@ -113,7 +161,7 @@ export function FeatureDiscoveryCards() {
                 useNativeDriver: true,
             }).start(() => {
                 // Change feature
-                setCurrentIndex((prev) => (prev + 1) % FEATURES.length);
+                setCurrentIndex((prev) => (prev + 1) % orderedFeatures.length);
                 // Fade in
                 Animated.timing(fadeAnim, {
                     toValue: 1,
@@ -124,7 +172,7 @@ export function FeatureDiscoveryCards() {
         }, ROTATION_INTERVAL);
 
         return () => clearInterval(interval);
-    }, [fadeAnim]);
+    }, [fadeAnim, isInitialized, orderedFeatures.length]);
 
     const handlePress = () => {
         if (!feature.route) return;
@@ -190,7 +238,7 @@ export function FeatureDiscoveryCards() {
                     Did You Know?
                 </Text>
                 <Text className="text-[10px] text-slate-500">
-                    {currentIndex + 1} of {FEATURES.length}
+                    {currentIndex + 1} of {orderedFeatures.length}
                 </Text>
             </View>
 
@@ -204,7 +252,7 @@ export function FeatureDiscoveryCards() {
 
             {/* Progress dots */}
             <View className="flex-row justify-center mt-3 gap-1">
-                {FEATURES.map((_, index) => (
+                {orderedFeatures.map((_, index) => (
                     <TouchableOpacity
                         key={index}
                         onPress={() => setCurrentIndex(index)}
