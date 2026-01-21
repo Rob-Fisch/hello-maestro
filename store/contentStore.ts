@@ -464,14 +464,24 @@ export const useContentStore = create<ContentState>()(
             // --- SET LIST ACTIONS ---
             addSetList: (setList) => {
                 set((state) => ({ setLists: [...state.setLists, setList] }));
-                syncToCloud('set_lists', setList);
+                // Sanitize before sync: clear eventId if it's a sample event (00000000-*)
+                const syncData = setList.eventId?.startsWith('00000000-')
+                    ? { ...setList, eventId: undefined }
+                    : setList;
+                syncToCloud('set_lists', syncData);
             },
             updateSetList: (id, updates) => {
                 set((state) => ({
                     setLists: state.setLists.map((s) => (s.id === id ? { ...s, ...updates } : s)),
                 }));
                 const updated = get().setLists.find(s => s.id === id);
-                if (updated) syncToCloud('set_lists', updated);
+                if (updated) {
+                    // Sanitize before sync: clear eventId if it's a sample event (00000000-*)
+                    const syncData = updated.eventId?.startsWith('00000000-')
+                        ? { ...updated, eventId: undefined }
+                        : updated;
+                    syncToCloud('set_lists', syncData);
+                }
             },
             deleteSetList: (id) => {
                 set((state) => {
@@ -536,7 +546,10 @@ export const useContentStore = create<ContentState>()(
                         pushAllToCloud('pack_lists', useGearStore.getState().packLists),
                         pushAllToCloud('transactions', useFinanceStore.getState().transactions),
                         pushAllToCloud('songs', state.songs),
-                        pushAllToCloud('set_lists', state.setLists),
+                        // Sanitize set lists: clear eventId if it's a sample event (00000000-*)
+                        pushAllToCloud('set_lists', state.setLists.map(sl =>
+                            sl.eventId?.startsWith('00000000-') ? { ...sl, eventId: undefined } : sl
+                        )),
                     ]);
 
 
