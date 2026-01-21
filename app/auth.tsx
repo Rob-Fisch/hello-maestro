@@ -21,13 +21,15 @@ export default function AuthScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isSignUp, setIsSignUp] = useState(false);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
 
     const { setProfile, fullSync } = useContentStore();
 
     const router = useRouter();
-    const { redirectTo } = useLocalSearchParams<{ redirectTo: string }>();
+    const { redirectTo, mode } = useLocalSearchParams<{ redirectTo: string; mode: string }>();
+
+    // Initialize isSignUp based on mode query param (from "Get Started Free")
+    const [isSignUp, setIsSignUp] = useState(mode === 'signup');
 
     // --- ANIMATION REFS ---
     const fadeAnim = useRef(new Animated.Value(1)).current; // Opacity for transitions

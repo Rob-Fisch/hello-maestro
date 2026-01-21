@@ -1,4 +1,5 @@
 import { BuildInfo } from '@/constants/BuildInfo';
+import { clearSampleData, hasSampleData, seedSampleData } from '@/lib/seeder';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
@@ -10,6 +11,7 @@ import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 
 
@@ -39,6 +41,9 @@ export default function SettingsScreen() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [updating, setUpdating] = useState(false);
+
+    // Double-tap confirmation state
+    const [confirmClear, setConfirmClear] = useState(false);
 
 
     const handleAddTemplate = () => {
@@ -605,6 +610,62 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
+                {/* Sample Data Section */}
+                <View className="mb-8">
+                    <Text className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">Sample Data</Text>
+                    <View className="p-6 rounded-[32px] border shadow-sm" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                        <Text className="mb-4 font-medium text-slate-400 leading-relaxed">
+                            {hasSampleData()
+                                ? 'Sample data is loaded. You can clear it anytime — your own data will not be affected.'
+                                : 'Load sample gigs, songs, and contacts to explore OpusMode features.'}
+                        </Text>
+
+                        {hasSampleData() ? (
+                            <TouchableOpacity
+                                onPress={() => {
+                                    // Use double-tap confirmation for web & native
+                                    // State for confirmation mode needs to be added to component
+                                    // But since we can't easily add state here without refactoring the whole component
+                                    // We'll use a local variable approached via a Ref if possible, OR
+                                    // better yet, just stick to the platform-specific alert for Native and
+                                    // try the timeout fix for Web again with a longer delay?
+                                    // Wait - User agreed to "Double Tap". I need to add state.
+
+                                    // Check if we are in confirmation mode (this requires adding state to the component)
+                                    if (confirmClear) {
+                                        clearSampleData();
+                                        setConfirmClear(false);
+                                        if (Platform.OS === 'web') alert('Done! Sample data has been removed.');
+                                        else Alert.alert('Done', 'Sample data has been removed.');
+                                    } else {
+                                        setConfirmClear(true);
+                                        // Reset after 5 seconds
+                                        setTimeout(() => setConfirmClear(false), 5000);
+                                    }
+                                }}
+                                className={`p-4 rounded-2xl items-center ${confirmClear ? 'bg-red-500/20 border border-red-500/50' : 'bg-amber-500/10 border border-amber-500/30'}`}
+                            >
+                                <Text className={`font-bold ${confirmClear ? 'text-red-400' : 'text-amber-400'}`}>
+                                    {confirmClear ? 'Tap again to Confirm' : 'Clear Sample Data'}
+                                </Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={async () => {
+                                    await seedSampleData();
+                                    if (Platform.OS === 'web') {
+                                        alert('Done! 🎵 Sample data loaded. Explore the Studio, Schedule, and Contacts!');
+                                    } else {
+                                        Alert.alert('Done! 🎵', 'Sample data loaded. Explore the Studio, Schedule, and Contacts!');
+                                    }
+                                }}
+                                className="bg-teal-500/10 border border-teal-500/30 p-4 rounded-2xl items-center"
+                            >
+                                <Text className="text-teal-400 font-bold">Load Sample Data</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
 
                 {/* Danger Zone */}
                 <View className="mb-12">
@@ -613,15 +674,6 @@ export default function SettingsScreen() {
                         <Text className="mb-6 font-medium text-red-300/80">
                             These actions are permanent and cannot be reversed. Please be careful.
                         </Text>
-
-
-
-
-
-                        {/* Restore Default Categories */}
-
-
-
 
                         <TouchableOpacity
                             onPress={handleDeleteAccount}

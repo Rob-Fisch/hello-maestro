@@ -15,12 +15,6 @@
 - [ ] **Upgrade Flow Playwright Test** — `upgrade-flow.spec.ts`
   - Verify checkout URLs open correctly with user_id
 
-- [ ] **Sample Data Seeding** — Seed new accounts with example data to showcase modules
-  - Badge entries as "Sample" so users know it's demo data
-  - Cover core modules: 1 sample gig + linked set list + contacts + transactions
-  - Include easy cleanup option (one-tap "Clear Sample Data")
-  - Details TBD during implementation
-
 ---
 
 ## Mobile / PWA
@@ -44,9 +38,19 @@
 
 ---
 
+## Branding & Polish
+
+- [ ] **Custom SMTP for Auth Emails** — Send auth emails from `noreply@opusmode.net` instead of Supabase Auth
+  - Options: AWS SES, SendGrid, Mailgun, or AWS WorkMail SMTP
+  - Configure in Supabase → Project Settings → Auth → SMTP Settings
+
+---
+
 ## ✅ Completed
 
+- [x] **Sample Data Seeding** — Seed new accounts with Arban blocks, jazz standards, sample gig, contacts (Build TBD)
 - [x] **Lemon Squeezy Integration** — Webhook + checkout URLs (Build 43)
 - [x] **Two Islands Sync Strategy** — Platform-based sync for Free tier
 - [x] **Feature Discovery Carousel** — "Did You Know?" with persistent rotation (Build 65)
 - [x] **Landing Page** — Public page with pricing + pain points
+

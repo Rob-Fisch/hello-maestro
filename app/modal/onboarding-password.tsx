@@ -51,13 +51,13 @@ export default function OnboardingPasswordScreen() {
 
                 <View className="items-center mb-10">
                     <View className="w-20 h-20 rounded-full bg-teal-500/20 items-center justify-center mb-6">
-                        <Ionicons name="key-outline" size={40} color="#14b8a6" />
+                        <Ionicons name="checkmark-circle-outline" size={40} color="#14b8a6" />
                     </View>
                     <Text className="text-3xl font-black text-white text-center mb-2">
-                        Set Your Password
+                        You're Almost In! 🎵
                     </Text>
                     <Text className="text-slate-400 text-center leading-relaxed">
-                        Welcome to OpusMode! Please create a secure password to access your account in the future.
+                        One last step — confirm your password below and you're ready to rock.
                     </Text>
                 </View>
 

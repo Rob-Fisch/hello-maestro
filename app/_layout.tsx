@@ -2,6 +2,7 @@
 import { VersionChecker } from '@/components/VersionChecker';
 import { useContentStore } from '@/store/contentStore';
 import { useGearStore } from '@/store/gearStore';
+
 import { Ionicons } from '@expo/vector-icons';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';

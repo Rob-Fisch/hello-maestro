@@ -235,7 +235,7 @@ export function FeatureDiscoveryCards() {
         <View className="mb-8">
             <View className="flex-row justify-between items-center mb-4 px-1">
                 <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    Did You Know?
+                    Explore OpusMode
                 </Text>
                 <Text className="text-[10px] text-slate-500">
                     {currentIndex + 1} of {orderedFeatures.length}

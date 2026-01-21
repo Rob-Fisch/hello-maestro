@@ -146,7 +146,7 @@ export default function LandingPage() {
                             Finally, gig details that don't live in texts. OpusMode keeps your setlists, schedules, and contacts in one place.
                         </Text>
                         <TouchableOpacity
-                            onPress={() => router.push('/auth')}
+                            onPress={() => router.push('/auth?mode=signup')}
                             className="bg-indigo-600 px-8 py-4 rounded-full shadow-lg shadow-indigo-600/30 mt-2"
                         >
                             <Text className="text-white text-lg font-bold">Get Started Free</Text>

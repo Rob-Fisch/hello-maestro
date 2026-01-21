@@ -12,6 +12,7 @@ ALTER TABLE songs ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'web';
 ALTER TABLE set_lists ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'web';
 ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'web';
 ALTER TABLE proof_of_work ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'web';
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'web';
 
 -- Add check constraint to ensure valid platform values
 ALTER TABLE events ADD CONSTRAINT events_platform_check CHECK (platform IN ('web', 'native'));
