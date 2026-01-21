@@ -114,3 +114,19 @@ Not every change requires updating the Site Map or Help pages. Use these guideli
 ### When uncertain:
 
 **Always ask**: "Should we add this to the help and/or site map?" for changes that fall in a gray area. It's better to confirm than to leave documentation stale or over-document minor changes.
+
+---
+
+## Browser Testing Credentials
+
+**IMPORTANT**: When performing any browser automation or testing, use the **AG test accounts** instead of the user's personal credentials.
+
+### Default Behavior
+
+- **Always use AG test accounts** from the `/test-accounts` workflow
+- Choose `antigravity-pro@opusmode.net` or `antigravity-free@opusmode.net` based on what's being tested
+- If the current browser session is logged into the user's personal account, **log out first** before proceeding
+
+### When User Credentials Might Be Needed
+
+If testing requires the user's actual account data or permissions, **ask before using** their credentials. Otherwise, default to AG test accounts.

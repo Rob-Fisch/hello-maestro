@@ -15,6 +15,12 @@
 - [ ] **Upgrade Flow Playwright Test** — `upgrade-flow.spec.ts`
   - Verify checkout URLs open correctly with user_id
 
+- [ ] **Sample Data Seeding** — Seed new accounts with example data to showcase modules
+  - Badge entries as "Sample" so users know it's demo data
+  - Cover core modules: 1 sample gig + linked set list + contacts + transactions
+  - Include easy cleanup option (one-tap "Clear Sample Data")
+  - Details TBD during implementation
+
 ---
 
 ## Mobile / PWA
@@ -31,6 +37,10 @@
   - 30-day grace period before hard delete
   - Purge all user data from SQL for cost efficiency
   - *Blocked on: MFA*
+- [ ] **Admin Data Cleanup** — Admin panel function to delete user + all related data.
+  - Delete from all user tables (songs, events, contacts, etc.)
+  - Delete from auth.users
+  - *Blocked on: MFA + Admin Panel*
 
 ---
 
