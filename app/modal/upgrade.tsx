@@ -84,11 +84,11 @@ export default function UpgradeModal() {
         setTimeout(attemptScroll, 500); // Simple delay
     }, [layouts, requestedFeature]);
 
-    // LEMON SQUEEZY CONFIG
-    // Product UUID: f8536fd3-2968-4b94-8f1b-eb92d4a6a334
-    // Variants: 1216060 (monthly), 1216066 (annual)
-    const monthlyUrl = `https://opusmode.lemonsqueezy.com/checkout/buy/f8536fd3-2968-4b94-8f1b-eb92d4a6a334?enabled=1216060&checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
-    const annualUrl = `https://opusmode.lemonsqueezy.com/checkout/buy/f8536fd3-2968-4b94-8f1b-eb92d4a6a334?enabled=1216066&checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
+    // LEMON SQUEEZY CONFIG - LIVE MODE
+    // Monthly: Product 68c7d257-06f7-4bee-9123-f8fc30c6b172, Variant 1240740
+    // Annual: Product 97f79ab4-6c88-4797-8fcf-fae15e796fae, Variant 1240749
+    const monthlyUrl = `https://opusmode.lemonsqueezy.com/checkout/buy/68c7d257-06f7-4bee-9123-f8fc30c6b172?enabled=1240740&checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
+    const annualUrl = `https://opusmode.lemonsqueezy.com/checkout/buy/97f79ab4-6c88-4797-8fcf-fae15e796fae?enabled=1240749&checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
 
     const handleSubscribe = (plan: 'monthly' | 'annual') => {
         if (!profile?.id) {

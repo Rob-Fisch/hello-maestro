@@ -6,20 +6,14 @@
 
 ## 🔥 High Priority (Store Launch)
 
-- [ ] **Admin Gift Pro Panel** — Grant Pro status by email, no checkout required
-  - Admin-only UI in Settings (Rob's user ID only)
-  - Store granted emails in `pro_grants` table
-  - Check on login: if email in grants → set isPremium
-  - ~1-2 hours effort
-
-- [ ] **Upgrade Flow Playwright Test** — `upgrade-flow.spec.ts`
-  - Verify checkout URLs open correctly with user_id
+- [x] **Upgrade Flow Playwright Test** — `upgrade-flow.spec.ts` (Build 67)
+  - Verifies checkout URLs open correctly with user_id
 
 ---
 
 ## Mobile / PWA
 
-- [ ] **PWA Install Instructions** — Add a "How to Install" screen or Help section for first-time web visitors explaining how to install the PWA.
+- [ ] **PWA Install Instructions** — Add to Help/FAQ section for first-time web visitors explaining how to install the PWA.
 
 ---
 
@@ -48,7 +42,7 @@
 
 ## ✅ Completed
 
-- [x] **Sample Data Seeding** — Seed new accounts with Arban blocks, jazz standards, sample gig, contacts (Build TBD)
+- [x] **Sample Data Seeding** — Manual Load/Clear controls + PDF preview/export (Build 67)
 - [x] **Lemon Squeezy Integration** — Webhook + checkout URLs (Build 43)
 - [x] **Two Islands Sync Strategy** — Platform-based sync for Free tier
 - [x] **Feature Discovery Carousel** — "Did You Know?" with persistent rotation (Build 65)

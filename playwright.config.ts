@@ -67,7 +67,7 @@ export default defineConfig({
                 storageState: '.auth/free-user.json',
             },
             dependencies: ['setup'],
-            testMatch: /tier-features\.spec\.ts/,
+            testMatch: /(tier-features|upgrade-flow)\.spec\.ts/,
         },
     ],
 
