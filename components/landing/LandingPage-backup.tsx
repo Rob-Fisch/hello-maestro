@@ -202,23 +202,27 @@ export default function LandingPage() {
 
                     {/* Two-column middle section */}
                     <View className="flex-col md:flex-row gap-8 mb-12">
-                        {/* Left column - Performances */}
-                        <View className="flex-1">
-                            <View className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-6 h-full">
+                        {/* Left column */}
+                        <View className="flex-1 gap-8">
+                            <View className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-6">
                                 <Text className="text-xl font-bold text-white mb-3">For your performances</Text>
                                 <Text className="text-slate-400 leading-relaxed">
                                     Store your entire repertoire of songs with lyrics, charts, and notes. Attach links to YouTube, Spotify, or any reference recordings so your band knows exactly what version you're playing. Create set lists you can reuse across gigs or customize for specific shows. Keep all your contacts in one place — musicians, venues, managers — and assign players to each gig with a tap. When it's time to share, send your band a page with load-in times, venue directions, and the full set list. Send fans a promo page with event details and a tip jar.
                                 </Text>
                             </View>
-                        </View>
 
-                        {/* Right column - Rehearsal Prep & Practice */}
-                        <View className="flex-1">
-                            <View className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-6 h-full">
-                                <Text className="text-xl font-bold text-white mb-3">For rehearsal prep & practice</Text>
-                                <Text className="text-slate-400 leading-relaxed mb-4">
+                            <View className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-6">
+                                <Text className="text-xl font-bold text-white mb-3">For rehearsal prep</Text>
+                                <Text className="text-slate-400 leading-relaxed">
                                     Share reference materials with your band before you even get in the room. Everyone can access the same charts, links, and notes — so you spend less time explaining and more time playing.
                                 </Text>
+                            </View>
+                        </View>
+
+                        {/* Right column */}
+                        <View className="flex-1">
+                            <View className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-6 h-full">
+                                <Text className="text-xl font-bold text-white mb-3">For your practice</Text>
                                 <Text className="text-slate-400 leading-relaxed">
                                     Build a library of exercises, scales, excerpts, or anything you're working on. Organize them into routines you can run through daily or weekly. Log each session with a rating and notes, then watch your progress accumulate over time with built-in analytics.
                                 </Text>
@@ -276,17 +280,6 @@ export default function LandingPage() {
                             </View>
                         ))}
                     </View>
-                </View>
-
-                {/* Final CTA */}
-                <View className="px-6 mb-20 items-center">
-                    <TouchableOpacity
-                        onPress={() => router.push('/auth?mode=signup')}
-                        className="bg-indigo-600 px-10 py-5 rounded-full shadow-lg shadow-indigo-600/40"
-                    >
-                        <Text className="text-white text-xl font-bold">Start Free Now</Text>
-                    </TouchableOpacity>
-                    <Text className="text-slate-500 text-sm mt-4">No credit card required</Text>
                 </View>
 
                 {/* Footer */}
