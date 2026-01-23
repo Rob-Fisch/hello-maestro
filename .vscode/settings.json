@@ -3,5 +3,23 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
-  }
+  },
+  "sqltools.connections": [
+    {
+      "pgOptions": {
+        "ssl": {
+          "rejectUnauthorized": false
+        }
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "aws-0-us-west-2.pooler.supabase.com",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "OpusMode Supabase",
+      "database": "postgres",
+      "username": "postgres.iwobmkglhkuzwouheviu",
+      "password": "dobdow-pemnax-8tadfE"
+    }
+  ]
 }

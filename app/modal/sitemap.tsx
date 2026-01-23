@@ -30,7 +30,6 @@ export default function SiteMapScreen() {
             color: "#a78bfa",
             items: [
                 { label: "Practice Routines", path: "/studio", icon: "layers-outline", desc: "Build custom practice sessions", tier: "free" },
-                { label: "Setlist Builder", path: "/setlists", icon: "list-outline", desc: "Organize songs for performances", tier: "free" },
             ]
         },
         {
@@ -40,6 +39,7 @@ export default function SiteMapScreen() {
             color: "#f472b6",
             items: [
                 { label: "Gig Calendar", path: "/events", icon: "calendar-outline", desc: "Schedule and manage events", tier: "free" },
+                { label: "Setlist Builder", path: "/setlists", icon: "list-outline", desc: "Organize songs for performances", tier: "free" },
                 { label: "Event Details", path: "/events", icon: "information-circle-outline", desc: "Logistics, roster, and setlists", tier: "free" },
                 { label: "Performance Promo", path: "/events", icon: "share-social-outline", desc: "Share public event pages with fans", tier: "free" },
                 { label: "Performer Page", path: "/events", icon: "people-outline", desc: "Share logistics with ensemble members", tier: "free" },

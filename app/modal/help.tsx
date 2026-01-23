@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Image } from 'expo-image';
+import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { LayoutAnimation, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -78,6 +79,7 @@ export default function HelpScreen() {
 
     return (
         <View className="flex-1 bg-background">
+            <Stack.Screen options={{ headerShown: false }} />
             {/* Header */}
             <View className="px-6 pt-6 pb-4 border-b border-slate-800 flex-row items-center justify-between">
                 <View>
@@ -112,123 +114,162 @@ export default function HelpScreen() {
                 </TouchableOpacity>
 
                 {/* ============================================ */}
-                {/* THE STAGE - Gig Management */}
+                {/* WORKFLOWS - How Things Connect */}
                 {/* ============================================ */}
-                <SectionHeader title="The Stage" icon="mic" color="#a855f7" />
+                <SectionHeader title="Workflows" icon="git-branch-outline" color="#f472b6" />
 
-                <AccordionItem title="Song Library" icon="musical-note-outline">
-                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
-                        Build your complete repertoire database with charts, lyrics, and notes for every song you know.
-                    </Text>
-                    <Step number={1} title="Open Song Library" description="Navigate to The Stage → Building Blocks → Song Library." />
-                    <Step number={2} title="Add New Song" description="Tap the '+' button to create a new song entry." />
-                    <Step number={3} title="Enter Song Details" description="Add title, artist, key, and any notes. Optionally attach PDF charts or lyrics." />
-                    <Step number={4} title="Save to Library" description="Tap 'Save'. Your song is now in your library and available for set lists." />
-                </AccordionItem>
-
-                <AccordionItem title="Set Lists" icon="list-outline">
-                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
-                        Create reusable set list templates and customize them for specific gigs.
-                    </Text>
-                    <Step number={1} title="Go to Set Lists" description="Navigate to The Stage → Building Blocks → Set List Templates." />
-                    <Step number={2} title="Create Master Set List" description="Tap '+' to create a template (e.g., 'Wedding Gig', 'Jazz Standards')." />
-                    <Step number={3} title="Add Songs from Library" description="Select songs from your Song Library. Arrange them in performance order." />
-                    <Step number={4} title="Fork for Gigs" description="When creating a gig, fork (copy) a template and customize it for that specific performance." />
-                </AccordionItem>
-
-                <AccordionItem title="Venue Management" icon="business-outline">
-                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
-                        Track venues and build relationships with venue managers using the contact system.
-                    </Text>
-                    <Step number={1} title="Add Venue as Contact" description="In Contacts, add a new entry with role 'Venue Manager'. Include venue name and details." />
-                    <Step number={2} title="Fill in Venue Details" description="Add address, phone, email, and notes about the space (capacity, equipment, etc.)." />
-                    <Step number={3} title="Log Interactions" description="Track your relationship: log calls, emails, meetings, and past gigs." />
-                    <Step number={4} title="Link to Events" description="When creating a gig, select this venue to auto-fill location details." />
-                </AccordionItem>
-
-                <AccordionItem title="Contact Management Icons" icon="people-outline">
-                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
-                        Managing your session personnel is easy with these tools in the Event Editor:
-                    </Text>
-                    <IconHelp icon="add-circle-outline" label="Add Slot" description="Create a new empty role (e.g. 'Drums', 'Bass') for your session." />
-                    <IconHelp icon="text-outline" label="Edit Role" description="Tap any role name to rename it inline." />
-                    <IconHelp icon="swap-horizontal-outline" label="Change Musician" description="Swap an assigned musician for someone else." />
-                    <IconHelp icon="mail-outline" label="Invite via SMS" description="Send an invitation to the musician." color="#d97706" bgColor="#fffbeb" />
-                    <IconHelp icon="checkmark" label="Confirm Assignment" description="Manually confirm once they've accepted." color="#16a34a" bgColor="#f0fdf4" />
-                    <IconHelp icon="trash-outline" label="Delete Slot" description="Remove the role entirely." color="#ef4444" bgColor="#fef2f2" />
-                    <IconHelp icon="person-remove-outline" label="Remove Person" description="Clear musician but keep the slot open." color="#4b5563" bgColor="#f3f4f6" />
-                </AccordionItem>
-
-                <AccordionItem title="Performance Promo vs Performer Page" icon="share-social-outline">
-                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
-                        Two ways to share event information—one for fans, one for your ensemble.
+                <View className="mb-2">
+                    <Text className="text-slate-300 text-sm leading-relaxed mb-4">
+                        OpusMode has two main workflows. Each diagram shows how the modules connect.
                     </Text>
 
-                    <View className="mb-6 bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-4">
-                        <View className="flex-row items-center mb-3">
-                            <Ionicons name="share-social" size={20} color="#818cf8" style={{ marginRight: 8 }} />
-                            <Text className="text-base font-black text-white">Performance Promo</Text>
+                    {/* Gig Workflow */}
+                    <View className="mb-4">
+                        <View className="flex-row items-center mb-2 px-1">
+                            <Ionicons name="flash-outline" size={16} color="#f472b6" style={{ marginRight: 6 }} />
+                            <Text className="text-xs font-black uppercase tracking-widest text-pink-400">The Stage</Text>
                         </View>
-                        <Text className="text-slate-300 text-sm leading-relaxed mb-2">
-                            <Text className="font-bold">For Fans:</Text> Public event page. No login required.
-                        </Text>
-                        <Text className="text-slate-400 text-xs leading-relaxed">
-                            • Displays setlist, artist bio, event details{'\n'}
-                            • Includes tip jar and mailing list signup
-                        </Text>
+                        <View className="bg-slate-800/50 rounded-2xl overflow-hidden border border-slate-700">
+                            <Image
+                                source={require('@/assets/images/gig_workflow.png')}
+                                style={{ width: '100%', height: 280 }}
+                                resizeMode="contain"
+                            />
+                        </View>
                     </View>
 
-                    <View className="bg-emerald-900/20 border border-emerald-500/30 rounded-2xl p-4">
-                        <View className="flex-row items-center mb-3">
-                            <Ionicons name="people" size={20} color="#10b981" style={{ marginRight: 8 }} />
-                            <Text className="text-base font-black text-white">Performer Page</Text>
+                    <AccordionItem title="Step-by-Step Detailed Instructions" icon="book-outline">
+                        <AccordionItem title="Song Library" icon="musical-note-outline">
+                            <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                                Build your complete repertoire database with charts, lyrics, and notes for every song you know.
+                            </Text>
+                            <Step number={1} title="Open Song Library" description="Navigate to The Stage → Building Blocks → Song Library." />
+                            <Step number={2} title="Add New Song" description="Tap the '+' button to create a new song entry." />
+                            <Step number={3} title="Enter Song Details" description="Add title, artist, key, and any notes. Optionally attach PDF charts or lyrics." />
+                            <Step number={4} title="Save to Library" description="Tap 'Save'. Your song is now in your library and available for set lists." />
+                        </AccordionItem>
+
+                        <AccordionItem title="Set Lists" icon="list-outline">
+                            <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                                Create reusable set list templates and customize them for specific gigs.
+                            </Text>
+                            <Step number={1} title="Go to Set Lists" description="Navigate to The Stage → Building Blocks → Set List Templates." />
+                            <Step number={2} title="Create Master Set List" description="Tap '+' to create a template (e.g., 'Wedding Gig', 'Jazz Standards')." />
+                            <Step number={3} title="Add Songs from Library" description="Select songs from your Song Library. Arrange them in performance order." />
+                            <Step number={4} title="Fork for Gigs" description="When creating a gig, fork (copy) a template and customize it for that specific performance." />
+                        </AccordionItem>
+
+                        <AccordionItem title="Venue Management" icon="business-outline">
+                            <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                                Track venues and build relationships with venue managers using the contact system.
+                            </Text>
+                            <Step number={1} title="Add Venue as Contact" description="In Contacts, add a new entry with role 'Venue Manager'. Include venue name and details." />
+                            <Step number={2} title="Fill in Venue Details" description="Add address, phone, email, and notes about the space (capacity, equipment, etc.)." />
+                            <Step number={3} title="Log Interactions" description="Track your relationship: log calls, emails, meetings, and past gigs." />
+                            <Step number={4} title="Link to Events" description="When creating a gig, select this venue to auto-fill location details." />
+                        </AccordionItem>
+
+                        <AccordionItem title="Adding Musicians to Gigs" icon="people-outline">
+                            <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                                Build your band roster for each performance. Contacts must already exist in your roster.
+                            </Text>
+                            <IconHelp icon="add-circle-outline" label="Add Slot" description="Create a new empty role (e.g. 'Drums', 'Bass') for your session." />
+                            <IconHelp icon="text-outline" label="Edit Role" description="Tap any role name to rename it inline." />
+                            <IconHelp icon="swap-horizontal-outline" label="Change Musician" description="Swap an assigned musician for someone else." />
+                            <IconHelp icon="mail-outline" label="Invite via SMS" description="Send an invitation to the musician." color="#d97706" bgColor="#fffbeb" />
+                            <IconHelp icon="checkmark" label="Confirm Assignment" description="Manually confirm once they've accepted." color="#16a34a" bgColor="#f0fdf4" />
+                            <IconHelp icon="trash-outline" label="Delete Slot" description="Remove the role entirely." color="#ef4444" bgColor="#fef2f2" />
+                            <IconHelp icon="person-remove-outline" label="Remove Person" description="Clear musician but keep the slot open." color="#4b5563" bgColor="#f3f4f6" />
+                        </AccordionItem>
+
+                        <AccordionItem title="Performance Promo vs Performer Page" icon="share-social-outline">
+                            <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                                Two ways to share event information—one for fans, one for your ensemble.
+                            </Text>
+
+                            <View className="mb-6 bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-4">
+                                <View className="flex-row items-center mb-3">
+                                    <Ionicons name="share-social" size={20} color="#818cf8" style={{ marginRight: 8 }} />
+                                    <Text className="text-base font-black text-white">Performance Promo</Text>
+                                </View>
+                                <Text className="text-slate-300 text-sm leading-relaxed mb-2">
+                                    <Text className="font-bold">For Fans:</Text> Public event page. No login required.
+                                </Text>
+                                <Text className="text-slate-400 text-xs leading-relaxed">
+                                    • Displays setlist, artist bio, event details{'\n'}
+                                    • Includes tip jar and mailing list signup
+                                </Text>
+                            </View>
+
+                            <View className="bg-emerald-900/20 border border-emerald-500/30 rounded-2xl p-4">
+                                <View className="flex-row items-center mb-3">
+                                    <Ionicons name="people" size={20} color="#10b981" style={{ marginRight: 8 }} />
+                                    <Text className="text-base font-black text-white">Performer Page</Text>
+                                </View>
+                                <Text className="text-slate-300 text-sm leading-relaxed mb-2">
+                                    <Text className="font-bold">For Band:</Text> Share logistics. Requires free OpusMode account.
+                                </Text>
+                                <Text className="text-slate-400 text-xs leading-relaxed">
+                                    • Load-in/soundcheck times, full setlist{'\n'}
+                                    • Venue address with map link
+                                </Text>
+                            </View>
+                        </AccordionItem>
+                    </AccordionItem>
+
+                    {/* Practice Workflow */}
+                    <View>
+                        <View className="flex-row items-center mb-2 px-1">
+                            <Ionicons name="headset-outline" size={16} color="#a78bfa" style={{ marginRight: 6 }} />
+                            <Text className="text-xs font-black uppercase tracking-widest text-violet-400">The Studio</Text>
                         </View>
-                        <Text className="text-slate-300 text-sm leading-relaxed mb-2">
-                            <Text className="font-bold">For Band:</Text> Share logistics. Requires free OpusMode account.
-                        </Text>
-                        <Text className="text-slate-400 text-xs leading-relaxed">
-                            • Load-in/soundcheck times, full setlist{'\n'}
-                            • Venue address with map link
-                        </Text>
+                        <View className="bg-slate-800/50 rounded-2xl overflow-hidden border border-slate-700">
+                            <Image
+                                source={require('@/assets/images/practice_workflow.png')}
+                                style={{ width: '100%', height: 280 }}
+                                resizeMode="contain"
+                            />
+                        </View>
                     </View>
-                </AccordionItem>
 
-                {/* ============================================ */}
-                {/* THE STUDIO - Practice */}
-                {/* ============================================ */}
-                <SectionHeader title="The Studio" icon="layers" color="#06b6d4" />
+                    <View className="mt-3">
+                        <AccordionItem title="Step-by-Step Detailed Instructions" icon="book-outline">
+                            <AccordionItem title="Add Practice Activity" icon="musical-notes-outline">
+                                <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                                    Log your practice sessions in The Studio to track your progress over time.
+                                </Text>
+                                <Step number={1} title="Open The Studio" description="From Home, tap 'The Studio' card." />
+                                <Step number={2} title="Go to Level 1: Library" description="This is where you store raw practice materials." />
+                                <Step number={3} title="Create a Practice Artifact" description="Tap '+' to create a scale, exercise, excerpt, or song." />
+                                <Step number={4} title="Add Details" description="Give it a name, add notes, and optionally attach a PDF or image." />
+                            </AccordionItem>
 
-                <AccordionItem title="Add Practice Activity" icon="musical-notes-outline" defaultExpanded={true}>
-                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
-                        Log your practice sessions in The Studio to track your progress over time.
-                    </Text>
-                    <Step number={1} title="Open The Studio" description="From Home, tap 'The Studio' card." />
-                    <Step number={2} title="Go to Level 1: Library" description="This is where you store raw practice materials." />
-                    <Step number={3} title="Create a Practice Artifact" description="Tap '+' to create a scale, exercise, excerpt, or song." />
-                    <Step number={4} title="Add Details" description="Give it a name, add notes, and optionally attach a PDF or image." />
-                </AccordionItem>
+                            <AccordionItem title="Create a Collection (Routine)" icon="albums-outline">
+                                <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                                    Assemble multiple practice artifacts into a complete routine.
+                                </Text>
+                                <Step number={0} title="Ensure Activities Exist" description="Make sure you have practice artifacts in Level 1 first." />
+                                <Step number={1} title="Go to Level 2: Collections" description="In The Studio, navigate to the Collections section." />
+                                <Step number={2} title="Create New Collection" description="Tap '+' to start a new routine." />
+                                <Step number={3} title="Add Artifacts" description="Select items from your library. Arrange in order." />
+                                <Step number={4} title="Name & Save" description="Give it a name like 'Morning Warmup' and save." />
+                            </AccordionItem>
 
-                <AccordionItem title="Create a Collection (Routine)" icon="albums-outline">
-                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
-                        Assemble multiple practice artifacts into a complete routine.
-                    </Text>
-                    <Step number={0} title="Ensure Activities Exist" description="Make sure you have practice artifacts in Level 1 first." />
-                    <Step number={1} title="Go to Level 2: Collections" description="In The Studio, navigate to the Collections section." />
-                    <Step number={2} title="Create New Collection" description="Tap '+' to start a new routine." />
-                    <Step number={3} title="Add Artifacts" description="Select items from your library. Arrange in order." />
-                    <Step number={4} title="Name & Save" description="Give it a name like 'Morning Warmup' and save." />
-                </AccordionItem>
+                            <AccordionItem title="Log Practice Sessions" icon="checkmark-done-outline">
+                                <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
+                                    Track your practice to stay motivated and see progress.
+                                </Text>
+                                <Step number={1} title="Open a Collection" description="In The Studio, tap on a Collection to start." />
+                                <Step number={2} title="Check Off Completed Items" description="Tap checkboxes as you practice each item." />
+                                <Step number={3} title="Log Your Session" description="When done, tap 'Log Session' to save progress." />
+                                <Step number={4} title="Add Notes & Rating" description="Rate your session and add notes." />
+                                <Step number={5} title="View History" description="Check Analytics to review past sessions." />
+                            </AccordionItem>
+                        </AccordionItem>
+                    </View>
+                </View>
 
-                <AccordionItem title="Log Practice Sessions" icon="checkmark-done-outline">
-                    <Text className="text-slate-200 mb-6 leading-relaxed text-sm">
-                        Track your practice to stay motivated and see progress.
-                    </Text>
-                    <Step number={1} title="Open a Collection" description="In The Studio, tap on a Collection to start." />
-                    <Step number={2} title="Check Off Completed Items" description="Tap checkboxes as you practice each item." />
-                    <Step number={3} title="Log Your Session" description="When done, tap 'Log Session' to save progress." />
-                    <Step number={4} title="Add Notes & Rating" description="Rate your session and add notes." />
-                    <Step number={5} title="View History" description="Check Analytics to review past sessions." />
-                </AccordionItem>
+
 
                 {/* ============================================ */}
                 {/* THE NAVIGATOR - AI Tools */}

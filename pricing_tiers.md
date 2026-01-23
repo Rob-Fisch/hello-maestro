@@ -14,6 +14,8 @@
 > **Pro+ Tier Note**: Pro+ exists primarily to enforce reasonable storage limits and prevent abuse (e.g., users uploading entire college PDF libraries). Need to qualify "unlimited" claims on website.
 > 
 > **Roster Naming**: "Roster" is a placeholder term. Need better generic label that works for bands, chamber groups, orchestras, freelancers, subs, etc.
+> 
+> **Early Adopter Feedback Form**: [https://forms.gle/7EjgccfTkXNNszVh7](https://forms.gle/7EjgccfTkXNNszVh7)
 
 ### 1. Standard Events (Non-Gigs)
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
@@ -267,18 +269,4 @@ platform TEXT DEFAULT 'web' CHECK (platform IN ('web', 'native'))
 
 ## Post-MVP Backlog
 
-> Features intentionally deferred to streamline MVP. Revisit after launch.
-
-### Venue Management
-- [ ] **Pro Log History Export (CSV)**: Export interaction history with venues to CSV. *(Pro tier)*
-    - Useful for managers who need external reporting or analysis.
-
-### Finance & Business
-- [ ] **Gig Log (Finance Lite)**: Per-gig income tracker with payment status field.
-    - Fields: `Guaranteed Pay`, `Tips`, `Status` (Unpaid, Paid, Deposit Received)
-    - *Note: Core finance module was removed to simplify gig workflow. May add back.*
-
-### Gear & Assets
-- [ ] **Gear Vault Reimagined**: Pivot from inventory to financial asset tracking.
-    - Track purchase dates, prices, depreciation, insurance documentation.
-    - Goal: Help musicians at tax time and with insurance claims.
+> **Moved to [`docs/BACKLOG.md`](file:///Users/robfisch/Documents/OpusMode/docs/BACKLOG.md)** — Single source of truth for all actionable work items.

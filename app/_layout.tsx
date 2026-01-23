@@ -266,6 +266,18 @@ export default function RootLayout() {
             options={{ presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen
+            name="modal/about"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
+          <Stack.Screen
+            name="modal/privacy"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
+          <Stack.Screen
+            name="modal/terms"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
+          <Stack.Screen
             name="modal/onboarding-password"
             options={{ presentation: 'fullScreenModal', headerShown: false }}
           />

@@ -56,12 +56,7 @@ export default function EventDashboard() {
     const pendingCount = slots.filter(s => s.status === 'invited').length;
     const openCount = slots.filter(s => s.status === 'open').length;
 
-    // Finance Stats
-    const totalIncome = parseFloat(event.totalFee || '0') || 0;
-    const musicianRate = parseFloat(event.musicianFee || '0') || 0;
-    const totalMusicianCost = slots.length * musicianRate;
-    // Note: We'd need actual transaction integration here for "Realized", but for now usage projected
-    const projectedProfit = totalIncome - totalMusicianCost;
+
 
     const handleDelete = () => {
         if (Platform.OS === 'web') {
@@ -202,7 +197,7 @@ export default function EventDashboard() {
                 <View className="flex-row flex-wrap justify-between gap-4 mb-8">
 
                     {/* Roster Widget */}
-                    <View className="w-[47%] bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+                    <View className="w-full bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
                         <View className="w-10 h-10 bg-indigo-50 rounded-full items-center justify-center mb-3">
                             <Ionicons name="people" size={20} color="#4f46e5" />
                         </View>
@@ -214,18 +209,6 @@ export default function EventDashboard() {
                         <Text className="text-xs text-slate-400 mt-1">
                             {pendingCount > 0 ? `${pendingCount} Invitations Pending` : 'All Clear'}
                         </Text>
-                    </View>
-
-                    {/* Finance Widget */}
-                    <View className="w-[47%] bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-                        <View className={`w-10 h-10 rounded-full items-center justify-center mb-3 ${projectedProfit >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                            <Ionicons name="cash" size={20} color={projectedProfit >= 0 ? '#10b981' : '#ef4444'} />
-                        </View>
-                        <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Net Profit</Text>
-                        <Text className={`text-2xl font-black ${projectedProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                            ${projectedProfit.toLocaleString()}
-                        </Text>
-                        <Text className="text-xs text-slate-400 mt-1">Projected</Text>
                     </View>
                 </View>
 

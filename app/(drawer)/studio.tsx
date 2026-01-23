@@ -46,7 +46,7 @@ export default function StudioScreen() {
         },
         {
             title: 'Level 2: Collections',
-            subtitle: 'Routines & Setlists',
+            subtitle: 'Practice Routines',
             description: 'Combine your Level 1 activities into practice routines, setlists, and performance flows. Design your daily practice.',
             icon: 'layers-outline',
             path: '/routines',

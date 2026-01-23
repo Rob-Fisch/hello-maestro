@@ -1,15 +1,13 @@
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FeatureDiscoveryCards } from '@/components/FeatureDiscoveryCards';
-import { hasSampleData, seedSampleData } from '@/lib/seeder';
 import { useTheme } from '@/lib/theme';
 import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRouter } from 'expo-router';
-import { useState } from 'react';
 
 /**
  * Home2 - Two Hubs Navigation Design
@@ -26,17 +24,10 @@ export default function Home2Screen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
-    // Dismiss state for new user prompt
-    const [promptDismissed, setPromptDismissed] = useState(false);
-
     // Calculate stats for each hub
     const today = new Date();
     const thisMonth = today.getMonth();
     const thisYear = today.getFullYear();
-
-    // Show sample data prompt if: app is empty (no gigs, no routines), no sample data, not dismissed
-    const appIsEmpty = (events || []).length === 0 && (routines || []).length === 0;
-    const showSampleDataPrompt = appIsEmpty && !hasSampleData() && !promptDismissed;
 
 
     // Stage stats
@@ -102,36 +93,6 @@ export default function Home2Screen() {
                 <Text className="text-3xl md:text-4xl font-black tracking-tighter leading-tight text-white mb-8">
                     {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
                 </Text>
-
-                {/* NEW USER SAMPLE DATA PROMPT */}
-                {showSampleDataPrompt && (
-                    <View className="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-500/30 rounded-3xl p-5 mb-6">
-                        <TouchableOpacity
-                            onPress={() => setPromptDismissed(true)}
-                            className="absolute top-3 right-3 p-1 z-10"
-                        >
-                            <Ionicons name="close" size={20} color="#94a3b8" />
-                        </TouchableOpacity>
-                        <View className="items-center mb-3">
-                            <View className="w-10 h-10 bg-indigo-500/20 rounded-xl items-center justify-center mb-2">
-                                <Ionicons name="sparkles" size={20} color="#818cf8" />
-                            </View>
-                            <Text className="text-white font-bold text-base">Explore OpusMode</Text>
-                        </View>
-                        <Text className="text-slate-300 text-sm mb-4 leading-relaxed">
-                            Load sample data to explore gigs, songs, contacts, and more!
-                        </Text>
-                        <TouchableOpacity
-                            onPress={async () => {
-                                await seedSampleData();
-                                Alert.alert('Done! 🎵', 'Sample data loaded. Explore the Studio, Schedule, and Contacts!');
-                            }}
-                            className="bg-indigo-500 py-3 rounded-2xl items-center"
-                        >
-                            <Text className="text-white font-bold">Load Sample Data</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
 
                 {/* TWO HUBS */}
                 <View className="flex-row gap-4 mb-8">
