@@ -91,9 +91,21 @@
 | 4 | **Tour Stop** | No (Locked) | Yes | Yes | Fill awkward gaps in your tour schedule with smart routing suggestions. | Fill schedule gaps. | Pro-only | AI-powered routing |
 | 5 | **Promotion** | No (Locked) | Yes | Yes | Build a hit-list of local radio stations and press outlets. | Find press/radio. | Pro-only | AI-powered search |
 | 6 | **Pro Shops** | Yes (2 uses/day) | Yes | Yes | Locate the best luthiers and repair techs in town. | Find repair techs. | Free tier (2/day), Pro unlimited | AI-powered search |
+| 7 | **Festival Scout** | No (Locked) | Yes | Yes | Find music festivals, fairs, and booking opportunities. Includes attendance sizes, submission windows, and strategic booking tips. | Find festivals & fairs. | Pro-only. Killer prompt with detailed output (19-21 leads per query) | AI-powered search |
 
 > [!NOTE]
 > **Navigator Strategy**: The "Student" mission is free for all users as a demo to show the power of The Navigator. Once users see the value, they'll upgrade for the professional missions. No API integration for MVP - users copy/paste the generated prompts into ChatGPT/Claude.
+
+> [!IMPORTANT]
+> **Future: In-App AI Integration** (Post-MVP)
+> 
+> **Plan:** Run Navigator prompts directly through AI API (Gemini Flash or GPT-4o-mini) and display results inside OpusMode. Results saved automatically for future reference.
+> 
+> **Monthly Query Limits:**
+> - **Pro:** 30 queries/month (~1/day, plenty for most users)
+> - **Pro+:** 100 queries/month (power users, effectively unlimited)
+> 
+> **Cost Analysis:** At ~$0.002/query (Gemini Flash), even a power user at 100 queries costs < $0.20/month. Soft caps are insurance against abuse, not a revenue driver.
 
 ### 8. Venue CRM
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |

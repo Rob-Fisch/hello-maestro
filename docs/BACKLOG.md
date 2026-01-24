@@ -65,7 +65,16 @@
 - [ ] **Copy Events** — Duplicate an existing event to quickly create a new one with same details (venue, personnel, set list, etc.). *Preferred over recurring events to avoid "edit one vs all" confusion. May revisit recurring events in future.*
 - [ ] **Venue Assignment to Gigs** — Select a venue from Contacts (role='venue_manager') to auto-fill gig location, similar to how musicians fill personnel slots.
 - [ ] **Venue Map Link Field** — Add `mapLink` field to venue contacts. When venue is attached to a gig, the map link auto-populates the gig's location link.
-- [ ] **Navigator API Hybrid** — Free tier: copy/paste prompts (visible, demo value). Pro tier: in-app API results (prompts hidden, seamless UX). Protects "secret sauce" while adding real value for paying subscribers. Use GPT-4o-mini or Gemini Flash (~$0.002/query).
+- [ ] **Navigator In-App AI Integration** — Run Navigator prompts directly through AI API and display results inside OpusMode. *Pro/Pro+.*
+  - **Problem**: Current copy/paste workflow adds friction and users can't save results
+  - **Solution**: In-app AI execution with saved results
+  - **API Choice**: Gemini Flash (~$0.0013/query) or GPT-4o-mini (~$0.0025/query) — both economically viable
+  - **Monthly Query Limits**:
+    - Pro: 30 queries/month (~1/day)
+    - Pro+: 100 queries/month (effectively unlimited for normal use)
+  - **Saved Results**: Users can view past queries and results in a "Research History" section
+  - **Cost Analysis**: Even 100 queries/month costs < $0.25. Limits are insurance against abuse, not revenue.
+  - **LOE**: ~5-7 days + ongoing API costs
 
 ---
 
