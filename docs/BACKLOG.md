@@ -6,7 +6,7 @@
 
 ## ⏭️ Next Session
 
-- [ ] **PWA Install Instructions** — Add to Help/FAQ section for first-time web visitors explaining how to install the PWA.
+*No items currently scheduled for next session.*
 
 ---
 
@@ -30,6 +30,38 @@
 
 ## Feature Enhancements
 
+- [ ] **Chord Chart Builder** — Quick cheat sheet generator for gigging musicians who don't use formal notation. *Free tier.*
+  - **Problem**: iReal Pro is overkill; Notes apps are too crude. Musicians need simple chord charts with bar lines and form structure.
+  - **Entry Philosophy**: Click-first, minimal typing. Tap cells on a grid → pick chord from palette.
+  - **Templates**: 12-bar blues, 8-bar verse, AABA, custom. One-tap to start.
+  - **Features**: Section labels (`[Verse]`, `[Chorus]`), repeat signs, key/tempo header, transpose function
+  - **Optional lyrics**: Interleave lyric lines under chord rows for vocalist use
+  - **Output**: Scrollable view, print-ready PDF, share link
+  - **Pairs with**: Song Library (attach chart to song), Setlist (view charts in set order)
+  - **⚠️ Wireframe first**: Create mockups of data entry layouts before implementation. Explore grid vs palette vs hybrid approaches.
+  - **LOE**: ~5-8 days
+- [ ] **Lyrics Storage / Teleprompter** — Scrollable lyrics view for vocalists. *Free tier.*
+  - **Storage**: Add `lyrics` text field to Song records
+  - **Display**: Dedicated "Lyric View" mode — large text, dark mode, scrollable
+  - **Performance Mode**: Minimal UI, swipe through setlist order
+  - **Future**: Auto-scroll at tempo, chord annotations inline `[Am] lyrics [G] here`
+  - **Pairs with**: Chord Chart Builder (lyrics optional under chord lines)
+  - **LOE**: ~2-3 days
+- [ ] **Tempo Trainer (Smart Metronome)** — Practice tool in The Studio for progressive tempo building. *Free tier.*
+  - **Parameters**: Starting tempo, target tempo, bars per rep, time signature, increase amount (+bpm), increase frequency (every Nth rep)
+  - **Example**: 32 bars in 4/4 at 60bpm → +5bpm each rep until 120bpm (13 reps total)
+  - **Tech**: Web Audio API (`AudioContext`), works in PWA
+  - **UI**: Beat indicator, rep/bar progress, live tempo display, settings panel
+  - **Future**: Decrease mode, accent patterns, audio cue on tempo change, link to Practice Artifacts, presets
+  - **LOE**: ~4-6 days
+- [ ] **In-App Practice Mode (PDF Viewer)** — View routines and library artifacts on screen without export. *Free tier.*
+  - **Problem**: Currently must export PDF → find in Downloads → open externally. Too much friction.
+  - **Solution**: Swipeable card view through routine items. Render PDFs inline, show text/narrative styled.
+  - **Tech**: `react-pdf` or PDF.js for in-app PDF rendering (PWA compatible)
+  - **Features**: Swipe through items, pinch-zoom PDFs, "Mark Complete" for practice tracking
+  - **Reusable**: PDF viewer component usable for Song attachments, Charts, etc.
+  - **⚠️ Prototype first**: Build minimal PDF viewer spike before full implementation to validate rendering performance on mobile Safari.
+  - **LOE**: ~3-4 days (after prototype validation)
 - [ ] **Copy Events** — Duplicate an existing event to quickly create a new one with same details (venue, personnel, set list, etc.). *Preferred over recurring events to avoid "edit one vs all" confusion. May revisit recurring events in future.*
 - [ ] **Venue Assignment to Gigs** — Select a venue from Contacts (role='venue_manager') to auto-fill gig location, similar to how musicians fill personnel slots.
 - [ ] **Venue Map Link Field** — Add `mapLink` field to venue contacts. When venue is attached to a gig, the map link auto-populates the gig's location link.
@@ -87,6 +119,8 @@
 ## Branding & Polish
 
 - [ ] **Custom SMTP for Auth Emails** — Send auth emails from `noreply@opusmode.net` instead of Supabase Auth.
+- [ ] **Visual Tutorial Library** — Collect annotated screenshots for animated instruction tutorials (PWA install, feature walkthroughs, etc.). Assets saved in artifacts folder. Can be embedded in Help/FAQ, landing page, or marketing.
+  - PWA Install animation created ✓ (`pwa_install_final_*.webp`)
 
 ---
 
@@ -110,6 +144,7 @@
 
 ## ✅ Completed
 
+- [x] **PWA Install Instructions** — Safari + Chrome install steps in Help/FAQ
 - [x] **Upgrade Flow Playwright Test** — `upgrade-flow.spec.ts` (Build 67)
 - [x] **Help/FAQ User Stories** — 11 user stories with prerequisite cross-references (Build 70)
 - [x] **Lemon Squeezy Integration** — Webhook + checkout URLs (Build 43)

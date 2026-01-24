@@ -301,6 +301,19 @@ export default function HelpScreen() {
                 {/* ============================================ */}
                 <SectionHeader title="General" icon="settings" color="#64748b" />
 
+                <AccordionItem title="Install OpusMode (PWA)" icon="download-outline" defaultExpanded={false}>
+                    <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
+                        Add OpusMode to your home screen for the best experience—no app store required. Works on Safari, Chrome, and other browsers.
+                    </Text>
+
+                    <Step number={1} title="Open Your Browser" description="Navigate to opusmode.net" />
+                    <Step number={2} title="Tap Share" description="Tap the Share button (box with arrow)" />
+                    <Step number={3} title="Tap More" description="Tap the ⋯ More menu (3 dots)" />
+                    <Step number={4} title="Add to Home Screen" description="Scroll down → Tap 'Add to Home Screen'" />
+                    <Step number={5} title="Confirm" description="Keep 'Open as Web App' ON → Tap Add" />
+                    <Step number={6} title="Launch!" description="Tap the OpusMode icon on your home screen" />
+                </AccordionItem>
+
                 <AccordionItem title="Sync & Backup" icon="cloud-offline-outline" defaultExpanded={true}>
                     <Text className="text-muted-foreground mb-6 leading-relaxed text-sm">
                         How your data is stored depends on your plan:
