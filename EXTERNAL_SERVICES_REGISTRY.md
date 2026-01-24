@@ -40,14 +40,38 @@ This document tracks all external services, accounts, and infrastructure compone
 
 ### **Lemon Squeezy + Stripe** (Payment Processing)
 *   **Purpose**: Handles Pro/Pro+ subscriptions, checkout, and recurring billing.
-*   **Tier**: Pending approval (as of Jan 2026).
-*   **URL**: [lemonsqueezy.com](https://www.lemonsqueezy.com)
-*   **Pricing**:
-    *   Free: $0 (no credit card required)
-    *   Pro Monthly: $9.99/month
-    *   Pro Annual: $99/year
-    *   Pro+ (future): $19.99/month or $199/year
-*   **Status**: Application submitted, awaiting approval.
+*   **Tier**: Active (approved Jan 2026).
+*   **URL**: [app.lemonsqueezy.com](https://app.lemonsqueezy.com)
+
+#### Products & Variant IDs
+
+| Product | Monthly Variant | Annual Variant | Product UUID |
+|---------|----------------|----------------|--------------|
+| **Pro** | 1240740 | 1240749 | `68c7d257-06f7-4bee-9123-f8fc30c6b172` |
+| **Pro+** | 1247769 | 1247770 | `229c8350-1c1d-46bf-8748-027b75f1337a` |
+
+#### Pricing
+*   Free: $0 (no credit card required)
+*   Pro: $9.99/month or $99/year
+*   Pro+: $19.99/month or $199/year
+
+#### Webhook Configuration
+
+*   **Endpoint**: `https://iwobmkglhkuzwouheviu.supabase.co/functions/v1/payment-webhook`
+*   **Signing Secret**: Stored in Supabase Edge Functions → Secrets as `LEMON_SQUEEZY_WEBHOOK_SECRET`
+*   **Events**: `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_expired`, `subscription_payment_success`
+
+> [!IMPORTANT]
+> **Critical Deployment Note**: The webhook MUST be deployed with `--no-verify-jwt` flag:
+> ```bash
+> npx supabase functions deploy payment-webhook --no-verify-jwt
+> ```
+> Without this flag, Supabase rejects webhooks from Lemon Squeezy with 401 "Missing authorization header".
+
+#### Test Mode Configuration
+*   Test Mode has separate products with different variant IDs
+*   When testing, set `TEST_MODE = true` in `app/modal/upgrade.tsx`
+*   Test Mode and Live Mode webhooks share the same Supabase endpoint and secret
 
 ---
 

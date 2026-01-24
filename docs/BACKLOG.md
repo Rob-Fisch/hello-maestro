@@ -6,7 +6,7 @@
 
 ## ⏭️ Next Session
 
-- [ ] **Pro+ Tier in Lemon Squeezy** — Create Pro+ product/variants in LS to match website pricing ($19.99/month or $199/year). Currently only Pro exists.
+- [x] **Pro+ Tier in Lemon Squeezy** — ✅ Completed 2026-01-24 (Build 73). Products configured in Live Mode, webhook updated, upgrade modal live.
 
 ---
 
@@ -145,6 +145,7 @@
 
 ## ✅ Completed
 
+- [x] **Pro+ Tier Implementation** — Live Mode products, webhook tier mapping, upgrade modal (Build 73)
 - [x] **PWA Install Instructions** — Safari + Chrome install steps in Help/FAQ
 - [x] **Upgrade Flow Playwright Test** — `upgrade-flow.spec.ts` (Build 67)
 - [x] **Help/FAQ User Stories** — 11 user stories with prerequisite cross-references (Build 70)
