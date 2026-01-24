@@ -5,6 +5,39 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 console.log("Lemon Squeezy Webhook Handler Loaded")
 
+// =============================================================================
+// VARIANT ID → TIER MAPPING
+// =============================================================================
+// Update these IDs when copying products from Test Mode to Live Mode!
+//
+// TEST MODE (current):
+//   Pro Monthly: 1216060, Pro Annual: 1216066
+//   Pro+ Monthly: 1247517, Pro+ Annual: 1247518
+//
+// LIVE MODE (update after "Copy to Live Mode"):
+//   Pro Monthly: 1240740, Pro Annual: 1240749
+//   Pro+ Monthly: TBD, Pro+ Annual: TBD
+// =============================================================================
+
+const VARIANT_TO_TIER: Record<number, 'pro' | 'pro_plus'> = {
+    // Test Mode - Pro
+    1216060: 'pro',      // Pro Monthly
+    1216066: 'pro',      // Pro Annual
+    // Test Mode - Pro+
+    1247517: 'pro_plus', // Pro+ Monthly
+    1247518: 'pro_plus', // Pro+ Annual
+    // Live Mode - Pro
+    1240740: 'pro',      // Pro Monthly
+    1240749: 'pro',      // Pro Annual
+    // Live Mode - Pro+
+    1247769: 'pro_plus', // Pro+ Monthly
+    1247770: 'pro_plus', // Pro+ Annual
+}
+
+function getTierFromVariant(variantId: number): 'pro' | 'pro_plus' | null {
+    return VARIANT_TO_TIER[variantId] || null
+}
+
 serve(async (req) => {
     const secret = Deno.env.get('LEMON_SQUEEZY_WEBHOOK_SECRET')
 
@@ -30,13 +63,26 @@ serve(async (req) => {
 
     console.log(`Received event: ${event_name}`)
 
+    // Extract variant_id from the subscription data
+    const variant_id = data.attributes.variant_id
+    console.log(`Variant ID: ${variant_id}`)
+
     // 3. Handle Subscription Events
     if (['subscription_created', 'subscription_updated', 'subscription_payment_success'].includes(event_name)) {
         const user_id = custom_data.user_id
         const status = data.attributes.status // 'active', 'past_due', etc
 
-        if (user_id) {
-            await updatePremiumStatus(user_id, status === 'active')
+        if (user_id && status === 'active') {
+            const tier = getTierFromVariant(variant_id)
+            if (tier) {
+                await updateUserTier(user_id, tier)
+            } else {
+                console.warn(`Unknown variant_id: ${variant_id}, defaulting to 'pro'`)
+                await updateUserTier(user_id, 'pro')
+            }
+        } else if (user_id && status !== 'active') {
+            // Subscription not active (past_due, paused, etc) - downgrade to free
+            await updateUserTier(user_id, 'free')
         }
     }
 
@@ -44,25 +90,28 @@ serve(async (req) => {
     else if (['subscription_cancelled', 'subscription_expired'].includes(event_name)) {
         const user_id = custom_data.user_id
         if (user_id) {
-            await updatePremiumStatus(user_id, false)
+            await updateUserTier(user_id, 'free')
         }
     }
 
     return new Response("Webhook received", { status: 200 })
 })
 
-// Database Helper
-async function updatePremiumStatus(userId: string, isPremium: boolean) {
+// Database Helper - Now stores tier instead of boolean
+async function updateUserTier(userId: string, tier: 'free' | 'pro' | 'pro_plus') {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    console.log(`Updating user ${userId} premium status to: ${isPremium}`)
+    // For backwards compatibility, also set is_premium boolean
+    const is_premium = tier !== 'free'
 
-    // Update the profile directly
+    console.log(`Updating user ${userId} tier to: ${tier} (is_premium: ${is_premium})`)
+
+    // Update the profile with both tier and legacy is_premium flag
     const { error } = await supabase.auth.admin.updateUserById(
         userId,
-        { user_metadata: { is_premium: isPremium } }
+        { user_metadata: { tier, is_premium } }
     )
 
     if (error) {

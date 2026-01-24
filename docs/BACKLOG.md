@@ -6,7 +6,7 @@
 
 ## ⏭️ Next Session
 
-*No items currently scheduled for next session.*
+- [ ] **Pro+ Tier in Lemon Squeezy** — Create Pro+ product/variants in LS to match website pricing ($19.99/month or $199/year). Currently only Pro exists.
 
 ---
 
@@ -91,6 +91,7 @@
   - Soft deletes: 30-day recovery window for deleted transactions (add `deleted_at` column, filter from UI, allow restore).
   - Export reminders: In-app prompts at quarterly/year-end intervals nudging users to export data. *(No email infra required.)*
   - *Note: `createdAt` timestamps exist for audit trail; consider adding `updatedAt` for full change tracking.*
+- [ ] **Pro+ Tier in Lemon Squeezy** — Create Pro+ product/variants in Lemon Squeezy to match website pricing ($19.99/month or $199/year). Currently only Pro exists in LS.
 
 ---
 

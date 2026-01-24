@@ -84,20 +84,62 @@ export default function UpgradeModal() {
         setTimeout(attemptScroll, 500); // Simple delay
     }, [layouts, requestedFeature]);
 
-    // LEMON SQUEEZY CONFIG - LIVE MODE
-    // Monthly: Product 68c7d257-06f7-4bee-9123-f8fc30c6b172, Variant 1240740
-    // Annual: Product 97f79ab4-6c88-4797-8fcf-fae15e796fae, Variant 1240749
-    const monthlyUrl = `https://opusmode.lemonsqueezy.com/checkout/buy/68c7d257-06f7-4bee-9123-f8fc30c6b172?enabled=1240740&checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
-    const annualUrl = `https://opusmode.lemonsqueezy.com/checkout/buy/97f79ab4-6c88-4797-8fcf-fae15e796fae?enabled=1240749&checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
+    // ==========================================================================
+    // LEMON SQUEEZY CHECKOUT URLS
+    // ==========================================================================
+    // URL Format: https://opusmode.lemonsqueezy.com/checkout/buy/[PRODUCT_UUID]?enabled=[VARIANT_ID]
+    //
+    // Toggle TEST_MODE to switch between test and live checkout:
+    const TEST_MODE = false; // Set to true for testing
 
-    const handleSubscribe = (plan: 'monthly' | 'annual') => {
+    // Product UUIDs and Variant IDs by environment
+    const CHECKOUT_CONFIG = TEST_MODE ? {
+        // TEST MODE
+        pro: {
+            productUuid: 'f8536fd3-2968-4b94-8f1b-eb92d4a6a334',
+            monthlyVariant: 1216060,
+            annualVariant: 1216066,
+        },
+        pro_plus: {
+            productUuid: '7c7ceb27-e1aa-4624-a489-5c6dfae727a6',
+            monthlyVariant: 1247517,
+            annualVariant: 1247518,
+        },
+    } : {
+        // LIVE MODE
+        pro: {
+            productUuid: '68c7d257-06f7-4bee-9123-f8fc30c6b172',
+            monthlyVariant: 1240740,
+            annualVariant: 1240749,
+        },
+        pro_plus: {
+            productUuid: '229c8350-1c1d-46bf-8748-027b75f1337a',
+            monthlyVariant: 1247769,
+            annualVariant: 1247770,
+        },
+    };
+
+    const buildCheckoutUrl = (productUuid: string, variantId: number) =>
+        `https://opusmode.lemonsqueezy.com/checkout/buy/${productUuid}?enabled=${variantId}&checkout[custom][user_id]=${profile?.id}&checkout[media]=0`;
+
+    const proMonthlyUrl = buildCheckoutUrl(CHECKOUT_CONFIG.pro.productUuid, CHECKOUT_CONFIG.pro.monthlyVariant);
+    const proAnnualUrl = buildCheckoutUrl(CHECKOUT_CONFIG.pro.productUuid, CHECKOUT_CONFIG.pro.annualVariant);
+    const proPlusMonthlyUrl = buildCheckoutUrl(CHECKOUT_CONFIG.pro_plus.productUuid, CHECKOUT_CONFIG.pro_plus.monthlyVariant);
+    const proPlusAnnualUrl = buildCheckoutUrl(CHECKOUT_CONFIG.pro_plus.productUuid, CHECKOUT_CONFIG.pro_plus.annualVariant);
+
+    const handleSubscribe = (tier: 'pro' | 'pro_plus', period: 'monthly' | 'annual') => {
         if (!profile?.id) {
             Alert.alert("Error", "Please log in to upgrade.");
             return;
         }
 
-        // Open native browser for secure checkout
-        const url = plan === 'monthly' ? monthlyUrl : annualUrl;
+        // Select the correct checkout URL based on tier and period
+        const urls = {
+            pro: { monthly: proMonthlyUrl, annual: proAnnualUrl },
+            pro_plus: { monthly: proPlusMonthlyUrl, annual: proPlusAnnualUrl },
+        };
+
+        const url = urls[tier][period];
         Linking.openURL(url);
     };
 
@@ -196,15 +238,15 @@ export default function UpgradeModal() {
                             </View> */}
                         </View>
 
-                        <TouchableOpacity onPress={() => handleSubscribe('monthly')} activeOpacity={0.9} className="w-full mb-3">
+                        <TouchableOpacity onPress={() => handleSubscribe('pro', 'monthly')} activeOpacity={0.9} className="w-full mb-3">
                             <View className="w-full py-4 rounded-2xl items-center justify-center shadow-lg shadow-purple-500/20 bg-white">
                                 <Text className="text-black font-black text-lg tracking-tight">START MONTHLY ($9.99/mo)</Text>
                             </View>
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => handleSubscribe('annual')} activeOpacity={0.9} className="w-full mb-4">
+                        <TouchableOpacity onPress={() => handleSubscribe('pro', 'annual')} activeOpacity={0.9} className="w-full mb-4">
                             <View className="w-full py-4 rounded-2xl items-center justify-center border border-white/10 bg-white/5">
-                                <Text className="text-white font-bold text-sm tracking-tight">GET ANNUAL ($99/yr) - SAVE 20%</Text>
+                                <Text className="text-white font-bold text-sm tracking-tight">GET ANNUAL ($99/yr) - 2 MONTHS FREE</Text>
                             </View>
                         </TouchableOpacity>
 
@@ -313,16 +355,28 @@ export default function UpgradeModal() {
                         </View>
                     ))}
                     {/* Pro+ Upsell */}
-                    <View className="mt-8 mx-6 p-4 rounded-xl border border-dashed border-zinc-800 bg-zinc-900/50">
-                        <View className="flex-row items-center justify-between mb-2">
-                            <Text className="text-zinc-500 font-bold text-xs uppercase tracking-widest">Need more space?</Text>
-                            <View className="bg-zinc-800 px-2 py-1 rounded">
-                                <Text className="text-zinc-400 text-[10px] font-bold">PRO+</Text>
+                    <View className="mt-8 mx-6 p-5 rounded-xl border border-amber-500/30 bg-amber-950/30">
+                        <View className="flex-row items-center justify-between mb-3">
+                            <Text className="text-amber-400 font-bold text-sm uppercase tracking-widest">Power User?</Text>
+                            <View className="bg-amber-500/20 px-2 py-1 rounded border border-amber-500/30">
+                                <Text className="text-amber-400 text-[10px] font-bold">PRO+</Text>
                             </View>
                         </View>
-                        <Text className="text-zinc-400 text-xs">
-                            *Power users can upgrade to <Text className="text-white font-bold">Pro+</Text> for <Text className="text-white font-bold">100GB</Text> of secure cloud storage. Available in Settings.
+                        <Text className="text-zinc-300 text-sm mb-4">
+                            Get <Text className="text-white font-bold">20GB</Text> of cloud storage for large libraries, plus priority support.
                         </Text>
+
+                        <TouchableOpacity onPress={() => handleSubscribe('pro_plus', 'monthly')} activeOpacity={0.9} className="w-full mb-2">
+                            <View className="w-full py-3 rounded-xl items-center justify-center border border-amber-500/30 bg-amber-500/10">
+                                <Text className="text-amber-400 font-bold text-sm tracking-tight">PRO+ MONTHLY ($19.99/mo)</Text>
+                            </View>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => handleSubscribe('pro_plus', 'annual')} activeOpacity={0.9} className="w-full">
+                            <View className="w-full py-3 rounded-xl items-center justify-center bg-amber-500/5">
+                                <Text className="text-amber-300/70 font-medium text-xs tracking-tight">PRO+ ANNUAL ($199/yr) - 2 MONTHS FREE</Text>
+                            </View>
+                        </TouchableOpacity>
                     </View>
 
                     {/* Legal Footer */}
