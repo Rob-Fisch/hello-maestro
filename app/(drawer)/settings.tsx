@@ -649,7 +649,7 @@ export default function SettingsScreen() {
                     )}
 
                     {/* Hidden Admin Link - only visible to admin emails */}
-                    {['robfisch@gmail.com', 'antigravity-pro@opusmode.net'].includes(profile?.email || '') && (
+                    {['rfisch@robfisch.com', 'antigravity-pro@opusmode.net'].includes(profile?.email || '') && (
                         <TouchableOpacity
                             onPress={() => router.push('/modal/admin')}
                             className="mt-4 px-4 py-2 bg-red-900/20 border border-red-500/30 rounded-lg"

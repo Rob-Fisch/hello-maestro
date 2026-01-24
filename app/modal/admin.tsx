@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Admin emails - must match Edge Function
 const ADMIN_EMAILS = [
-    'robfisch@gmail.com',
+    'rfisch@robfisch.com',
     'antigravity-pro@opusmode.net'
 ];
 
@@ -46,9 +46,8 @@ export default function AdminPanel() {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    // Selected options for granting
-    const [selectedTier, setSelectedTier] = useState<'pro' | 'pro_plus'>('pro');
-    const [selectedSource, setSelectedSource] = useState<'promo_lifetime' | 'promo_trial'>('promo_lifetime');
+    // proSource is always lifetime for now (no trial infrastructure)
+    const proSource = 'promo_lifetime';
 
     // Check if current user is admin
     const isAdmin = ADMIN_EMAILS.includes(profile?.email || '');
@@ -94,8 +93,10 @@ export default function AdminPanel() {
         }
     };
 
-    const handleGrant = async () => {
+    const handleGrantTier = async (tier: 'pro' | 'pro_plus') => {
         if (!userResult) return;
+
+        const tierLabel = tier === 'pro_plus' ? 'Pro+' : 'Pro';
 
         const confirmGrant = () => {
             setLoading(true);
@@ -105,11 +106,11 @@ export default function AdminPanel() {
             callAdminAPI({
                 action: 'grant',
                 userId: userResult.id,
-                tier: selectedTier,
-                proSource: selectedSource
+                tier: tier,
+                proSource: proSource
             })
                 .then(() => {
-                    setSuccessMessage(`Granted ${selectedTier} (${selectedSource}) to ${userResult.email}`);
+                    setSuccessMessage(`Granted ${tierLabel} (lifetime) to ${userResult.email}`);
                     // Refresh user data
                     handleSearch();
                 })
@@ -121,8 +122,8 @@ export default function AdminPanel() {
             confirmGrant();
         } else {
             Alert.alert(
-                'Grant Pro Access',
-                `Grant ${selectedTier} (${selectedSource}) to ${userResult.email}?`,
+                `Grant ${tierLabel} Access`,
+                `Grant ${tierLabel} (lifetime) to ${userResult.email}?`,
                 [
                     { text: 'Cancel', style: 'cancel' },
                     { text: 'Grant', onPress: confirmGrant }
@@ -244,7 +245,7 @@ export default function AdminPanel() {
                         onPress={handleSearch}
                         disabled={loading || !searchEmail.trim()}
                         style={{
-                            backgroundColor: theme.primary,
+                            backgroundColor: '#4f46e5', // indigo-600
                             paddingHorizontal: 16,
                             borderRadius: 8,
                             justifyContent: 'center',
@@ -324,120 +325,70 @@ export default function AdminPanel() {
                                 MANAGE ACCESS
                             </Text>
 
-                            {/* Tier Selector */}
-                            <Text style={{ color: theme.text, marginBottom: 4 }}>Tier:</Text>
-                            <View style={{ flexDirection: 'row', marginBottom: 12 }}>
-                                <TouchableOpacity
-                                    onPress={() => setSelectedTier('pro')}
-                                    style={{
-                                        flex: 1,
-                                        padding: 10,
-                                        borderRadius: 8,
-                                        backgroundColor: selectedTier === 'pro' ? theme.primary : theme.background,
-                                        borderWidth: 1,
-                                        borderColor: theme.border,
-                                        marginRight: 8
-                                    }}
-                                >
-                                    <Text style={{
-                                        color: selectedTier === 'pro' ? 'white' : theme.text,
-                                        textAlign: 'center',
-                                        fontWeight: '600'
-                                    }}>Pro</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => setSelectedTier('pro_plus')}
-                                    style={{
-                                        flex: 1,
-                                        padding: 10,
-                                        borderRadius: 8,
-                                        backgroundColor: selectedTier === 'pro_plus' ? theme.primary : theme.background,
-                                        borderWidth: 1,
-                                        borderColor: theme.border
-                                    }}
-                                >
-                                    <Text style={{
-                                        color: selectedTier === 'pro_plus' ? 'white' : theme.text,
-                                        textAlign: 'center',
-                                        fontWeight: '600'
-                                    }}>Pro+</Text>
-                                </TouchableOpacity>
-                            </View>
+                            <Text style={{ color: theme.mutedText, fontSize: 11, marginBottom: 16 }}>
+                                Grants lifetime access (proSource: promo_lifetime)
+                            </Text>
 
-                            {/* Source Selector */}
-                            <Text style={{ color: theme.text, marginBottom: 4 }}>Source:</Text>
-                            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+                            {/* Action Buttons - Clear and Direct */}
+                            <View style={{ gap: 10 }}>
+                                {/* Grant Pro - disabled if already Pro */}
                                 <TouchableOpacity
-                                    onPress={() => setSelectedSource('promo_lifetime')}
+                                    onPress={() => handleGrantTier('pro')}
+                                    disabled={loading || userResult.user_metadata.tier === 'pro'}
                                     style={{
-                                        flex: 1,
-                                        padding: 10,
-                                        borderRadius: 8,
-                                        backgroundColor: selectedSource === 'promo_lifetime' ? '#16a34a' : theme.background,
-                                        borderWidth: 1,
-                                        borderColor: theme.border,
-                                        marginRight: 8
-                                    }}
-                                >
-                                    <Text style={{
-                                        color: selectedSource === 'promo_lifetime' ? 'white' : theme.text,
-                                        textAlign: 'center',
-                                        fontWeight: '600'
-                                    }}>Lifetime</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => setSelectedSource('promo_trial')}
-                                    style={{
-                                        flex: 1,
-                                        padding: 10,
-                                        borderRadius: 8,
-                                        backgroundColor: selectedSource === 'promo_trial' ? '#16a34a' : theme.background,
-                                        borderWidth: 1,
-                                        borderColor: theme.border
-                                    }}
-                                >
-                                    <Text style={{
-                                        color: selectedSource === 'promo_trial' ? 'white' : theme.text,
-                                        textAlign: 'center',
-                                        fontWeight: '600'
-                                    }}>Trial</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Action Buttons */}
-                            <View style={{ flexDirection: 'row', gap: 12 }}>
-                                <TouchableOpacity
-                                    onPress={handleGrant}
-                                    disabled={loading}
-                                    style={{
-                                        flex: 1,
                                         backgroundColor: '#16a34a',
                                         padding: 14,
                                         borderRadius: 8,
                                         flexDirection: 'row',
                                         alignItems: 'center',
-                                        justifyContent: 'center'
+                                        justifyContent: 'center',
+                                        opacity: userResult.user_metadata.tier === 'pro' ? 0.4 : 1
                                     }}
                                 >
                                     <Ionicons name="checkmark-circle" size={20} color="white" style={{ marginRight: 8 }} />
-                                    <Text style={{ color: 'white', fontWeight: '700' }}>Grant Pro</Text>
+                                    <Text style={{ color: 'white', fontWeight: '700' }}>
+                                        {userResult.user_metadata.tier === 'pro' ? 'Already Pro' : 'Grant Pro'}
+                                    </Text>
                                 </TouchableOpacity>
+
+                                {/* Grant Pro+ - disabled if already Pro+ */}
                                 <TouchableOpacity
-                                    onPress={handleRevoke}
-                                    disabled={loading}
+                                    onPress={() => handleGrantTier('pro_plus')}
+                                    disabled={loading || userResult.user_metadata.tier === 'pro_plus'}
                                     style={{
-                                        flex: 1,
-                                        backgroundColor: '#dc2626',
+                                        backgroundColor: '#7c3aed',
                                         padding: 14,
                                         borderRadius: 8,
                                         flexDirection: 'row',
                                         alignItems: 'center',
-                                        justifyContent: 'center'
+                                        justifyContent: 'center',
+                                        opacity: userResult.user_metadata.tier === 'pro_plus' ? 0.4 : 1
                                     }}
                                 >
-                                    <Ionicons name="close-circle" size={20} color="white" style={{ marginRight: 8 }} />
-                                    <Text style={{ color: 'white', fontWeight: '700' }}>Revoke</Text>
+                                    <Ionicons name="star" size={20} color="white" style={{ marginRight: 8 }} />
+                                    <Text style={{ color: 'white', fontWeight: '700' }}>
+                                        {userResult.user_metadata.tier === 'pro_plus' ? 'Already Pro+' : 'Grant Pro+'}
+                                    </Text>
                                 </TouchableOpacity>
+
+                                {/* Revoke - only show if user has premium */}
+                                {userResult.user_metadata.is_premium && (
+                                    <TouchableOpacity
+                                        onPress={handleRevoke}
+                                        disabled={loading}
+                                        style={{
+                                            backgroundColor: '#dc2626',
+                                            padding: 14,
+                                            borderRadius: 8,
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <Ionicons name="close-circle" size={20} color="white" style={{ marginRight: 8 }} />
+                                        <Text style={{ color: 'white', fontWeight: '700' }}>Revoke Pro Access</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
                     </View>

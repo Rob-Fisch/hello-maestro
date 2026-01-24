@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // Admin emails allowed to use this function
 const ADMIN_EMAILS = [
-    'robfisch@gmail.com',
+    'rfisch@robfisch.com',
     'antigravity-pro@opusmode.net'
 ]
 
