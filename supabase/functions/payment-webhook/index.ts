@@ -97,7 +97,7 @@ serve(async (req) => {
     return new Response("Webhook received", { status: 200 })
 })
 
-// Database Helper - Now stores tier instead of boolean
+// Database Helper - Now stores tier and proSource
 async function updateUserTier(userId: string, tier: 'free' | 'pro' | 'pro_plus') {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -106,12 +106,16 @@ async function updateUserTier(userId: string, tier: 'free' | 'pro' | 'pro_plus')
     // For backwards compatibility, also set is_premium boolean
     const is_premium = tier !== 'free'
 
-    console.log(`Updating user ${userId} tier to: ${tier} (is_premium: ${is_premium})`)
+    // Track how user became Pro: 'paid' for purchases, null for free tier
+    // Note: promo users will have proSource set manually (e.g., 'promo_lifetime')
+    const proSource = tier !== 'free' ? 'paid' : null
 
-    // Update the profile with both tier and legacy is_premium flag
+    console.log(`Updating user ${userId} tier to: ${tier} (is_premium: ${is_premium}, proSource: ${proSource})`)
+
+    // Update the profile with tier, legacy is_premium flag, and proSource
     const { error } = await supabase.auth.admin.updateUserById(
         userId,
-        { user_metadata: { tier, is_premium } }
+        { user_metadata: { tier, is_premium, proSource } }
     )
 
     if (error) {

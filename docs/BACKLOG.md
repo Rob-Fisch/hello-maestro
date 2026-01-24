@@ -12,9 +12,14 @@
 
 ## Early Adopter Feedback Program
 
-- [ ] **Promotional User Tracking** — Add `proSource` field to `profiles` table to distinguish how users became Pro:
-  - `'paid'` — Full-price Lemon Squeezy purchase (set via webhook)
-  - `'promo_lifetime'` / `'promo_trial'` / `'promo_discount'` — Set via admin action or coupon flow
+- [x] **Promotional User Tracking (`proSource`)** — ✅ Webhook updated 2026-01-24 to set `proSource: 'paid'` on purchases. Field stored in `user_metadata` alongside `tier` and `is_premium`.
+  - `'paid'` — Full-price Lemon Squeezy purchase (set automatically via webhook)
+  - `'promo_lifetime'` / `'promo_trial'` / `'promo_discount'` — Set via Admin Panel or SQL
+- [ ] **Admin Panel: Pro Gift Screen** — Secured admin page to grant/revoke Pro access without SQL. *LOE: ~1-2 days*
+  - Search user by email
+  - Select tier (Pro/Pro+) and source type (promo_lifetime, promo_trial, promo_discount)
+  - Click "Grant Pro" — sets `is_premium`, `tier`, and `proSource` in one action
+  - Only accessible to admin email(s) (e.g., check against allowlist)
   - Enables targeted prompts for promo users ("you owe us feedback!")
 - [ ] **Staged Google Forms** — Create different feedback forms for different user checkpoints:
   - **Form A (Day 1-7)**: First impressions, intuitiveness, onboarding clarity
