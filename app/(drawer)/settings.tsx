@@ -647,6 +647,19 @@ export default function SettingsScreen() {
                             }).replace(',', '-')}
                         </Text>
                     )}
+
+                    {/* Hidden Admin Link - only visible to admin emails */}
+                    {['robfisch@gmail.com', 'antigravity-pro@opusmode.net'].includes(profile?.email || '') && (
+                        <TouchableOpacity
+                            onPress={() => router.push('/modal/admin')}
+                            className="mt-4 px-4 py-2 bg-red-900/20 border border-red-500/30 rounded-lg"
+                        >
+                            <View className="flex-row items-center">
+                                <Ionicons name="shield" size={14} color="#ef4444" />
+                                <Text className="text-red-400 font-bold text-xs ml-2">Admin Panel</Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
                 </View>
 
             </View>

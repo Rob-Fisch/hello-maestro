@@ -281,6 +281,10 @@ export default function RootLayout() {
             name="modal/onboarding-password"
             options={{ presentation: 'fullScreenModal', headerShown: false }}
           />
+          <Stack.Screen
+            name="modal/admin"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
         </Stack>
         <StatusBar style="dark" />
       </ThemeProvider>
