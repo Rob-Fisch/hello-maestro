@@ -15,12 +15,7 @@
 - [x] **Promotional User Tracking (`proSource`)** — ✅ Webhook updated 2026-01-24 to set `proSource: 'paid'` on purchases. Field stored in `user_metadata` alongside `tier` and `is_premium`.
   - `'paid'` — Full-price Lemon Squeezy purchase (set automatically via webhook)
   - `'promo_lifetime'` / `'promo_trial'` / `'promo_discount'` — Set via Admin Panel or SQL
-- [ ] **Admin Panel: Pro Gift Screen** — Secured admin page to grant/revoke Pro access without SQL. *LOE: ~1-2 days*
-  - Search user by email
-  - Select tier (Pro/Pro+) and source type (promo_lifetime, promo_trial, promo_discount)
-  - Click "Grant Pro" — sets `is_premium`, `tier`, and `proSource` in one action
-  - Only accessible to admin email(s) (e.g., check against allowlist)
-  - Enables targeted prompts for promo users ("you owe us feedback!")
+- [x] **Admin Panel: Pro Gift Screen** — ✅ Completed 2026-01-24 (Build 75). Settings → Admin Panel. Search by email, grant Pro/Pro+ (lifetime), revoke access. Edge Function `admin-api` with admin email validation.
 - [ ] **Staged Google Forms** — Create different feedback forms for different user checkpoints:
   - **Form A (Day 1-7)**: First impressions, intuitiveness, onboarding clarity
   - **Form B (Day 30+)**: Feature gaps, improvement ideas, NPS score
@@ -161,6 +156,7 @@
 
 ## ✅ Completed
 
+- [x] **Admin Panel: Pro Gift Screen** — Edge Function + UI for granting/revoking Pro (Build 75)
 - [x] **Pro+ Tier Implementation** — Live Mode products, webhook tier mapping, upgrade modal (Build 73)
 - [x] **PWA Install Instructions** — Safari + Chrome install steps in Help/FAQ
 - [x] **Upgrade Flow Playwright Test** — `upgrade-flow.spec.ts` (Build 67)
