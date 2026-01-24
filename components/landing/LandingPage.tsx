@@ -207,7 +207,7 @@ export default function LandingPage() {
                             <View className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-6 h-full">
                                 <Text className="text-xl font-bold text-white mb-3">For your performances</Text>
                                 <Text className="text-slate-400 leading-relaxed">
-                                    Store your entire repertoire of songs with lyrics, charts, and notes. Attach links to YouTube, Spotify, or any reference recordings so your band knows exactly what version you're playing. Create set lists you can reuse across gigs or customize for specific shows. Keep all your contacts in one place — musicians, venues, managers — and assign players to each gig with a tap. When it's time to share, send your band a page with load-in times, venue directions, and the full set list. Send fans a promo page with event details and a tip jar.
+                                    Store your entire repertoire of songs with lyrics, charts, and notes. Attach links to YouTube, Spotify, or any reference recordings so your band knows exactly what version you're playing. Create set lists you can reuse across gigs or customize for specific shows. Keep all your contacts in one place — musicians, venues, managers — and assign players to each gig with a tap. Get AI-assisted help finding venues that book your style of music. When it's time to share, send your band a page with load-in times, venue directions, and the full set list. Send fans a promo page with event details and a tip jar.
                                 </Text>
                             </View>
                         </View>
