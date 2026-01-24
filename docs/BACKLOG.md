@@ -90,13 +90,14 @@
   - Quarterly export: Verify export modal properly handles quarterly data (Current View already supports quarters via period picker).
   - Soft deletes: 30-day recovery window for deleted transactions (add `deleted_at` column, filter from UI, allow restore).
   - Export reminders: In-app prompts at quarterly/year-end intervals nudging users to export data. *(No email infra required.)*
-  - *Note: `createdAt` timestamps exist for audit trail; consider adding `updatedAt` for full change tracking.*
-- [ ] **Pro+ Tier in Lemon Squeezy** — Create Pro+ product/variants in Lemon Squeezy to match website pricing ($19.99/month or $199/year). Currently only Pro exists in LS.
+  - ~~*Note: `createdAt` timestamps exist for audit trail; consider adding `updatedAt` for full change tracking.*~~ ✅ Implemented 2026-01-24 — all tables now have `updated_at` with auto-update triggers.
 
 ---
 
 ## Venue CRM
 
+- [ ] **Contact Freshness Indicator** — Show "Last updated: X" on contact detail view so users know how current the info is. Especially valuable for venue contacts. *Free tier.*
+- [ ] **Stale Contact Filter** — Filter/report to find "Contacts not modified in X months" (user picks threshold). Helps users identify outdated info that needs refreshing. *Free tier.*
 - [ ] **Interaction Timeline** — Log calls, emails, meetings with venue managers. *(Pro)*
 - [ ] **Pro Log History Export (CSV)** — Export venue interaction history. *(Pro)*
 
