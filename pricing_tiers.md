@@ -102,10 +102,13 @@
 > **Plan:** Run Navigator prompts directly through AI API (Gemini Flash or GPT-4o-mini) and display results inside OpusMode. Results saved automatically for future reference.
 > 
 > **Monthly Query Limits:**
-> - **Pro:** 30 queries/month (~1/day, plenty for most users)
-> - **Pro+:** 100 queries/month (power users, effectively unlimited)
+> - **Pro (Paid):** 30 queries/month (~1/day)
+> - **Pro (Promo/Early Adopter):** 15 queries/month (generous free tier)
+> - **Pro+:** 100 queries/month (power users)
 > 
 > **Cost Analysis:** At ~$0.002/query (Gemini Flash), even a power user at 100 queries costs < $0.20/month. Soft caps are insurance against abuse, not a revenue driver.
+> 
+> **Language Note:** Avoid using "unlimited" in marketing since all features have soft or hard caps. Use specific numbers instead.
 
 ### 8. Venue CRM
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |

@@ -69,9 +69,10 @@
   - **Problem**: Current copy/paste workflow adds friction and users can't save results
   - **Solution**: In-app AI execution with saved results
   - **API Choice**: Gemini Flash (~$0.0013/query) or GPT-4o-mini (~$0.0025/query) — both economically viable
-  - **Monthly Query Limits**:
-    - Pro: 30 queries/month (~1/day)
-    - Pro+: 100 queries/month (effectively unlimited for normal use)
+  - **Monthly Query Limits** (based on `proSource`):
+    - Pro (Paid): 30 queries/month
+    - Pro (Promo/Early Adopter): 15 queries/month
+    - Pro+: 100 queries/month
   - **Saved Results**: Users can view past queries and results in a "Research History" section
   - **Cost Analysis**: Even 100 queries/month costs < $0.25. Limits are insurance against abuse, not revenue.
   - **LOE**: ~5-7 days + ongoing API costs
