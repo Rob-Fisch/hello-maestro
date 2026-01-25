@@ -6,7 +6,7 @@
 
 ## ⏭️ Next Session
 
-- [x] **Pro+ Tier in Lemon Squeezy** — ✅ Completed 2026-01-24 (Build 73). Products configured in Live Mode, webhook updated, upgrade modal live.
+- [ ] **Plain-Language Pricing Copy** — Rewrite "Simple Pricing" feature bullets using everyday language, not internal jargon. New users don't know what "Navigator" or "Advanced Analytics" means. Explain value in 5-year-old terms (e.g., "AI finds gigs near you" instead of "Full Navigator Access").
 
 ---
 
