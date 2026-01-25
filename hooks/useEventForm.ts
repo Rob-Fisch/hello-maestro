@@ -90,6 +90,8 @@ export function useEventForm({ existingEvent, initialType = 'performance', onSav
 
     // Debounce Logic for Auto-Save
     const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+    // Track if we've done the first save (for new events)
+    const hasBeenSaved = useRef<boolean>(!!existingEvent);
 
     const save = useCallback(async (silent = false) => {
         if (!values.title?.trim()) {
@@ -113,16 +115,18 @@ export function useEventForm({ existingEvent, initialType = 'performance', onSav
                 // Ensure optional fields are handled if undefined in values
             };
 
-            // Determing if we are updating or creating
-            // strict check: if we have an internalId or existingEvent, we update.
-            const isUpdate = !!internalId || !!existingEvent;
+            // Determining if we are updating or creating
+            // FIX: Check if existingEvent was passed (edit mode) OR if we've already saved once
+            // Note: internalId is pre-generated for new events, so we need a separate flag
+            const isUpdate = !!existingEvent || hasBeenSaved.current;
             console.log('[useEventForm] Mode:', isUpdate ? 'Update' : 'Create');
 
             if (isUpdate) {
                 updateEvent(eventId, payload);
             } else {
                 addEvent(payload);
-                // CRITICAL: Lock onto this ID so subsequent saves are updates
+                // CRITICAL: Mark as saved so subsequent saves are updates
+                hasBeenSaved.current = true;
                 setInternalId(eventId);
             }
 
