@@ -6,7 +6,7 @@
 
 ## ⏭️ Next Session
 
-- [ ] **Plain-Language Pricing Copy** — Rewrite "Simple Pricing" feature bullets using everyday language, not internal jargon. New users don't know what "Navigator" or "Advanced Analytics" means. Explain value in 5-year-old terms (e.g., "AI finds gigs near you" instead of "Full Navigator Access").
+- [x] **Plain-Language Pricing Copy** — ✅ Completed 2026-01-25. Rewrote landing page copy using everyday language. New hero: "OpusMode: The Missing Toolkit For Musicians". Replaced Navigator references with AI benefit language, simplified pricing features, used "leads" instead of "gigs".
 
 ---
 
