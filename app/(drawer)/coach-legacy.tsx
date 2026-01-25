@@ -4,8 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Markdown from 'react-native-markdown-display';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCOUT_TEMPLATES = [
@@ -83,37 +82,9 @@ const SCOUT_TEMPLATES = [
 
 const PRESET_GENRES = ['Jazz', 'Classical', 'Rock', 'Pop', 'Folk', 'Blues', 'R&B', 'Electronic', 'Latin', 'Country', 'Metal', 'Soul', 'Funk', 'Bluegrass'];
 
-import { supabase } from '@/lib/supabase';
 import * as Clipboard from 'expo-clipboard';
-import { marked } from 'marked';
 
-// Helper to copy rich text (HTML) on web
-const copyRichText = async (markdown: string) => {
-    if (Platform.OS === 'web') {
-        try {
-            const html = await marked(markdown);
-            const blob = new Blob([html], { type: 'text/html' });
-            const plainBlob = new Blob([markdown], { type: 'text/plain' });
-            await navigator.clipboard.write([
-                new ClipboardItem({
-                    'text/html': blob,
-                    'text/plain': plainBlob
-                })
-            ]);
-            return true;
-        } catch (e) {
-            // Fallback to plain text
-            await Clipboard.setStringAsync(markdown);
-            return false;
-        }
-    } else {
-        // Mobile: plain text only
-        await Clipboard.setStringAsync(markdown);
-        return false;
-    }
-};
-
-export default function CoachV2Screen() {
+export default function CoachScreen() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
     const router = useRouter(); // Hooks must be used inside the component
@@ -129,12 +100,6 @@ export default function CoachV2Screen() {
     const [selectedGenres, setSelectedGenres] = useState<string[]>(['Jazz']);
     const [customGenre, setCustomGenre] = useState('');
     const [showGenreModal, setShowGenreModal] = useState(false);
-
-    // AI Response State
-    const [isRunning, setIsRunning] = useState(false);
-    const [aiResponse, setAiResponse] = useState<string | null>(null);
-    const [queryInfo, setQueryInfo] = useState<{ used: number; limit: number; remaining: number } | null>(null);
-    const [aiError, setAiError] = useState<string | null>(null);
 
     const toggleGenre = (g: string) => {
         if (selectedGenres.includes(g)) {
@@ -183,61 +148,6 @@ export default function CoachV2Screen() {
             alert('Prompt copied to clipboard!');
         } else {
             Alert.alert('Copied!', 'The prompt has been copied to your clipboard.');
-        }
-    };
-
-    const handleRunResearch = async () => {
-        // Validate inputs
-        if (!zip.trim()) {
-            Alert.alert('Missing Location', 'Please enter a zip code or city.');
-            return;
-        }
-
-        setIsRunning(true);
-        setAiError(null);
-        setAiResponse(null);
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                setAiError('Please log in to use AI Research.');
-                return;
-            }
-
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://iwobmkglhkuzwouheviu.supabase.co'}/functions/v1/navigator-ai`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({
-                        prompt: generatedPrompt,
-                        templateId: activeTemplate.id
-                    })
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 429) {
-                    setAiError(`Monthly query limit reached (${result.used}/${result.limit}). Resets next month.`);
-                } else if (response.status === 403) {
-                    setAiError('Pro subscription required for AI Research.');
-                } else {
-                    setAiError(result.error || 'Research failed. Please try again.');
-                }
-                return;
-            }
-
-            setAiResponse(result.response);
-            setQueryInfo(result.queryInfo);
-        } catch (error: any) {
-            setAiError(error.message || 'Network error. Please try again.');
-        } finally {
-            setIsRunning(false);
         }
     };
 
@@ -393,143 +303,35 @@ export default function CoachV2Screen() {
                         <View className="px-8 flex-1 mb-10">
                             {
                                 profile?.isPremium || activeTemplate.isFree ? (
-                                    // UNLOCKED VIEW - AI POWERED
+                                    // UNLOCKED VIEW
                                     <View>
-                                        {/* Query Info Badge */}
-                                        {queryInfo && (
-                                            <View className="flex-row justify-center mb-4">
-                                                <View className="bg-indigo-500/10 px-3 py-1.5 rounded-full flex-row items-center">
-                                                    <Ionicons name="flash" size={14} color="#6366f1" />
-                                                    <Text className="text-indigo-400 text-xs font-bold ml-1">
-                                                        {queryInfo.remaining} of {queryInfo.limit} queries remaining
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                        )}
-
-                                        {/* Action Card */}
                                         <View className="p-6 rounded-3xl border mb-6" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                                             <View className="items-center mb-6">
-                                                <View className="w-16 h-16 rounded-full items-center justify-center mb-4" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}>
-                                                    <Ionicons name={aiResponse ? "checkmark-done-circle" : "rocket"} size={48} color={aiResponse ? '#10b981' : '#6366f1'} />
+                                                <View className="w-16 h-16 rounded-full items-center justify-center mb-4" style={{ backgroundColor: activeTemplate.color.replace('bg-', 'bg-opacity-10 ').replace('500', '500/10') }}>
+                                                    <Ionicons name="checkmark-done-circle" size={48} color={activeTemplate.color === 'bg-black' ? theme.text : '#10b981'} />
                                                 </View>
-                                                <Text className="text-2xl font-black text-center mb-2" style={{ color: theme.text }}>
-                                                    {aiResponse ? 'Research Complete!' : 'Ready to Research'}
-                                                </Text>
+                                                <Text className="text-2xl font-black text-center mb-2" style={{ color: theme.text }}>Command Ready.</Text>
                                                 <Text className="text-center opacity-70 leading-5" style={{ color: theme.text }}>
-                                                    {aiResponse
-                                                        ? `Your ${activeTemplate.label} results are below.`
-                                                        : `Click below to run your ${activeTemplate.label} query with AI.`
-                                                    }
+                                                    Your custom {activeTemplate.label} prompt has been generated.
                                                 </Text>
                                             </View>
 
-                                            {/* Primary: Run Research Button (Pro only) */}
-                                            {profile?.isPremium && (
-                                                <TouchableOpacity
-                                                    onPress={handleRunResearch}
-                                                    disabled={isRunning}
-                                                    activeOpacity={0.7}
-                                                    className="w-full py-4 rounded-xl flex-row items-center justify-center mb-3 shadow-sm"
-                                                    style={{ backgroundColor: isRunning ? '#4f46e5' : '#16a34a', opacity: isRunning ? 0.7 : 1 }}
-                                                >
-                                                    {isRunning ? (
-                                                        <>
-                                                            <ActivityIndicator color="white" size="small" />
-                                                            <Text className="text-white font-black text-lg ml-3 uppercase tracking-wide">Researching...</Text>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Ionicons name="flash" size={22} color="white" />
-                                                            <Text className="text-white font-black text-lg ml-2 uppercase tracking-wide">Run Research</Text>
-                                                        </>
-                                                    )}
-                                                </TouchableOpacity>
-                                            )}
-
-                                            {/* Copy to Clipboard (Primary for Free, Secondary for Pro) */}
                                             <TouchableOpacity
                                                 onPress={handleCopy}
                                                 activeOpacity={0.7}
-                                                className={`w-full rounded-xl flex-row items-center justify-center ${profile?.isPremium ? 'py-3 border' : 'py-4 bg-indigo-600'}`}
-                                                style={profile?.isPremium ? { borderColor: theme.border } : {}}
+                                                className="w-full py-4 rounded-xl flex-row items-center justify-center mb-4 shadow-sm bg-indigo-600"
+                                                style={{}}
                                             >
-                                                <Ionicons name={profile?.isPremium ? "copy-outline" : "copy"} size={profile?.isPremium ? 18 : 20} color={profile?.isPremium ? theme.mutedText : 'white'} />
-                                                <Text className={`font-bold ml-2 ${profile?.isPremium ? 'text-sm' : 'text-lg text-white uppercase tracking-wide'}`} style={profile?.isPremium ? { color: theme.mutedText } : {}}>
-                                                    {profile?.isPremium ? 'Copy Prompt for External AI' : 'Copy Command'}
-                                                </Text>
+                                                <Text className="text-white font-black text-lg mr-2 uppercase tracking-wide">Copy Command</Text>
+                                                <Ionicons name="copy" size={20} color="white" />
                                             </TouchableOpacity>
+
+                                            <Text className="text-center text-xs opacity-60 mb-2" style={{ color: theme.text }}>
+                                                Next: Paste this into ChatGPT, Gemini, or Claude.
+                                            </Text>
                                         </View>
 
-                                        {/* Error Display */}
-                                        {aiError && (
-                                            <View className="p-4 rounded-2xl mb-6" style={{ backgroundColor: 'rgba(220, 38, 38, 0.1)' }}>
-                                                <View className="flex-row items-center">
-                                                    <Ionicons name="alert-circle" size={20} color="#dc2626" />
-                                                    <Text className="text-red-400 font-bold ml-2">{aiError}</Text>
-                                                </View>
-                                            </View>
-                                        )}
-
-                                        {/* AI Response Display */}
-                                        {aiResponse && (
-                                            <View className="rounded-3xl border mb-6 overflow-hidden" style={{ backgroundColor: theme.card, borderColor: '#16a34a' }}>
-                                                {/* Header with Copy Button */}
-                                                <View className="flex-row items-center justify-between p-4 border-b" style={{ borderColor: 'rgba(22, 163, 74, 0.3)' }}>
-                                                    <View className="flex-row items-center">
-                                                        <Ionicons name="sparkles" size={20} color="#16a34a" />
-                                                        <Text className="text-green-400 font-black uppercase text-xs ml-2">AI Results</Text>
-                                                    </View>
-                                                    <TouchableOpacity
-                                                        onPress={async () => {
-                                                            const richCopy = await copyRichText(aiResponse);
-                                                            if (Platform.OS === 'web') {
-                                                                alert(richCopy ? 'Copied as formatted text!' : 'Results copied to clipboard!');
-                                                            } else {
-                                                                Alert.alert('Copied!', 'Results copied to clipboard.');
-                                                            }
-                                                        }}
-                                                        className="flex-row items-center bg-green-600/20 px-3 py-1.5 rounded-lg"
-                                                    >
-                                                        <Ionicons name="copy-outline" size={14} color="#16a34a" />
-                                                        <Text className="text-green-400 text-xs font-bold ml-1">Copy Results</Text>
-                                                    </TouchableOpacity>
-                                                </View>
-                                                {/* Scrollable Results */}
-                                                <ScrollView
-                                                    style={{ maxHeight: 500 }}
-                                                    nestedScrollEnabled
-                                                    showsVerticalScrollIndicator
-                                                >
-                                                    <View className="p-5">
-                                                        <Markdown
-                                                            style={{
-                                                                body: { color: theme.text, fontSize: 14, lineHeight: 22 },
-                                                                heading1: { color: theme.text, fontSize: 20, fontWeight: '800', marginBottom: 8 },
-                                                                heading2: { color: theme.text, fontSize: 18, fontWeight: '700', marginTop: 16, marginBottom: 8 },
-                                                                heading3: { color: theme.text, fontSize: 16, fontWeight: '700', marginTop: 12, marginBottom: 6 },
-                                                                strong: { fontWeight: '700' },
-                                                                link: { color: '#6366f1' },
-                                                                table: { borderWidth: 1, borderColor: theme.border, marginVertical: 12 },
-                                                                tr: { borderBottomWidth: 1, borderColor: theme.border },
-                                                                th: { padding: 8, backgroundColor: 'rgba(99, 102, 241, 0.1)', fontWeight: '700' },
-                                                                td: { padding: 8 },
-                                                                bullet_list: { marginVertical: 8 },
-                                                                ordered_list: { marginVertical: 8 },
-                                                                list_item: { marginVertical: 4 },
-                                                                blockquote: { backgroundColor: 'rgba(99, 102, 241, 0.1)', borderLeftWidth: 4, borderLeftColor: '#6366f1', paddingLeft: 12, marginVertical: 8 },
-                                                                code_inline: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 4, borderRadius: 4, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
-                                                                fence: { backgroundColor: 'rgba(0,0,0,0.3)', padding: 12, borderRadius: 8, marginVertical: 8 },
-                                                            }}
-                                                        >
-                                                            {aiResponse}
-                                                        </Markdown>
-                                                    </View>
-                                                </ScrollView>
-                                            </View>
-                                        )}
-
-                                        {/* Collapsible Raw Prompt */}
+                                        {/* Collapsible Raw Text */}
                                         <TouchableOpacity
                                             onPress={() => setShowRaw(!showRaw)}
                                             className="flex-row items-center justify-center mb-4 opacity-50"
