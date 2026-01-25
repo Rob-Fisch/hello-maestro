@@ -39,6 +39,8 @@ const NAV_ITEMS: NavItem[] = [
     { name: 'people/[id]', icon: 'person', label: 'Person', path: '/people/1', hidden: true },
     { name: 'routines/[id]', icon: 'list', label: 'Routine', path: '/routines/1', hidden: true },
     { name: 'routines/index', icon: 'list', label: 'Routines', path: '/routines', hidden: true },
+    { name: 'coach-legacy', icon: 'compass', label: 'Coach Legacy', path: '/coach-legacy', hidden: true },
+    { name: 'home-experiment', icon: 'flask', label: 'Home Experiment', path: '/home-experiment', hidden: true },
 ];
 
 function CustomDrawerContent(props: any) {

@@ -52,7 +52,7 @@ export default function SiteMapScreen() {
             color: "#34d399",
             items: [
                 { label: "Finance Manager", path: "/finance", icon: "wallet-outline", desc: "Track income and expenses", tier: "pro" },
-                { label: "Venue CRM", path: "/people", icon: "business-outline", desc: "Build your venue black book", tier: "freemium" },
+                { label: "Venue Contact Tracker", path: "/people", icon: "business-outline", desc: "Build your venue black book", tier: "freemium" },
                 { label: "The Navigator", path: "/coach", icon: "compass-outline", desc: "AI assistant for career growth", tier: "freemium" },
                 { label: "Settings", path: "/settings", icon: "settings-outline", desc: "Account and preferences", tier: "free" },
             ]
@@ -164,7 +164,7 @@ export default function SiteMapScreen() {
                                 <View className="p-4 gap-2.5">
                                     <View className="flex-row items-start">
                                         <Ionicons name="checkmark-circle" size={14} color="#10b981" style={{ marginRight: 6, marginTop: 1 }} />
-                                        <Text className="text-slate-300 text-xs flex-1">Unlimited Gigs</Text>
+                                        <Text className="text-slate-300 text-xs flex-1">All your gigs</Text>
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="alert-circle-outline" size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 1 }} />
@@ -209,7 +209,7 @@ export default function SiteMapScreen() {
                                 <View className="p-4 gap-2.5">
                                     <View className="flex-row items-start">
                                         <Ionicons name="infinite" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
-                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Unlimited Songs</Text>
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Everything in Free</Text>
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="cloud-upload" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
@@ -217,7 +217,7 @@ export default function SiteMapScreen() {
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="time" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
-                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Unlimited History</Text>
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Full Practice History</Text>
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="copy" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
@@ -229,7 +229,7 @@ export default function SiteMapScreen() {
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="infinite" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
-                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Unlimited Venues</Text>
+                                        <Text className="text-indigo-200 text-xs flex-1 font-bold">Your data, backed up safely</Text>
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="compass" size={14} color="#818cf8" style={{ marginRight: 6, marginTop: 1 }} />
@@ -254,7 +254,7 @@ export default function SiteMapScreen() {
                                 <View className="p-4 gap-2.5">
                                     <View className="flex-row items-start">
                                         <Ionicons name="infinite" size={14} color="#c084fc" style={{ marginRight: 6, marginTop: 1 }} />
-                                        <Text className="text-purple-200 text-xs flex-1 font-bold">Unlimited Songs</Text>
+                                        <Text className="text-purple-200 text-xs flex-1 font-bold">Everything in Pro</Text>
                                     </View>
                                     <View className="flex-row items-start">
                                         <Ionicons name="cloud-upload" size={14} color="#c084fc" style={{ marginRight: 6, marginTop: 1 }} />

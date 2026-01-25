@@ -487,7 +487,7 @@ export default function FinancePage() {
                                 onPress={() => router.push('/modal/upgrade?feature=finance')}
                                 className="bg-stone-900 w-full py-4 rounded-xl flex-row justify-center items-center shadow-lg mb-4"
                             >
-                                <Text className="text-white font-bold text-lg mr-2">Unlock Ledger</Text>
+                                <Text className="text-white font-bold text-lg mr-2">Unlock All Pro Features</Text>
                                 <Ionicons name="arrow-forward" size={20} color="white" />
                             </TouchableOpacity>
 

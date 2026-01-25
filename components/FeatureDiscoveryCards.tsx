@@ -29,8 +29,8 @@ const FEATURES: Feature[] = [
     },
     {
         id: 'venue-crm',
-        title: 'Venue CRM',
-        description: 'Log every interaction with bookers & contacts',
+        title: 'Venue Contact Tracker',
+        description: 'Log every interaction with venue contacts',
         icon: 'business',
         iconBg: '#0ea5e9',
         tier: 'pro',

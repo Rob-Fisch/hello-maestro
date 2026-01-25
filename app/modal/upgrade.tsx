@@ -11,7 +11,7 @@ const { width } = Dimensions.get('window');
 const SLIDES = [
     {
         id: 'chaos', // Keeping IDs for compatibility with params
-        title: 'UNLIMITED STUDIO',
+        title: 'THE STUDIO',
         subtitle: 'SONGS & STORAGE',
         image: require('../../assets/images/upgrade_studio_v3.png'), // Keep generic or update if possible
         icon: 'musical-notes',
@@ -32,7 +32,7 @@ const SLIDES = [
     {
         id: 'glory',
         title: 'GIG MANAGEMENT',
-        subtitle: 'FINANCE • CRM • LOGISTICS',
+        subtitle: 'FINANCE • CONTACTS • LOGISTICS',
         image: require('../../assets/images/upgrade_gigs_v2.png'),
         icon: 'briefcase',
         color: '#f59e0b', // Amber
@@ -304,8 +304,8 @@ export default function UpgradeModal() {
                                 </View>
 
                                 <Text className="text-zinc-300 leading-relaxed mb-4">
-                                    {item.id === 'chaos' && "Capture ideas instantly with unlimited song storage. Attach voice memos, PDFs, and chord charts directly to your songs. Never lose a riff again."}
-                                    {item.id === 'order' && "Organize chaos into mastery. Create unlimited practicing routines, track your progress session-by-session, and build perfect setlists for every gig."}
+                                    {item.id === 'chaos' && "Capture ideas instantly with up to 2500 songs. Attach voice memos, PDFs, and chord charts directly to your songs. Never lose a riff again."}
+                                    {item.id === 'order' && "Organize chaos into mastery. Create custom practicing routines, track your progress session-by-session, and build perfect setlists for every gig."}
                                     {item.id === 'glory' && "The ultimate stage companion. Use Live Mode to perform distraction-free. Sync your calendar to Google/iCal and manage your band roster seamlessly."}
                                     {item.id === 'business' && "Turn your passion into a business. Track every dollar in and out. Manage gig fees, expenses, and tax deductions with the integrated Finance Manager."}
                                     {item.id === 'coach' && "Your digital co-pilot. Ask 'The Navigator' to draft booking emails, suggest setlists based on venue vibe, or critique your practice schedule."}
@@ -314,18 +314,18 @@ export default function UpgradeModal() {
                                 {/* Bullet Points */}
                                 <View className="gap-2">
                                     {item.id === 'chaos' && [
-                                        "Unlimited Song Storage", "Cloud Backup & Sync", "File Attachments (Audio/PDF)"
+                                        "Store up to 2500 songs", "Your data, backed up safely", "File Attachments (Audio/PDF)"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}
                                     {item.id === 'chaos' && (
                                         <View className="mt-4 p-3 rounded-lg border border-indigo-500/20 bg-indigo-500/10">
                                             <Text className="text-indigo-400 font-bold text-[10px] uppercase tracking-wide mb-1">The Pro Difference</Text>
-                                            <Text className="text-zinc-400 text-xs">Free accounts are limited to 500MB. Pro includes <strong>10GB</strong> of Cloud Storage for backups & attachments*.</Text>
+                                            <Text className="text-zinc-400 text-xs">Free accounts are limited to 500MB. Pro includes <Text className="font-bold text-white">10GB</Text> of Cloud Storage for backups & attachments*.</Text>
                                         </View>
                                     )}
                                     {item.id === 'order' && [
-                                        "Unlimited Setlists", "Unlimited Routines", "Advanced Progress Tracking"
+                                        "All your Setlists", "All your Routines", "Full Progress Tracking"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}
@@ -336,7 +336,7 @@ export default function UpgradeModal() {
                                         </View>
                                     )}
                                     {item.id === 'glory' && [
-                                        "Finance & Contracts", "Performance Promotions & Setlists", "CRM & Roster"
+                                        "Finance & Contracts", "Performance Promotions & Setlists", "Venue Contact Tracker"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}

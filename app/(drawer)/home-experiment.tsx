@@ -11,13 +11,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRouter } from 'expo-router';
 
 /**
- * Home - Two Hubs Navigation Design with "How it works" buttons
+ * Home Experiment - Option 2: Expandable "How it works" sections
  * 
- * Simplified Home screen with two primary paths:
- * - The Stage (gig management)
- * - The Studio (practice/routines)
+ * Cards have a "?" button that opens the workflow diagram in a modal
  */
-export default function HomeScreen() {
+export default function HomeExperimentScreen() {
     const { routines, events, profile, syncStatus, fullSync } = useContentStore();
 
     const router = useRouter();
@@ -210,7 +208,7 @@ export default function HomeScreen() {
 
                 {/* Footer */}
                 <View className="mt-8 mb-16 items-center opacity-50">
-                    <Text className="text-xs text-slate-500">OpusMode</Text>
+                    <Text className="text-xs text-slate-500">OpusMode - Experiment Option 2</Text>
                 </View>
             </View>
 

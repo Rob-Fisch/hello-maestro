@@ -161,7 +161,7 @@ export default function PersonEditor() {
     };
 
     const personTypes: { key: PersonType; label: string; icon: string }[] = [
-        { key: 'student', label: 'Student', icon: 'graduation-cap' },
+        { key: 'student', label: 'Student', icon: 'school' },
         { key: 'musician', label: 'Musician', icon: 'musical-notes' },
         { key: 'venue_manager', label: 'Venue Manager', icon: 'business' },
         { key: 'other', label: 'Other', icon: 'person' },

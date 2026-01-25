@@ -66,7 +66,7 @@ export default function LandingPage() {
                     useNativeDriver: true,
                 }).start();
             });
-        }, 7000); // 7 seconds per item
+        }, 10000); // 10 seconds per item (more reading time)
 
         return () => clearInterval(interval);
     }, []);
@@ -83,7 +83,7 @@ export default function LandingPage() {
             name: "Free",
             price: "$0",
             desc: "Start getting organized!",
-            features: ["All your gigs", "Up to 50 songs", "Basic Practice Tracking", "Contact Management", "Automatic backup", "Try AI-powered lead discovery"],
+            features: ["All your gigs", "Up to 50 songs for Set Lists", "Basic Practice Tracking", "Contact Management", "Try AI-powered lead discovery"],
             cta: "Start Free - No Credit Card",
             primary: false
         },
@@ -92,7 +92,7 @@ export default function LandingPage() {
             price: "$9.99",
             period: "/mo",
             desc: "For working musicians.",
-            features: ["All your songs", "Store everything", "Access from any device", "AI helps you discover local leads", "Track your progress", "Priority Support"],
+            features: ["Everything in Free", "Store song details for up to 2500 songs", "Your data, backed up safely", "AI helps you discover local leads", "Track your progress", "Priority Support"],
             cta: "Go Pro",
             primary: true,
             highlight: "Most Popular"
@@ -139,7 +139,7 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <View className="px-6 pt-24 pb-12 items-center md:pt-32 md:pb-16">
                     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], width: '100%', alignItems: 'center' }}>
-                        <Text className="text-5xl md:text-7xl font-black text-white text-center leading-tight mb-6 max-w-4xl tracking-tighter">
+                        <Text className="text-4xl md:text-7xl font-black text-white text-center leading-tight mb-6 max-w-4xl tracking-tighter">
                             <Text className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">OpusMode:</Text>{'\n'}
                             The Missing Toolkit{'\n'}
                             <Text className="italic text-fuchsia-400">For Musicians</Text>
@@ -153,6 +153,7 @@ export default function LandingPage() {
                         >
                             <Text className="text-white text-lg font-bold">Get Started Free</Text>
                         </TouchableOpacity>
+                        <Text className="text-slate-500 text-sm mt-4">More details below ↓</Text>
                     </Animated.View>
                 </View>
 

@@ -1,4 +1,5 @@
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/lib/theme';
@@ -23,6 +24,9 @@ export default function StageScreen() {
     const navigation = useNavigation();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
+
+    // Workflow modal state
+    const [showWorkflow, setShowWorkflow] = useState(false);
 
     // Filter to gigs and rehearsals (performance-related events)
     const today = new Date();
@@ -92,13 +96,27 @@ export default function StageScreen() {
                             colors={['#7c3aed', '#a855f7']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ borderRadius: 16, padding: 16, height: 100, justifyContent: 'center' }}
+                            style={{ borderRadius: 16, padding: 16, height: 100, justifyContent: 'space-between' }}
                         >
-                            <View className="w-10 h-10 bg-white/20 rounded-xl items-center justify-center mb-2">
-                                <Ionicons name="add" size={24} color="white" />
+                            <View className="flex-row justify-between items-start">
+                                <View className="w-10 h-10 bg-white/20 rounded-xl items-center justify-center">
+                                    <Ionicons name="add" size={24} color="white" />
+                                </View>
+                                {/* How it works button */}
+                                <TouchableOpacity
+                                    onPress={(e) => {
+                                        e.stopPropagation();
+                                        setShowWorkflow(true);
+                                    }}
+                                    className="bg-white/20 p-2 rounded-full"
+                                >
+                                    <Ionicons name="help-circle-outline" size={16} color="white" />
+                                </TouchableOpacity>
                             </View>
-                            <Text className="text-base font-bold text-white">Create a Gig</Text>
-                            <Text className="text-white/60 text-[10px]">Add to schedule</Text>
+                            <View>
+                                <Text className="text-base font-bold text-white">Create a Gig</Text>
+                                <Text className="text-white/60 text-[10px]">Add to schedule</Text>
+                            </View>
                         </LinearGradient>
                     </TouchableOpacity>
 
@@ -112,13 +130,20 @@ export default function StageScreen() {
                             colors={['#0891b2', '#06b6d4']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ borderRadius: 16, padding: 16, height: 100, justifyContent: 'center' }}
+                            style={{ borderRadius: 16, padding: 16, height: 100, justifyContent: 'space-between' }}
                         >
-                            <View className="w-10 h-10 bg-white/20 rounded-xl items-center justify-center mb-2">
-                                <Ionicons name="compass" size={24} color="white" />
+                            <View className="flex-row justify-between items-start">
+                                <View className="w-10 h-10 bg-white/20 rounded-xl items-center justify-center">
+                                    <Ionicons name="compass" size={24} color="white" />
+                                </View>
+                                <View className="bg-white/20 px-2 py-1 rounded-full">
+                                    <Text className="text-white text-[8px] font-black">AI-POWERED</Text>
+                                </View>
                             </View>
-                            <Text className="text-base font-bold text-white">The Navigator</Text>
-                            <Text className="text-white/60 text-[10px]">Find gigs & leads</Text>
+                            <View>
+                                <Text className="text-base font-bold text-white">The Navigator</Text>
+                                <Text className="text-white/60 text-[10px]">Find venues, teaching gigs & more</Text>
+                            </View>
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -313,6 +338,37 @@ export default function StageScreen() {
                     </TouchableOpacity>
                 )}
             </View>
+
+            {/* GIG WORKFLOW MODAL */}
+            <Modal visible={showWorkflow} transparent animationType="fade" onRequestClose={() => setShowWorkflow(false)}>
+                <View className="flex-1 bg-black/90 justify-center items-center p-6">
+                    <TouchableOpacity
+                        onPress={() => setShowWorkflow(false)}
+                        className="absolute top-12 right-6 z-50 p-3 bg-white/20 rounded-full"
+                    >
+                        <Ionicons name="close" size={28} color="white" />
+                    </TouchableOpacity>
+
+                    <Text className="text-white text-2xl font-black mb-4">The Gig Workflow</Text>
+                    <Text className="text-white/70 text-center mb-6">How gig management works in OpusMode</Text>
+
+                    <Image
+                        source={require('../../assets/images/gig_workflow.png')}
+                        style={{ width: '100%', height: '60%' }}
+                        resizeMode="contain"
+                    />
+
+                    <TouchableOpacity
+                        onPress={() => {
+                            setShowWorkflow(false);
+                            router.push('/modal/event-editor');
+                        }}
+                        className="bg-purple-600 px-6 py-3 rounded-full mt-6"
+                    >
+                        <Text className="text-white font-bold">Create a Gig →</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modal>
         </ScrollView>
     );
 }
