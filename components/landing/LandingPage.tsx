@@ -39,10 +39,10 @@ export default function LandingPage() {
         { type: 'logo' as const },
         { type: 'message' as const, icon: 'musical-notes', iconColor: '#f472b6', text: "\"I forgot the setlist at home\" — Never again. Your entire repertoire lives on your phone." },
         { type: 'message' as const, icon: 'people', iconColor: '#818cf8', text: "\"My band doesn't know what we're playing\" — Share logistics instantly with your Performer Page." },
-        { type: 'message' as const, icon: 'compass', iconColor: '#f59e0b', text: "\"How do I find more gigs in my area?\" — The Navigator AI helps you discover opportunities." },
+        { type: 'message' as const, icon: 'compass', iconColor: '#f59e0b', text: "\"How do I find more gigs in my area?\" — AI helps you uncover new leads." },
         { type: 'message' as const, icon: 'person', iconColor: '#34d399', text: "\"Who played bass on that festival last year?\" — Your contact roster remembers everyone." },
         { type: 'message' as const, icon: 'layers', iconColor: '#06b6d4', text: "\"I never practice what I meant to practice\" — Build routines in The Studio and track your progress." },
-        { type: 'message' as const, icon: 'school', iconColor: '#a78bfa', text: "\"Where do I even start looking for teaching gigs?\" — Navigator generates targeted AI prompts for you." },
+        { type: 'message' as const, icon: 'school', iconColor: '#a78bfa', text: "\"Where do I even start looking for teaching gigs?\" — AI helps you find teaching opportunities." },
         { type: 'message' as const, icon: 'calendar', iconColor: '#ec4899', text: "\"What songs did we play at that wedding venue?\" — Every gig's setlist is saved and searchable." }
     ];
 
@@ -83,7 +83,7 @@ export default function LandingPage() {
             name: "Free",
             price: "$0",
             desc: "Start getting organized!",
-            features: ["Unlimited Gigs", "50 Songs Max", "Basic Practice Tracking", "Contact Management", "Auto Sync", "Try The Navigator"],
+            features: ["All your gigs", "Up to 50 songs", "Basic Practice Tracking", "Contact Management", "Automatic backup", "Try AI-powered lead discovery"],
             cta: "Start Free - No Credit Card",
             primary: false
         },
@@ -92,7 +92,7 @@ export default function LandingPage() {
             price: "$9.99",
             period: "/mo",
             desc: "For working musicians.",
-            features: ["Unlimited Songs", "Unlimited Storage", "Cloud Sync Across Devices", "Full Navigator Access", "Advanced Analytics", "Priority Support"],
+            features: ["All your songs", "Store everything", "Access from any device", "AI helps you discover local leads", "Track your progress", "Priority Support"],
             cta: "Go Pro",
             primary: true,
             highlight: "Most Popular"
@@ -140,10 +140,12 @@ export default function LandingPage() {
                 <View className="px-6 pt-24 pb-12 items-center md:pt-32 md:pb-16">
                     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], width: '100%', alignItems: 'center' }}>
                         <Text className="text-5xl md:text-7xl font-black text-white text-center leading-tight mb-6 max-w-4xl tracking-tighter">
-                            The Operating System for <Text className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Working Musicians</Text>
+                            <Text className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">OpusMode:</Text>{'\n'}
+                            The Missing Toolkit{'\n'}
+                            <Text className="italic text-fuchsia-400">For Musicians</Text>
                         </Text>
                         <Text className="text-slate-400 text-lg md:text-xl text-center max-w-2xl leading-relaxed mb-4">
-                            Finally, gig details that don't live in texts. OpusMode keeps your setlists, schedules, and contacts in one place.
+                            Tame your business — and get back to the music.
                         </Text>
                         <TouchableOpacity
                             onPress={() => router.push('/auth?mode=signup')}
@@ -207,7 +209,7 @@ export default function LandingPage() {
                             <View className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-6 h-full">
                                 <Text className="text-xl font-bold text-white mb-3">For your performances</Text>
                                 <Text className="text-slate-400 leading-relaxed">
-                                    Store your entire repertoire of songs with lyrics, charts, and notes. Attach links to YouTube, Spotify, or any reference recordings so your band knows exactly what version you're playing. Create set lists you can reuse across gigs or customize for specific shows. Keep all your contacts in one place — musicians, venues, managers — and assign players to each gig with a tap. Get AI-assisted help finding venues that book your style of music. When it's time to share, send your band a page with load-in times, venue directions, and the full set list. Send fans a promo page with event details and a tip jar.
+                                    Store your entire repertoire of songs with lyrics, charts, and notes. Attach links to YouTube, Spotify, or any reference recordings so your band knows exactly what version you're playing. Create set lists you can reuse across gigs or customize for specific shows. Keep all your contacts in one place — musicians, venues, managers — and assign players to each gig with a tap. AI uncovers venues that book your style of music. When it's time to share, send your band a web page with load-in times, venue directions, and the full set list. Send fans a promo page with event details and a tip jar.
                                 </Text>
                             </View>
                         </View>
@@ -230,7 +232,7 @@ export default function LandingPage() {
                     <View className="bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-6">
                         <Text className="text-xl font-bold text-white mb-3 text-center">And it all stays with you</Text>
                         <Text className="text-slate-300 text-center leading-relaxed max-w-2xl mx-auto">
-                            Your data syncs across devices and backs up automatically — so whether you're at home, in the practice room, or backstage, everything is right where you left it.
+                            Your data backs up automatically — so whether you're at home, in the practice room, or backstage, everything is right where you left it.
                         </Text>
                     </View>
                 </View>
