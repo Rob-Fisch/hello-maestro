@@ -65,17 +65,13 @@
 - [ ] **Copy Events** — Duplicate an existing event to quickly create a new one with same details (venue, personnel, set list, etc.). *Preferred over recurring events to avoid "edit one vs all" confusion. May revisit recurring events in future.*
 - [ ] **Venue Assignment to Gigs** — Select a venue from Contacts (role='venue_manager') to auto-fill gig location, similar to how musicians fill personnel slots.
 - [ ] **Venue Map Link Field** — Add `mapLink` field to venue contacts. When venue is attached to a gig, the map link auto-populates the gig's location link.
-- [ ] **Navigator In-App AI Integration** — Run Navigator prompts directly through AI API and display results inside OpusMode. *Pro/Pro+.*
-  - **Problem**: Current copy/paste workflow adds friction and users can't save results
-  - **Solution**: In-app AI execution with saved results
-  - **API Choice**: Gemini Flash (~$0.0013/query) or GPT-4o-mini (~$0.0025/query) — both economically viable
-  - **Monthly Query Limits** (based on `proSource`):
-    - Pro (Paid): 30 queries/month
-    - Pro (Promo/Early Adopter): 15 queries/month
-    - Pro+: 100 queries/month
-  - **Saved Results**: Users can view past queries and results in a "Research History" section
-  - **Cost Analysis**: Even 100 queries/month costs < $0.25. Limits are insurance against abuse, not revenue.
-  - **LOE**: ~5-7 days + ongoing API costs
+- [x] **Navigator In-App AI Integration** — ✅ Completed 2026-01-24 (Build 77). Run Navigator prompts directly through Gemini 2.0 Flash with results displayed in-app. *Pro/Pro+.*
+  - **Implementation**: Edge Function `navigator-ai` calls Gemini API, markdown results rendered with `react-native-markdown-display`
+  - **Geocoding**: Nominatim API validates zip → city/county/state before AI call for location accuracy
+  - **Rich Copy**: HTML clipboard for formatted paste into Notes/Docs
+  - **Disclaimer**: Footer on all AI results reminding users to verify details
+  - **Query Limits**: Admin (unlimited), Pro+ (100/mo), Pro paid (30/mo), Pro promo (15/mo)
+  - **Free tier**: Copy Command workflow (no AI execution)
 
 ---
 
@@ -156,6 +152,7 @@
 
 ## ✅ Completed
 
+- [x] **Navigator In-App AI Integration** — Gemini 2.0 Flash + geocoding + markdown rendering (Build 77)
 - [x] **Admin Panel: Pro Gift Screen** — Edge Function + UI for granting/revoking Pro (Build 75)
 - [x] **Pro+ Tier Implementation** — Live Mode products, webhook tier mapping, upgrade modal (Build 73)
 - [x] **PWA Install Instructions** — Safari + Chrome install steps in Help/FAQ
