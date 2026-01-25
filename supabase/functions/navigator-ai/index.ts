@@ -11,6 +11,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 // Query limits by tier and source
 const QUERY_LIMITS: Record<string, number> = {
+    'admin': 999999,
     'pro_plus': 100,
     'pro_paid': 30,
     'pro_promo': 15,
@@ -68,7 +69,9 @@ Deno.serve(async (req) => {
         // Determine query limit based on tier and source
         // If user is premium but tier is not set correctly, default to pro_promo
         let limitKey = 'pro_promo' // Default for premium users with unrecognized tier
-        if (tier === 'pro_plus') {
+        if (tier === 'admin') {
+            limitKey = 'admin'
+        } else if (tier === 'pro_plus') {
             limitKey = 'pro_plus'
         } else if (tier === 'pro') {
             limitKey = proSource === 'paid' ? 'pro_paid' : 'pro_promo'

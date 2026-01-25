@@ -371,6 +371,26 @@ export default function AdminPanel() {
                                     </Text>
                                 </TouchableOpacity>
 
+                                {/* Grant Admin - for testing/demos */}
+                                <TouchableOpacity
+                                    onPress={() => handleGrantTier('admin')}
+                                    disabled={loading || userResult.user_metadata.tier === 'admin'}
+                                    style={{
+                                        backgroundColor: '#0ea5e9',
+                                        padding: 14,
+                                        borderRadius: 8,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: userResult.user_metadata.tier === 'admin' ? 0.4 : 1
+                                    }}
+                                >
+                                    <Ionicons name="shield-checkmark" size={20} color="white" style={{ marginRight: 8 }} />
+                                    <Text style={{ color: 'white', fontWeight: '700' }}>
+                                        {userResult.user_metadata.tier === 'admin' ? 'Already Admin' : 'Grant Admin'}
+                                    </Text>
+                                </TouchableOpacity>
+
                                 {/* Revoke - only show if user has premium */}
                                 {userResult.user_metadata.is_premium && (
                                     <TouchableOpacity

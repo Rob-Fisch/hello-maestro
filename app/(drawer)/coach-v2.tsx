@@ -5,6 +5,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCOUT_TEMPLATES = [
@@ -84,6 +85,33 @@ const PRESET_GENRES = ['Jazz', 'Classical', 'Rock', 'Pop', 'Folk', 'Blues', 'R&B
 
 import { supabase } from '@/lib/supabase';
 import * as Clipboard from 'expo-clipboard';
+import { marked } from 'marked';
+
+// Helper to copy rich text (HTML) on web
+const copyRichText = async (markdown: string) => {
+    if (Platform.OS === 'web') {
+        try {
+            const html = await marked(markdown);
+            const blob = new Blob([html], { type: 'text/html' });
+            const plainBlob = new Blob([markdown], { type: 'text/plain' });
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    'text/html': blob,
+                    'text/plain': plainBlob
+                })
+            ]);
+            return true;
+        } catch (e) {
+            // Fallback to plain text
+            await Clipboard.setStringAsync(markdown);
+            return false;
+        }
+    } else {
+        // Mobile: plain text only
+        await Clipboard.setStringAsync(markdown);
+        return false;
+    }
+};
 
 export default function CoachV2Screen() {
     const theme = useTheme();
@@ -445,22 +473,59 @@ export default function CoachV2Screen() {
 
                                         {/* AI Response Display */}
                                         {aiResponse && (
-                                            <View className="p-5 rounded-3xl border mb-6" style={{ backgroundColor: theme.card, borderColor: '#16a34a' }}>
-                                                <View className="flex-row items-center mb-4">
-                                                    <Ionicons name="sparkles" size={20} color="#16a34a" />
-                                                    <Text className="text-green-400 font-black uppercase text-xs ml-2">AI Results</Text>
+                                            <View className="rounded-3xl border mb-6 overflow-hidden" style={{ backgroundColor: theme.card, borderColor: '#16a34a' }}>
+                                                {/* Header with Copy Button */}
+                                                <View className="flex-row items-center justify-between p-4 border-b" style={{ borderColor: 'rgba(22, 163, 74, 0.3)' }}>
+                                                    <View className="flex-row items-center">
+                                                        <Ionicons name="sparkles" size={20} color="#16a34a" />
+                                                        <Text className="text-green-400 font-black uppercase text-xs ml-2">AI Results</Text>
+                                                    </View>
+                                                    <TouchableOpacity
+                                                        onPress={async () => {
+                                                            const richCopy = await copyRichText(aiResponse);
+                                                            if (Platform.OS === 'web') {
+                                                                alert(richCopy ? 'Copied as formatted text!' : 'Results copied to clipboard!');
+                                                            } else {
+                                                                Alert.alert('Copied!', 'Results copied to clipboard.');
+                                                            }
+                                                        }}
+                                                        className="flex-row items-center bg-green-600/20 px-3 py-1.5 rounded-lg"
+                                                    >
+                                                        <Ionicons name="copy-outline" size={14} color="#16a34a" />
+                                                        <Text className="text-green-400 text-xs font-bold ml-1">Copy Results</Text>
+                                                    </TouchableOpacity>
                                                 </View>
-                                                <Text
-                                                    style={{
-                                                        color: theme.text,
-                                                        fontSize: 14,
-                                                        lineHeight: 22,
-                                                        fontWeight: '500'
-                                                    }}
-                                                    selectable
+                                                {/* Scrollable Results */}
+                                                <ScrollView
+                                                    style={{ maxHeight: 500 }}
+                                                    nestedScrollEnabled
+                                                    showsVerticalScrollIndicator
                                                 >
-                                                    {aiResponse}
-                                                </Text>
+                                                    <View className="p-5">
+                                                        <Markdown
+                                                            style={{
+                                                                body: { color: theme.text, fontSize: 14, lineHeight: 22 },
+                                                                heading1: { color: theme.text, fontSize: 20, fontWeight: '800', marginBottom: 8 },
+                                                                heading2: { color: theme.text, fontSize: 18, fontWeight: '700', marginTop: 16, marginBottom: 8 },
+                                                                heading3: { color: theme.text, fontSize: 16, fontWeight: '700', marginTop: 12, marginBottom: 6 },
+                                                                strong: { fontWeight: '700' },
+                                                                link: { color: '#6366f1' },
+                                                                table: { borderWidth: 1, borderColor: theme.border, marginVertical: 12 },
+                                                                tr: { borderBottomWidth: 1, borderColor: theme.border },
+                                                                th: { padding: 8, backgroundColor: 'rgba(99, 102, 241, 0.1)', fontWeight: '700' },
+                                                                td: { padding: 8 },
+                                                                bullet_list: { marginVertical: 8 },
+                                                                ordered_list: { marginVertical: 8 },
+                                                                list_item: { marginVertical: 4 },
+                                                                blockquote: { backgroundColor: 'rgba(99, 102, 241, 0.1)', borderLeftWidth: 4, borderLeftColor: '#6366f1', paddingLeft: 12, marginVertical: 8 },
+                                                                code_inline: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 4, borderRadius: 4, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+                                                                fence: { backgroundColor: 'rgba(0,0,0,0.3)', padding: 12, borderRadius: 8, marginVertical: 8 },
+                                                            }}
+                                                        >
+                                                            {aiResponse}
+                                                        </Markdown>
+                                                    </View>
+                                                </ScrollView>
                                             </View>
                                         )}
 
