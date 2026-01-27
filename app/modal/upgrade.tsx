@@ -3,47 +3,34 @@ import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, Easing, Image, LayoutChangeEvent, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Dimensions, Easing, LayoutChangeEvent, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
 const SLIDES = [
     {
-        id: 'chaos', // Keeping IDs for compatibility with params
+        id: 'studio',
         title: 'THE STUDIO',
-        subtitle: 'SONGS & STORAGE',
-        image: require('../../assets/images/upgrade_studio_v3.png'), // Keep generic or update if possible
+        subtitle: 'PRACTICE • ORGANIZE • MASTER',
         icon: 'musical-notes',
         color: '#60a5fa', // Blue
         bg: 'bg-slate-950',
         blob: 'bg-blue-900'
     },
     {
-        id: 'order',
-        title: 'MASTERY TOOLS',
-        subtitle: 'ROUTINES & HISTORY',
-        image: require('../../assets/images/upgrade_mastery_v2.png'),
-        icon: 'grid',
-        color: '#2dd4bf', // Teal
-        bg: 'bg-teal-950',
-        blob: 'bg-teal-900'
-    },
-    {
-        id: 'glory',
-        title: 'GIG MANAGEMENT',
-        subtitle: 'FINANCE • CONTACTS • LOGISTICS',
-        image: require('../../assets/images/upgrade_gigs_v2.png'),
+        id: 'stage',
+        title: 'THE STAGE',
+        subtitle: 'PERFORM • MANAGE • GROW',
         icon: 'briefcase',
         color: '#f59e0b', // Amber
         bg: 'bg-amber-950',
         blob: 'bg-amber-900'
     },
     {
-        id: 'coach',
+        id: 'navigator',
         title: 'THE NAVIGATOR',
-        subtitle: 'CAREER GUIDANCE',
-        image: require('../../assets/images/upgrade_coach_v5.png'),
+        subtitle: 'MUSICIAN-CURATED AI',
         icon: 'compass',
         color: '#2dd4bf', // Teal
         bg: 'bg-teal-950',
@@ -270,11 +257,11 @@ export default function UpgradeModal() {
                         Pro Feature Deep Dive
                     </Text>
 
-                    {SLIDES.map((item) => (
+                    {SLIDES.map((item, index) => (
                         <View
                             key={item.id}
                             onLayout={(event) => handleLayout(item.id, event)}
-                            className={`mb-8 border-b border-white/5 pb-8 ${requestedFeature === item.id ? 'bg-white/5 -mx-4 px-4 pt-4 rounded-xl border-none' : ''}`}
+                            className={`mb-8 border-b border-white/5 pb-8 -mx-6 px-6 py-6 ${index % 2 === 0 ? 'bg-black' : 'bg-zinc-900'} ${requestedFeature === item.id ? 'bg-white/5 rounded-xl border-none' : ''}`}
                         >
                             <TouchableOpacity
                                 onPress={() => router.setParams({ feature: item.id })}
@@ -291,62 +278,32 @@ export default function UpgradeModal() {
 
                             {/* Always visible details for Pro Page */}
                             <View className="pl-[56px]">
-                                {/* VISUAL GOLDEN SAMPLE */}
-                                <View className="w-full aspect-video bg-black rounded-2xl mb-6 overflow-hidden border border-white/10 shadow-lg relative items-center justify-center">
-                                    <Image
-                                        source={item.image}
-                                        style={{ width: '80%', height: '80%', resizeMode: 'contain', opacity: 0.9 }}
-                                    />
-                                    {/* Optional "Sample" overlay badge */}
-                                    <View className="absolute top-3 right-3 bg-white/10 px-2 py-1 rounded-md backdrop-blur-md">
-                                        <Text className="text-[10px] text-white font-bold uppercase tracking-wider">Preview</Text>
-                                    </View>
-                                </View>
-
                                 <Text className="text-zinc-300 leading-relaxed mb-4">
-                                    {item.id === 'chaos' && "Capture ideas instantly with up to 2500 songs. Attach voice memos, PDFs, and chord charts directly to your songs. Never lose a riff again."}
-                                    {item.id === 'order' && "Organize chaos into mastery. Create custom practicing routines, track your progress session-by-session, and build perfect setlists for every gig."}
-                                    {item.id === 'glory' && "The ultimate stage companion. Use Live Mode to perform distraction-free. Sync your calendar to Google/iCal and manage your band roster seamlessly."}
-                                    {item.id === 'business' && "Turn your passion into a business. Track every dollar in and out. Manage gig fees, expenses, and tax deductions with the integrated Finance Manager."}
-                                    {item.id === 'coach' && "Your digital co-pilot. Ask 'The Navigator' to draft booking emails, suggest setlists based on venue vibe, or critique your practice schedule."}
+                                    {item.id === 'studio' && "Your personal practice library. Create exercises, excerpts, and full pieces. Organize them into routines, track your sessions, and export to PDF."}
+                                    {item.id === 'stage' && "Everything for the working musician. Build set lists with song details and references. Manage gigs, track finances, and coordinate with your band."}
+                                    {item.id === 'navigator' && "AI guidance curated by a working musician. Find venues, teaching opportunities, festivals, and plan tours — with results designed for how musicians actually work."}
                                 </Text>
 
                                 {/* Bullet Points */}
                                 <View className="gap-2">
-                                    {item.id === 'chaos' && [
-                                        "Store up to 2500 songs", "Your data, backed up safely", "File Attachments (Audio/PDF)"
+                                    {item.id === 'studio' && [
+                                        "Unlimited Practice Blocks", "Custom Routines & Progress Tracking", "PDF Export & Sharing", "Cloud Backup & Sync"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}
-                                    {item.id === 'chaos' && (
+                                    {item.id === 'studio' && (
                                         <View className="mt-4 p-3 rounded-lg border border-indigo-500/20 bg-indigo-500/10">
                                             <Text className="text-indigo-400 font-bold text-[10px] uppercase tracking-wide mb-1">The Pro Difference</Text>
-                                            <Text className="text-zinc-400 text-xs">Free accounts are limited to 500MB. Pro includes <Text className="font-bold text-white">10GB</Text> of Cloud Storage for backups & attachments*.</Text>
+                                            <Text className="text-zinc-400 text-xs">Free accounts are limited to 100MB. Pro includes <Text className="font-bold text-white">5GB</Text> of Cloud Storage for backups & attachments.</Text>
                                         </View>
                                     )}
-                                    {item.id === 'order' && [
-                                        "All your Setlists", "All your Routines", "Full Progress Tracking"
+                                    {item.id === 'stage' && [
+                                        "Unlimited Setlists & Songs", "Gig Calendar & Finance Dashboard", "Band Roster & Venue Contacts", "5GB Cloud Storage"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}
-                                    {item.id === 'order' && (
-                                        <View className="mt-4 p-3 rounded-lg border border-teal-500/20 bg-teal-500/10">
-                                            <Text className="text-teal-400 font-bold text-[10px] uppercase tracking-wide mb-1">The Pro Difference</Text>
-                                            <Text className="text-zinc-400 text-xs">Free accounts keep 3 months of history. Pro tracks your growth forever.</Text>
-                                        </View>
-                                    )}
-                                    {item.id === 'glory' && [
-                                        "Finance & Contracts", "Performance Promotions & Setlists", "Venue Contact Tracker"
-                                    ].map((feat, i) => (
-                                        <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
-                                    ))}
-                                    {item.id === 'business' && [
-                                        "Income & Expense Tracking", "Profit & Loss Reports", "Tax Categorization"
-                                    ].map((feat, i) => (
-                                        <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
-                                    ))}
-                                    {item.id === 'coach' && [
-                                        "AI Strategy Bot", "Email Drafter", "Industry Guidance"
+                                    {item.id === 'navigator' && [
+                                        "Find Venues & Gig Leads", "Discover Teaching Establishments", "Research Festivals", "Plan Tours with the Venue Locator"
                                     ].map((feat, i) => (
                                         <View key={i} className="flex-row items-center"><Ionicons name="checkmark" size={12} color="#71717a" /><Text className="text-zinc-400 text-xs ml-2">{feat}</Text></View>
                                     ))}

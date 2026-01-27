@@ -2,6 +2,9 @@
 
 > Single source of truth for actionable work. For pricing strategy and feature matrix, see [`pricing_tiers.md`](file:///Users/robfisch/Documents/OpusMode/pricing_tiers.md).
 
+**Priority**: 1 = High, 2 = Medium, 3 = Low  
+**Status**: ⬜ Open, 🔄 In Progress, ✅ Done
+
 ---
 
 ## ⏭️ Next Session
@@ -12,147 +15,119 @@
 
 ## Early Adopter Feedback Program
 
-- [x] **Promotional User Tracking (`proSource`)** — ✅ Webhook updated 2026-01-24 to set `proSource: 'paid'` on purchases. Field stored in `user_metadata` alongside `tier` and `is_premium`.
-  - `'paid'` — Full-price Lemon Squeezy purchase (set automatically via webhook)
-  - `'promo_lifetime'` / `'promo_trial'` / `'promo_discount'` — Set via Admin Panel or SQL
-- [x] **Admin Panel: Pro Gift Screen** — ✅ Completed 2026-01-24 (Build 75). Settings → Admin Panel. Search by email, grant Pro/Pro+ (lifetime), revoke access. Edge Function `admin-api` with admin email validation.
-- [ ] **Staged Google Forms** — Create different feedback forms for different user checkpoints:
-  - **Form A (Day 1-7)**: First impressions, intuitiveness, onboarding clarity
-  - **Form B (Day 30+)**: Feature gaps, improvement ideas, NPS score
-  - **Form C (Evergreen)**: General suggestions, open to all users
-- [ ] **In-App Feedback Prompts** — Periodic prompts for promo users with links to Google Forms:
-  - Track `lastFeedbackPromptAt` to avoid over-prompting (e.g., every 30 days)
-  - Trigger contextually: after N sessions, after first Pro feature use, etc.
-  - Simple banner or modal: "Help us improve OpusMode! [Give Feedback]"
-- [ ] **Settings Link** — Add evergreen "Give Feedback" link in Settings for any user anytime.
+| # | Pri | Feature | Description | Tier | Status | Created | Completed |
+|---|-----|---------|-------------|------|--------|---------|-----------|
+| 1 | 2 | **Staged Google Forms** | Different feedback forms for user checkpoints (Day 1-7, Day 30+, Evergreen) | — | ⬜ | 01-25 | |
+| 2 | 2 | **In-App Feedback Prompts** | Periodic prompts for promo users with links to Google Forms | — | ⬜ | 01-25 | |
+| 3 | 3 | **Settings Link** | Add evergreen "Give Feedback" link in Settings | — | ⬜ | 01-25 | |
 
 ---
 
 ## Feature Enhancements
 
-- [ ] **Chord Chart Builder** — Quick cheat sheet generator for gigging musicians who don't use formal notation. *Free tier.*
-  - **Problem**: iReal Pro is overkill; Notes apps are too crude. Musicians need simple chord charts with bar lines and form structure.
-  - **Entry Philosophy**: Click-first, minimal typing. Tap cells on a grid → pick chord from palette.
-  - **Templates**: 12-bar blues, 8-bar verse, AABA, custom. One-tap to start.
-  - **Features**: Section labels (`[Verse]`, `[Chorus]`), repeat signs, key/tempo header, transpose function
-  - **Optional lyrics**: Interleave lyric lines under chord rows for vocalist use
-  - **Output**: Scrollable view, print-ready PDF, share link
-  - **Pairs with**: Song Library (attach chart to song), Setlist (view charts in set order)
-  - **⚠️ Wireframe first**: Create mockups of data entry layouts before implementation. Explore grid vs palette vs hybrid approaches.
-  - **LOE**: ~5-8 days
-- [ ] **Lyrics Storage / Teleprompter** — Scrollable lyrics view for vocalists. *Free tier.*
-  - **Storage**: Add `lyrics` text field to Song records
-  - **Display**: Dedicated "Lyric View" mode — large text, dark mode, scrollable
-  - **Performance Mode**: Minimal UI, swipe through setlist order
-  - **Future**: Auto-scroll at tempo, chord annotations inline `[Am] lyrics [G] here`
-  - **Pairs with**: Chord Chart Builder (lyrics optional under chord lines)
-  - **LOE**: ~2-3 days
-- [ ] **Tempo Trainer (Smart Metronome)** — Practice tool in The Studio for progressive tempo building. *Free tier.*
-  - **Parameters**: Starting tempo, target tempo, bars per rep, time signature, increase amount (+bpm), increase frequency (every Nth rep)
-  - **Example**: 32 bars in 4/4 at 60bpm → +5bpm each rep until 120bpm (13 reps total)
-  - **Tech**: Web Audio API (`AudioContext`), works in PWA
-  - **UI**: Beat indicator, rep/bar progress, live tempo display, settings panel
-  - **Future**: Decrease mode, accent patterns, audio cue on tempo change, link to Practice Artifacts, presets
-  - **LOE**: ~4-6 days
-- [ ] **In-App Practice Mode (PDF Viewer)** — View routines and library artifacts on screen without export. *Free tier.*
-  - **Problem**: Currently must export PDF → find in Downloads → open externally. Too much friction.
-  - **Solution**: Swipeable card view through routine items. Render PDFs inline, show text/narrative styled.
-  - **Tech**: `react-pdf` or PDF.js for in-app PDF rendering (PWA compatible)
-  - **Features**: Swipe through items, pinch-zoom PDFs, "Mark Complete" for practice tracking
-  - **Reusable**: PDF viewer component usable for Song attachments, Charts, etc.
-  - **⚠️ Prototype first**: Build minimal PDF viewer spike before full implementation to validate rendering performance on mobile Safari.
-  - **LOE**: ~3-4 days (after prototype validation)
-- [ ] **Copy Events** — Duplicate an existing event to quickly create a new one with same details (venue, personnel, set list, etc.). *Preferred over recurring events to avoid "edit one vs all" confusion. May revisit recurring events in future.*
-- [ ] **Venue Assignment to Gigs** — Select a venue from Contacts (role='venue_manager') to auto-fill gig location, similar to how musicians fill personnel slots.
-- [ ] **Venue Map Link Field** — Add `mapLink` field to venue contacts. When venue is attached to a gig, the map link auto-populates the gig's location link.
-- [x] **Navigator In-App AI Integration** — ✅ Completed 2026-01-24 (Build 77). Run Navigator prompts directly through Gemini 2.0 Flash with results displayed in-app. *Pro/Pro+.*
-  - **Implementation**: Edge Function `navigator-ai` calls Gemini API, markdown results rendered with `react-native-markdown-display`
-  - **Geocoding**: Nominatim API validates zip → city/county/state before AI call for location accuracy
-  - **Rich Copy**: HTML clipboard for formatted paste into Notes/Docs
-  - **Disclaimer**: Footer on all AI results reminding users to verify details
-  - **Query Limits**: Admin (unlimited), Pro+ (100/mo), Pro paid (30/mo), Pro promo (15/mo)
-  - **Free tier**: Copy Command workflow (no AI execution)
+| # | Pri | Feature | Description | Tier | Status | LOE | Created | Completed |
+|---|-----|---------|-------------|------|--------|-----|---------|-----------|
+| 4 | 1 | **Chord Chart Builder** | Quick cheat sheet generator with grid-based entry. See [details](#chord-chart-builder-details). | Free | ⬜ | 5-8d | 01-25 | |
+| 5 | 1 | **Lyrics Storage / Teleprompter** | Scrollable lyrics view for vocalists, add `lyrics` field to Songs | Free | ⬜ | 2-3d | 01-25 | |
+| 6 | 2 | **Tempo Trainer (Smart Metronome)** | Progressive tempo building tool in The Studio via Web Audio API | Free | ⬜ | 4-6d | 01-25 | |
+| 7 | 2 | **In-App Practice Mode (PDF Viewer)** | View routines/library artifacts on screen without export. See [details](#pdf-viewer-details). | Free | ⬜ | 3-4d | 01-25 | |
+| 8 | 2 | **Copy Events** | Duplicate an existing event to quickly create a new one | Free | ⬜ | — | 01-25 | |
+| 9 | 3 | **Venue Assignment to Gigs** | Select venue from Contacts to auto-fill gig location | Free | ⬜ | — | 01-25 | |
+| 10 | 3 | **Venue Map Link Field** | Add `mapLink` field to venue contacts, auto-populate on gig | Free | ⬜ | — | 01-25 | |
+| 11 | 3 | **MusicXML Import/Export** | Import charts from iRealPro, Finale, MuseScore; export for interoperability | Free | ⬜ | 3-5d | 01-25 | |
+
+### Chord Chart Builder Details
+- **Problem**: iReal Pro is overkill; Notes apps are too crude
+- **Entry Philosophy**: Click-first, minimal typing. Tap cells on grid → pick chord from palette
+- **Templates**: 12-bar blues, 8-bar verse, AABA, custom
+- **Features**: Section labels, repeat signs, key/tempo header, transpose function
+- **Optional lyrics**: Interleave lyric lines under chord rows
+- **Output**: Scrollable view, print-ready PDF, share link
+- **⚠️ Wireframe first**: Create mockups before implementation
+
+### PDF Viewer Details
+- **Problem**: Export PDF → find in Downloads → open externally = too much friction
+- **Solution**: Swipeable card view, render PDFs inline with `react-pdf` or PDF.js
+- **⚠️ Prototype first**: Validate rendering performance on mobile Safari
 
 ---
 
-## Gigs & Booking (from pricing_tiers.md)
+## Gigs & Booking
 
-- [ ] **Musician Analytics (Roster Intelligence)** — Dashboard: booking frequency, reliability tracking, sub patterns, geographic proximity to venues. *(Pro+)*
-- [ ] **Performance Promo Analytics** — Track views, geographic data, song engagement. *(Pro)*
-- [ ] **Fan Email Capture** — Collect emails from promo pages, export to CSV. *(Pro)*
-- [ ] **Custom Branding** — White-label promo pages, remove "Powered by OpusMode". *(Pro+)*
-- [ ] **Performer Page Notifications** — Auto-notify band via SMS/email when logistics change. *(Pro)*
-- [ ] **QR Code Generator** — Fan engagement from stage.
+| # | Pri | Feature | Description | Tier | Status | Created | Completed |
+|---|-----|---------|-------------|------|--------|---------|-----------|
+| 11 | 3 | **Musician Analytics (Roster Intelligence)** | Dashboard: booking frequency, reliability, sub patterns, proximity | Pro+ | ⬜ | 01-25 | |
+| 12 | 3 | **Performance Promo Analytics** | Track views, geographic data, song engagement | Pro | ⬜ | 01-25 | |
+| 13 | 2 | **Fan Email Capture** | Collect emails from promo pages, export to CSV | Pro | ⬜ | 01-25 | |
+| 14 | 3 | **Custom Branding** | White-label promo pages, remove "Powered by OpusMode" | Pro+ | ⬜ | 01-25 | |
+| 15 | 3 | **Performer Page Notifications** | Auto-notify band via SMS/email when logistics change | Pro | ⬜ | 01-25 | |
+| 16 | 2 | **QR Code Generator** | Fan engagement from stage | Free | ⬜ | 01-25 | |
 
 ---
 
 ## Finance & Business
 
-- [ ] **Gig Log (Finance Lite)** — Per-gig income tracker: Guaranteed Pay, Tips, Status (Unpaid/Paid/Deposit).
-- [ ] **Finance Dashboard & Reports** — Reports, tax exports, year-end summaries. *(Pro)*
-- [ ] **Finance Module Risk Mitigation** — Protect users (and OpusMode) from data loss claims:
-  - ToS update: Add disclaimer that Finance is for personal record-keeping, users responsible for backups, liability limited to subscription amount.
-  - In-module disclaimer: Subtle messaging (avoid "not accounting software" language) encouraging regular exports.
-  - Quarterly export: Verify export modal properly handles quarterly data (Current View already supports quarters via period picker).
-  - Soft deletes: 30-day recovery window for deleted transactions (add `deleted_at` column, filter from UI, allow restore).
-  - Export reminders: In-app prompts at quarterly/year-end intervals nudging users to export data. *(No email infra required.)*
-  - ~~*Note: `createdAt` timestamps exist for audit trail; consider adding `updatedAt` for full change tracking.*~~ ✅ Implemented 2026-01-24 — all tables now have `updated_at` with auto-update triggers.
+| # | Pri | Feature | Description | Tier | Status | Created | Completed |
+|---|-----|---------|-------------|------|--------|---------|-----------|
+| 17 | 2 | **Finance Dashboard & Reports** | Audit current implementation; add missing reports, tax exports, year-end summaries | Pro | ⬜ | 01-25 | |
+| 18 | 2 | **Finance Module Risk Mitigation** | ToS disclaimer, soft deletes (30-day recovery), export reminders | — | ⬜ | 01-25 | |
 
 ---
 
 ## Venue CRM
 
-- [ ] **Contact Freshness Indicator** — Show "Last updated: X" on contact detail view so users know how current the info is. Especially valuable for venue contacts. *Free tier.*
-- [ ] **Stale Contact Filter** — Filter/report to find "Contacts not modified in X months" (user picks threshold). Helps users identify outdated info that needs refreshing. *Free tier.*
-- [ ] **Interaction Timeline** — Log calls, emails, meetings with venue managers. *(Pro)*
-- [ ] **Pro Log History Export (CSV)** — Export venue interaction history. *(Pro)*
+| # | Pri | Feature | Description | Tier | Status | Created | Completed |
+|---|-----|---------|-------------|------|--------|---------|-----------|
+| 19 | 1 | **Contact Freshness Indicator** | Show "Last updated: X" on contact detail view | Free | ⬜ | 01-25 | |
+| 20 | 2 | **Sort Contacts by Last Updated** | Add sort option to People list (lower LOE than filter) | Free | ⬜ | 01-25 | |
+| 21 | 3 | **Pro Log History Export (CSV)** | Export venue interaction history | Pro | ⬜ | 01-25 | |
 
 ---
 
 ## Gear & Assets
 
-- [ ] **Gear Vault Reimagined** — Financial asset tracking: purchase dates, depreciation, insurance docs.
+| # | Pri | Feature | Description | Tier | Status | Created | Completed |
+|---|-----|---------|-------------|------|--------|---------|-----------|
+| 22 | 3 | **Gear Vault Reimagined** | Financial asset tracking: purchase dates, depreciation, insurance docs | Pro | ⬜ | 01-25 | |
 
 ---
 
 ## User Account Management
 
-- [ ] **MFA (Multi-Factor Authentication)** — Implement before enabling sensitive account changes. Required for: email change, password change, account deletion, payment method changes. Device trust (biometrics/PIN) sufficient for normal app access to preserve offline-first UX. *Blocked on: revenue/margins.*
-- [ ] **Update Email Address** — Allow users to change their account email. *Blocked on: MFA.*
-- [ ] **Delete Account** — GDPR-compliant self-serve deletion (30-day grace period). *Blocked on: MFA.*
-- [ ] **Admin Data Cleanup** — Admin panel function to delete user + all related data. *Blocked on: MFA + Admin Panel.*
+| # | Pri | Feature | Description | Tier | Status | Blocked On | Created | Completed |
+|---|-----|---------|-------------|------|--------|------------|---------|-----------|
+| 23 | 2 | **MFA (Multi-Factor Authentication)** | Required for sensitive account changes | — | ⬜ | Revenue/margins | 01-25 | |
+| 24 | 2 | **Update Email Address** | Allow users to change account email | — | ⬜ | MFA | 01-25 | |
+| 25 | 2 | **Delete Account** | GDPR-compliant self-serve deletion (30-day grace) | — | ⬜ | MFA | 01-25 | |
+| 26 | 3 | **Admin Data Cleanup** | Admin panel function to delete user + all data | — | ⬜ | MFA + Admin Panel | 01-25 | |
 
 ---
 
 ## Branding & Polish
 
-- [ ] **Custom SMTP for Auth Emails** — Send auth emails from `noreply@opusmode.net` instead of Supabase Auth.
-- [ ] **Visual Tutorial Library** — Collect annotated screenshots for animated instruction tutorials (PWA install, feature walkthroughs, etc.). Assets saved in artifacts folder. Can be embedded in Help/FAQ, landing page, or marketing.
-  - PWA Install animation created ✓ (`pwa_install_final_*.webp`)
+| # | Pri | Feature | Description | Tier | Status | Created | Completed |
+|---|-----|---------|-------------|------|--------|---------|-----------|
+| 27 | 2 | **Custom SMTP for Auth Emails** | Send auth emails from `noreply@opusmode.net` | — | ⬜ | 01-25 | |
+| 28 | 2 | **Visual Tutorial Library** | Annotated screenshots for animated tutorials | — | ⬜ | 01-25 | |
+| 29 | 2 | **Upgrade Modal Images** | Replace outdated/inaccurate marketing images for Studio, Stage, Navigator slides. Current images show features that don't exist. | — | ⬜ | 01-26 | |
 
 ---
 
 ## Platform
 
-- [ ] **Native iOS/Android Apps** — App Store submission (activates "Two Islands" sync).
-- [ ] **Usage Analytics (SQL Detective Work)** — Query Supabase to understand user behavior:
-  - What feature do users create first? (events vs. routines vs. contacts)
-  - Which features are used most per user?
-  - Pro feature adoption rates
-  - Power user identification
-- [ ] **Metabase BI Dashboard** — Connect Metabase (free tier) to Supabase for visual dashboards: user growth, gig trends, feature adoption, revenue metrics.
-
----
-
-## Deferred
-
-- [ ] **Sample Data Seeding** — Deferred due to RLS sync issues for Free tier.
+| # | Pri | Feature | Description | Tier | Status | Created | Completed |
+|---|-----|---------|-------------|------|--------|---------|-----------|
+| 29 | 2 | **Native iOS/Android Apps** | App Store submission (activates "Two Islands" sync) | — | ⬜ | 01-25 | |
+| 30 | 2 | **Usage Analytics (SQL Detective Work)** | Query Supabase for user behavior insights | — | ⬜ | 01-25 | |
+| 31 | 2 | **Metabase BI Dashboard** | Connect Metabase to Supabase for visual dashboards | — | ⬜ | 01-25 | |
 
 ---
 
 ## ✅ Completed
 
+- [x] **Interaction Timeline (Venue CRM)** — Log calls, emails, meetings with contacts. Full implementation in People detail view.
 - [x] **Navigator In-App AI Integration** — Gemini 2.0 Flash + geocoding + markdown rendering (Build 77)
+- [x] **Promotional User Tracking (`proSource`)** — Webhook sets `proSource: 'paid'` on purchases (2026-01-24)
 - [x] **Admin Panel: Pro Gift Screen** — Edge Function + UI for granting/revoking Pro (Build 75)
 - [x] **Pro+ Tier Implementation** — Live Mode products, webhook tier mapping, upgrade modal (Build 73)
 - [x] **PWA Install Instructions** — Safari + Chrome install steps in Help/FAQ
