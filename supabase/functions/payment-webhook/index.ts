@@ -38,8 +38,9 @@ const VARIANT_TO_TIER: Record<number, 'pro' | 'pro_plus'> = {
 // UPDATE THESE after creating the product in Lemon Squeezy!
 const QUERY_PACK_VARIANTS: Record<number, number> = {
     // Test Mode
-    795638: 10, // Query Pack - 10 queries
-    // Live Mode (add after copying to live)
+    1254825: 10, // Query Pack - 10 queries
+    // Live Mode
+    1254923: 10, // Query Pack - 10 queries
 }
 
 function getTierFromVariant(variantId: number): 'pro' | 'pro_plus' | null {
@@ -71,8 +72,16 @@ serve(async (req) => {
 
     console.log(`Received event: ${event_name}`)
 
-    // Extract variant_id from the subscription data
-    const variant_id = data.attributes.variant_id
+    // Extract variant_id - different location for orders vs subscriptions
+    let variant_id: number | undefined
+    if (event_name === 'order_created') {
+        // For orders, variant is in first_order_item
+        const first_order_item = data.attributes.first_order_item
+        variant_id = first_order_item?.variant_id
+    } else {
+        // For subscriptions, variant is directly in attributes
+        variant_id = data.attributes.variant_id
+    }
     console.log(`Variant ID: ${variant_id}`)
 
     // 3. Handle Subscription Events

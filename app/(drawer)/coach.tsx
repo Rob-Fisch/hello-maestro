@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const TEST_MODE = false; // Set to true for testing
 const QUERY_PACK_CHECKOUT = TEST_MODE
     ? 'https://opusmode.lemonsqueezy.com/checkout/buy/71cdc811-f356-493b-aada-8094e1943b10' // Test Mode
-    : 'https://opusmode.lemonsqueezy.com/checkout/buy/71cdc811-f356-493b-aada-8094e1943b10'; // Live Mode (update after copy)
+    : 'https://opusmode.lemonsqueezy.com/checkout/buy/a49c7e53-4e13-4fff-a2a9-ac1bcd2c7ed2'; // Live Mode
 
 const SCOUT_TEMPLATES = [
     {
