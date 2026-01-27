@@ -494,18 +494,20 @@ export default function CoachV2Screen() {
                                                 </TouchableOpacity>
                                             )}
 
-                                            {/* Copy to Clipboard (Primary for Free, Secondary for Pro) */}
-                                            <TouchableOpacity
-                                                onPress={handleCopy}
-                                                activeOpacity={0.7}
-                                                className={`w-full rounded-xl flex-row items-center justify-center ${profile?.isPremium ? 'py-3 border' : 'py-4 bg-indigo-600'}`}
-                                                style={profile?.isPremium ? { borderColor: theme.border } : {}}
-                                            >
-                                                <Ionicons name={profile?.isPremium ? "copy-outline" : "copy"} size={profile?.isPremium ? 18 : 20} color={profile?.isPremium ? theme.mutedText : 'white'} />
-                                                <Text className={`font-bold ml-2 ${profile?.isPremium ? 'text-sm' : 'text-lg text-white uppercase tracking-wide'}`} style={profile?.isPremium ? { color: theme.mutedText } : {}}>
-                                                    {profile?.isPremium ? 'Copy Prompt for External AI' : 'Copy Command'}
-                                                </Text>
-                                            </TouchableOpacity>
+                                            {/* Copy to Clipboard - Only show for Free templates (Pro templates keep prompts proprietary) */}
+                                            {activeTemplate.isFree && (
+                                                <TouchableOpacity
+                                                    onPress={handleCopy}
+                                                    activeOpacity={0.7}
+                                                    className="w-full rounded-xl flex-row items-center justify-center py-3 border"
+                                                    style={{ borderColor: theme.border }}
+                                                >
+                                                    <Ionicons name="copy-outline" size={18} color={theme.mutedText} />
+                                                    <Text className="font-bold ml-2 text-sm" style={{ color: theme.mutedText }}>
+                                                        Copy Prompt for External AI
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            )}
                                         </View>
 
                                         {/* Error Display */}
@@ -585,30 +587,34 @@ export default function CoachV2Screen() {
                                             </View>
                                         )}
 
-                                        {/* Collapsible Raw Prompt */}
-                                        <TouchableOpacity
-                                            onPress={() => setShowRaw(!showRaw)}
-                                            className="flex-row items-center justify-center mb-4 opacity-50"
-                                        >
-                                            <Text className="font-bold mr-1" style={{ color: theme.text }}>{showRaw ? 'Hide' : 'View'} Raw Prompt</Text>
-                                            <Ionicons name={showRaw ? "chevron-up" : "chevron-down"} size={16} color={theme.text} />
-                                        </TouchableOpacity>
+                                        {/* Collapsible Raw Prompt - Only show for Free templates (Pro templates keep prompts proprietary) */}
+                                        {activeTemplate.isFree && (
+                                            <>
+                                                <TouchableOpacity
+                                                    onPress={() => setShowRaw(!showRaw)}
+                                                    className="flex-row items-center justify-center mb-4 opacity-50"
+                                                >
+                                                    <Text className="font-bold mr-1" style={{ color: theme.text }}>{showRaw ? 'Hide' : 'View'} Raw Prompt</Text>
+                                                    <Ionicons name={showRaw ? "chevron-up" : "chevron-down"} size={16} color={theme.text} />
+                                                </TouchableOpacity>
 
-                                        {showRaw && (
-                                            <View className="p-4 rounded-3xl border border-dashed mb-8" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                                                <TextInput
-                                                    value={generatedPrompt}
-                                                    multiline={true}
-                                                    scrollEnabled={false}
-                                                    editable={false}
-                                                    style={{
-                                                        color: theme.mutedText,
-                                                        fontSize: 13,
-                                                        lineHeight: 20,
-                                                        fontWeight: '500',
-                                                    }}
-                                                />
-                                            </View>
+                                                {showRaw && (
+                                                    <View className="p-4 rounded-3xl border border-dashed mb-8" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
+                                                        <TextInput
+                                                            value={generatedPrompt}
+                                                            multiline={true}
+                                                            scrollEnabled={false}
+                                                            editable={false}
+                                                            style={{
+                                                                color: theme.mutedText,
+                                                                fontSize: 13,
+                                                                lineHeight: 20,
+                                                                fontWeight: '500',
+                                                            }}
+                                                        />
+                                                    </View>
+                                                )}
+                                            </>
                                         )}
                                     </View>
                                 ) : (
