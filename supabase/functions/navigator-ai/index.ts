@@ -9,18 +9,22 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-// Query limits by tier and source
-const QUERY_LIMITS: Record<string, number> = {
-    'admin': 999999,
-    'pro_plus': 100,
-    'pro_paid': 30,
-    'pro_promo': 15,
-    'free': 0
+// Query limits by tier - separate for free and pro templates
+const QUERY_LIMITS = {
+    'admin': { freeTemplates: 999, proTemplates: 999 },
+    'pro_plus': { freeTemplates: 50, proTemplates: 50 },
+    'pro_paid': { freeTemplates: 5, proTemplates: 5 },
+    'pro_promo': { freeTemplates: 5, proTemplates: 5 },
+    'free': { freeTemplates: 2, proTemplates: 0, tasteTestLimit: 5 } // 5 lifetime Pro taste tests
 }
+
+// Free templates that anyone can use (with limits)
+const FREE_TEMPLATE_IDS = ['public', 'repair'] // Student Stages, Pro Shops
 
 interface RequestBody {
     prompt: string
     templateId: string
+    isFreeTemplate?: boolean // Frontend now passes this
 }
 
 Deno.serve(async (req) => {
@@ -53,59 +57,7 @@ Deno.serve(async (req) => {
             })
         }
 
-        const metadata = user.user_metadata || {}
-        const isPremium = metadata.is_premium === true
-        const tier = metadata.tier || 'free'
-        const proSource = metadata.proSource || 'paid'
-
-        // Check if user has Pro access
-        if (!isPremium) {
-            return new Response(JSON.stringify({ error: 'Pro subscription required' }), {
-                status: 403,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            })
-        }
-
-        // Determine query limit based on tier and source
-        // If user is premium but tier is not set correctly, default to pro_promo
-        let limitKey = 'pro_promo' // Default for premium users with unrecognized tier
-        if (tier === 'admin') {
-            limitKey = 'admin'
-        } else if (tier === 'pro_plus') {
-            limitKey = 'pro_plus'
-        } else if (tier === 'pro') {
-            limitKey = proSource === 'paid' ? 'pro_paid' : 'pro_promo'
-        }
-        const monthlyLimit = QUERY_LIMITS[limitKey] || 15 // Fallback to 15 if missing
-
-        // Get current query count from metadata
-        const queryCount = metadata.navigator_query_count || 0
-        const queryResetDate = metadata.navigator_query_reset_date || null
-
-        // Check if we need to reset the counter (new month)
-        const now = new Date()
-        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-        let currentQueryCount = queryCount
-
-        if (queryResetDate !== currentMonth) {
-            // New month, reset counter
-            currentQueryCount = 0
-        }
-
-        // Check if user has queries remaining
-        if (currentQueryCount >= monthlyLimit) {
-            return new Response(JSON.stringify({
-                error: 'Monthly query limit reached',
-                limit: monthlyLimit,
-                used: currentQueryCount,
-                resetsAt: currentMonth
-            }), {
-                status: 429,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            })
-        }
-
-        // Parse request body
+        // Parse request body first to determine template type
         const body: RequestBody = await req.json()
         const { prompt, templateId } = body
 
@@ -114,6 +66,110 @@ Deno.serve(async (req) => {
                 status: 400,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
+        }
+
+        const isFreeTemplate = FREE_TEMPLATE_IDS.includes(templateId)
+
+        const metadata = user.user_metadata || {}
+        const isPremium = metadata.is_premium === true
+        const tier = metadata.tier || 'free'
+        const proSource = metadata.proSource || 'paid'
+
+        // Get query counts from metadata
+        const freeTemplateCount = metadata.navigator_free_query_count || 0
+        const proTemplateCount = metadata.navigator_pro_query_count || 0
+        const tasteTestCount = metadata.navigator_taste_test_count || 0 // Lifetime, never resets
+        const purchasedCredits = metadata.navigator_purchased_credits || 0
+        const queryResetDate = metadata.navigator_query_reset_date || null
+
+        // Check if we need to reset monthly counters
+        const now = new Date()
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+        let currentFreeCount = freeTemplateCount
+        let currentProCount = proTemplateCount
+
+        if (queryResetDate !== currentMonth) {
+            // New month, reset monthly counters (not taste test or purchased credits)
+            currentFreeCount = 0
+            currentProCount = 0
+        }
+
+        // Determine limits based on tier
+        let limitKey = 'free'
+        if (isPremium) {
+            if (tier === 'admin') {
+                limitKey = 'admin'
+            } else if (tier === 'pro_plus') {
+                limitKey = 'pro_plus'
+            } else if (tier === 'pro') {
+                limitKey = proSource === 'paid' ? 'pro_paid' : 'pro_promo'
+            } else {
+                limitKey = 'pro_promo' // Default for premium users with unrecognized tier
+            }
+        }
+
+        const limits = QUERY_LIMITS[limitKey as keyof typeof QUERY_LIMITS]
+
+        // Determine which counter to check and limit to use
+        let currentCount: number
+        let monthlyLimit: number
+        let useCredits = false
+        let useTasteTest = false
+
+        if (isFreeTemplate) {
+            currentCount = currentFreeCount
+            monthlyLimit = limits.freeTemplates
+        } else {
+            // Pro template
+            if (isPremium) {
+                currentCount = currentProCount
+                monthlyLimit = limits.proTemplates
+            } else {
+                // Free user accessing Pro template - check taste test
+                if (tasteTestCount >= (limits as any).tasteTestLimit) {
+                    // Out of taste tests - check for purchased credits
+                    if (purchasedCredits > 0) {
+                        useCredits = true
+                        currentCount = 0
+                        monthlyLimit = 1 // Will decrement from credits
+                    } else {
+                        return new Response(JSON.stringify({
+                            error: 'Pro subscription required',
+                            tasteTestUsed: tasteTestCount,
+                            tasteTestLimit: (limits as any).tasteTestLimit,
+                            message: 'You\'ve used all your free Pro template samples. Upgrade to Pro for unlimited access!'
+                        }), {
+                            status: 403,
+                            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                        })
+                    }
+                } else {
+                    // Has taste tests remaining
+                    useTasteTest = true
+                    currentCount = 0
+                    monthlyLimit = 1
+                }
+            }
+        }
+
+        // Check if user has queries remaining (unless using credits or taste test)
+        if (!useCredits && !useTasteTest && currentCount >= monthlyLimit) {
+            // Check for purchased credits as fallback
+            if (purchasedCredits > 0) {
+                useCredits = true
+            } else {
+                return new Response(JSON.stringify({
+                    error: 'Monthly query limit reached',
+                    templateType: isFreeTemplate ? 'free' : 'pro',
+                    limit: monthlyLimit,
+                    used: currentCount,
+                    resetsAt: currentMonth,
+                    purchasedCredits: purchasedCredits
+                }), {
+                    status: 429,
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                })
+            }
         }
 
         // Call Gemini API
@@ -146,14 +202,56 @@ Deno.serve(async (req) => {
         const geminiData = await geminiResponse.json()
         const aiResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated'
 
-        // Increment query count in user metadata
-        const newQueryCount = currentQueryCount + 1
-        const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
-            user_metadata: {
-                ...metadata,
-                navigator_query_count: newQueryCount,
-                navigator_query_reset_date: currentMonth
+        // Update appropriate counter based on what was used
+        let newMetadata = { ...metadata, navigator_query_reset_date: currentMonth }
+        let queryInfoResponse: any = {}
+
+        if (useCredits) {
+            // Decrement purchased credits
+            newMetadata.navigator_purchased_credits = purchasedCredits - 1
+            queryInfoResponse = {
+                source: 'credits',
+                creditsRemaining: purchasedCredits - 1
             }
+        } else if (useTasteTest) {
+            // Increment taste test counter (lifetime)
+            newMetadata.navigator_taste_test_count = tasteTestCount + 1
+            queryInfoResponse = {
+                source: 'taste_test',
+                tasteTestUsed: tasteTestCount + 1,
+                tasteTestLimit: (limits as any).tasteTestLimit,
+                tasteTestRemaining: (limits as any).tasteTestLimit - (tasteTestCount + 1)
+            }
+        } else if (isFreeTemplate) {
+            // Increment free template counter
+            const newCount = currentFreeCount + 1
+            newMetadata.navigator_free_query_count = newCount
+            queryInfoResponse = {
+                source: 'monthly',
+                templateType: 'free',
+                used: newCount,
+                limit: monthlyLimit,
+                remaining: monthlyLimit - newCount
+            }
+        } else {
+            // Increment pro template counter
+            const newCount = currentProCount + 1
+            newMetadata.navigator_pro_query_count = newCount
+            queryInfoResponse = {
+                source: 'monthly',
+                templateType: 'pro',
+                used: newCount,
+                limit: monthlyLimit,
+                remaining: monthlyLimit - newCount
+            }
+        }
+
+        // Also update legacy counter for backwards compatibility
+        const totalMonthlyCount = (newMetadata.navigator_free_query_count || 0) + (newMetadata.navigator_pro_query_count || 0)
+        newMetadata.navigator_query_count = totalMonthlyCount
+
+        const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+            user_metadata: newMetadata
         })
 
         if (updateError) {
@@ -164,11 +262,7 @@ Deno.serve(async (req) => {
         // Return success response
         return new Response(JSON.stringify({
             response: aiResponse,
-            queryInfo: {
-                used: newQueryCount,
-                limit: monthlyLimit,
-                remaining: monthlyLimit - newQueryCount
-            }
+            queryInfo: queryInfoResponse
         }), {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }

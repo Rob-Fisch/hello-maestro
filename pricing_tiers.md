@@ -29,7 +29,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Create Gigs** | Unlimited | Unlimited | Unlimited | Manage every detail of your performance life in one place. | Performance events. | | `events` table, `type='gig'` |
 | 2 | **Gig Roster (Fill Seats)** | Yes | Yes | Yes | Build your lineup for each gig - create seats for each role (drummer, bassist, etc.), then fill them with musicians from your contacts. Track availability, send invites, and manage confirmations. | **KILLER FEATURE** - Two-step workflow: 1) Create seats/roles for the gig, 2) Fill seats with specific people. Track who's confirmed/pending/declined | One of the most compelling features - helps freelancers and bandleaders manage their roster for each gig. "Fill Seats" emphasizes the role-first workflow | `events.slots` JSONB array, `people` table integration |
-| 3 | **Musician Analytics (Roster Intelligence)** | - | - | Yes (Pro) | **(Post-MVP)** Unlock powerful insights from your gig history - see which musicians you work with most, track reliability (on-time vs late arrivals), identify your go-to subs, analyze travel distance to venues, and more. Make smarter booking decisions based on real data. | **KILLER POST-MVP FEATURE** - Analytics dashboard showing: frequency of bookings per musician, punctuality tracking, sub usage patterns, geographic proximity to venues, availability trends, etc. | Game-changer for bandleaders and contractors. Turns gig data into actionable intelligence. Could include "Musician Scorecards" with reliability ratings, preferred roles, etc. | Aggregate data from `events.slots` history, `people` table, venue locations. ML/analytics layer on top of existing data |
+
 | 4 | **Performance Promo (Public Event Sharing)** | Yes | Yes | Yes | Share a beautiful public event page with fans - include setlists, bio, tip jar, and mailing list signup. | Public event pages at `/promo/{eventId}`. No authentication required. | Available to all tiers. Future: QR codes. | `events.is_public_promo`, `events.public_description`, `events.show_setlist`, `events.social_link`, `profiles` table |
 | 5 | **Performer Page (Logistics Sharing)** | Yes | Yes | Yes | Share logistics with ensemble members - load-in times, soundcheck, full setlist with charts/notes, and venue address. | Authenticated pages at `/performer/{eventId}`. Requires free account (growth hook). | Available to all tiers. | `events.is_performer_page_enabled`, `events.load_in_time`, `events.soundcheck_time`, venue address fields |
 | 6 | **QR Code Generator (Fan Engagement)** | - | - | - | **(Coming Soon)** Build your fanbase effortlessly from the stage. | **POST MVP** | | Future enhancement to Performance Promo |
@@ -53,6 +53,16 @@
 > 1. **Song Library** - Your complete repertoire (e.g., 200 songs you know)
 > 2. **Master Set Lists** - Reusable templates you create from your library (e.g., "Wedding List", "Dance Gig", "Jazz Standards")
 > 3. **Gig-Specific Set Lists** - For each gig, import a Master Set List and customize it (fork it) for that specific event. A wedding might need 3 hours, a club gig might be 90 minutes - same template, different customization.
+
+> [!IMPORTANT]
+> **Studio vs. Stage — The "Music" Difference**
+> 
+> | | THE STUDIO | THE STAGE (SetLists) |
+> | :--- | :--- | :--- |
+> | **What it stores** | Musical notation, exercises, written music, fakebook pages | Song metadata — name, key, instructions, reference links |
+> | **Purpose** | Practice, learn, study the actual music | Coordinate a performance — "here's the agenda, here's how we play it" |
+> | **Example** | Lead sheet for "Autumn Leaves" with chord changes and melody | "Autumn Leaves - Key of Gm. Sax takes first solo. Ella version for reference." |
+> | **Output** | View/print the notation | Share the gig plan with the band |
 
 ### 4. Sync & Data
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
@@ -94,21 +104,28 @@
 | 7 | **Festival Scout** | No (Locked) | Yes | Yes | Find music festivals, fairs, and booking opportunities. Includes attendance sizes, submission windows, and strategic booking tips. | Find festivals & fairs. | Pro-only. Killer prompt with detailed output (19-21 leads per query) | AI-powered search |
 
 > [!NOTE]
-> **Navigator Strategy**: The "Student" mission is free for all users as a demo to show the power of The Navigator. Once users see the value, they'll upgrade for the professional missions. No API integration for MVP - users copy/paste the generated prompts into ChatGPT/Claude.
+> **Navigator Strategy**: Free templates (Student Stages, Pro Shops) available to all users with monthly limits. Pro templates gated but with a taste test for free users to sample the value.
 
 > [!IMPORTANT]
-> **Future: In-App AI Integration** (Post-MVP)
+> **Navigator Query Limits (Live)**
 > 
-> **Plan:** Run Navigator prompts directly through AI API (Gemini Flash or GPT-4o-mini) and display results inside OpusMode. Results saved automatically for future reference.
+> **Free Users:**
+> - **Free Templates:** 2 queries/month (Student Stages, Pro Shops)
+> - **Pro Templates:** 5 lifetime "taste test" queries (combined across all Pro templates)
 > 
-> **Monthly Query Limits:**
-> - **Pro (Paid):** 30 queries/month (~1/day)
-> - **Pro (Promo/Early Adopter):** 15 queries/month (generous free tier)
-> - **Pro+:** 100 queries/month (power users)
+> **Pro Users:**
+> - **Free Templates:** 5 queries/month
+> - **Pro Templates:** 5 queries/month
 > 
-> **Cost Analysis:** At ~$0.002/query (Gemini Flash), even a power user at 100 queries costs < $0.20/month. Soft caps are insurance against abuse, not a revenue driver.
+> **Pro+ / Admin:**
+> - 50-100 queries/month per template type
 > 
-> **Language Note:** Avoid using "unlimited" in marketing since all features have soft or hard caps. Use specific numbers instead.
+> **Query Pack (One-time Purchase):**
+> - $10 for 10 queries (never expires)
+> - Works on any template type
+> - Stacks with monthly limits
+> 
+> **Cost Analysis:** At ~$0.002/query (Gemini Flash), even a power user at 100 queries costs < $0.20/month. Query packs are pure margin.
 
 ### 8. Venue CRM
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
@@ -285,3 +302,13 @@ platform TEXT DEFAULT 'web' CHECK (platform IN ('web', 'native'))
 ## Post-MVP Backlog
 
 > **Moved to [`docs/BACKLOG.md`](file:///Users/robfisch/Documents/OpusMode/docs/BACKLOG.md)** — Single source of truth for all actionable work items.
+
+---
+
+## Parking Lot
+
+> Ideas that were considered but are unlikely to be built. Kept here for reference in case circumstances change.
+
+| Feature | Original Tier | Description | Why Parked |
+| :--- | :--- | :--- | :--- |
+| **Musician Analytics (Roster Intelligence)** | Pro+ | Unlock insights from gig history - see which musicians you work with most, track reliability, identify go-to subs, analyze travel distance to venues. "Musician Scorecards" with reliability ratings. | Aspirational idea from early development. Given other backlog priorities, unlikely to be built. Would require ML/analytics layer on top of existing data. |

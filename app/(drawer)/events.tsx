@@ -512,22 +512,7 @@ export default function ScheduleScreen() {
                         </View>
 
                         <View className="px-6 pb-4">
-                            {/* PRODUCT ADOPTION HOOK */}
-                            {/* PRODUCT ADOPTION HOOK - SUBTLE VERSION */}
-                            {!profile?.isPremium && (
-                                <TouchableOpacity
-                                    onPress={() => router.push('/(drawer)/finance')}
-                                    className="mb-6 flex-row items-center justify-between py-3 px-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20"
-                                >
-                                    <View className="flex-row items-center flex-1">
-                                        <Ionicons name="cash-outline" size={16} color="#818cf8" style={{ marginRight: 8 }} />
-                                        <Text className="text-indigo-200 font-bold text-xs">
-                                            Want to track gig income? <Text className="text-indigo-400">See how Pro works</Text>
-                                        </Text>
-                                    </View>
-                                    <Ionicons name="chevron-forward" size={14} color="#818cf8" />
-                                </TouchableOpacity>
-                            )}
+
 
                             <View className="flex-row flex-wrap gap-3 justify-center">
                                 {filterOptions.map(opt => {

@@ -374,3 +374,73 @@ export interface SetList {
     createdAt: string;
     deletedAt?: string;
 }
+
+// ============================================================================
+// CHORD CHART BUILDER - Types for the chord chart feature
+// ============================================================================
+
+/**
+ * A single chord in a bar.
+ * Supports multiple chords per bar (e.g., C7 on beat 1, F7 on beat 3)
+ */
+export interface Chord {
+    root: string;        // e.g., "C", "F#", "Bb"
+    quality: string;     // e.g., "maj", "min", "7", "m7", "maj7", "dim", "m7b5", "aug", "sus4", "9", "m9", "6"
+    bass?: string;       // Optional slash chord bass note (e.g., "C" for Bb/C)
+    beat?: number;       // Which beat this chord starts on (1-4), defaults to 1
+}
+
+/**
+ * A single bar (measure) in a chord chart.
+ * Can contain 1-4 chords depending on harmonic rhythm.
+ */
+export interface ChordChartBar {
+    id: string;
+    chords: Chord[];     // Array of chords in this bar
+}
+
+/**
+ * A section of a chord chart (e.g., Verse, Chorus, Bridge).
+ * Contains multiple bars of chord changes.
+ */
+export interface ChordChartSection {
+    id: string;
+    name: string;        // e.g., "Verse", "Chorus", "A Section", custom text
+    bars: ChordChartBar[];
+}
+
+/**
+ * A complete chord chart for a song.
+ * Contains sections that can be arranged for the final form.
+ */
+export interface ChordChart {
+    id: string;
+    title: string;
+    key?: string;        // e.g., "C", "D", "F#"
+    mode?: 'major' | 'minor'; // Defaults to 'major'
+    tempo?: number;      // BPM (optional metadata)
+    timeSignature?: string; // e.g., "4/4", "3/4" (defaults to 4/4)
+    sections: ChordChartSection[];
+    arrangement?: string[]; // Array of section IDs in play order (for expanded print)
+    songId?: string;     // Optional link to Song Library
+    platform?: 'web' | 'native'; // Two Islands: Web vs Native App
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+}
+
+/**
+ * Helper type for chord quality options
+ */
+export type ChordQuality =
+    | 'maj' | 'min' | '7' | 'm7' | 'maj7' | 'dim'  // Primary (6)
+    | 'm7b5' | 'aug' | 'sus4' | '9' | 'm9' | '6';  // Secondary (6)
+
+/**
+ * Helper type for chord root notes
+ */
+export type ChordRoot =
+    | 'C' | 'C#' | 'Db' | 'D' | 'D#' | 'Eb'
+    | 'E' | 'F' | 'F#' | 'Gb' | 'G' | 'G#'
+    | 'Ab' | 'A' | 'A#' | 'Bb' | 'B';
+

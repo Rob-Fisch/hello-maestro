@@ -109,7 +109,7 @@
 |---|-----|---------|-------------|------|--------|---------|-----------|
 | 27 | 2 | **Custom SMTP for Auth Emails** | Send auth emails from `noreply@opusmode.net` | — | ⬜ | 01-25 | |
 | 28 | 2 | **Visual Tutorial Library** | Annotated screenshots for animated tutorials | — | ⬜ | 01-25 | |
-| 29 | 2 | **Upgrade Modal Images** | Replace outdated/inaccurate marketing images for Studio, Stage, Navigator slides. Current images show features that don't exist. | — | ⬜ | 01-26 | |
+| 29 | 2 | **Upgrade Modal (Evergreen)** | Ongoing conversion optimization. Updates as features evolve. Areas: marketing images, animations, social proof, testimonials, video walkthrough. | — | ⬜ | 01-26 | |
 
 ---
 

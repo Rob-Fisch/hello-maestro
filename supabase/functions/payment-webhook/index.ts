@@ -34,6 +34,14 @@ const VARIANT_TO_TIER: Record<number, 'pro' | 'pro_plus'> = {
     1247770: 'pro_plus', // Pro+ Annual
 }
 
+// Query Pack variant IDs (one-time purchases)
+// UPDATE THESE after creating the product in Lemon Squeezy!
+const QUERY_PACK_VARIANTS: Record<number, number> = {
+    // Test Mode
+    795638: 10, // Query Pack - 10 queries
+    // Live Mode (add after copying to live)
+}
+
 function getTierFromVariant(variantId: number): 'pro' | 'pro_plus' | null {
     return VARIANT_TO_TIER[variantId] || null
 }
@@ -94,6 +102,19 @@ serve(async (req) => {
         }
     }
 
+    // 5. Handle One-Time Purchases (Query Packs)
+    else if (event_name === 'order_created') {
+        const user_id = custom_data.user_id
+        const creditsToAdd = QUERY_PACK_VARIANTS[variant_id]
+
+        if (user_id && creditsToAdd) {
+            console.log(`Query Pack purchase: adding ${creditsToAdd} credits to user ${user_id}`)
+            await addNavigatorCredits(user_id, creditsToAdd)
+        } else if (!creditsToAdd) {
+            console.log(`Order created for unknown variant ${variant_id}, not a Query Pack`)
+        }
+    }
+
     return new Response("Webhook received", { status: 200 })
 })
 
@@ -122,6 +143,37 @@ async function updateUserTier(userId: string, tier: 'free' | 'pro' | 'pro_plus')
         console.error("Error updating user metadata:", error)
     } else {
         console.log("Success!")
+    }
+}
+
+// Add Navigator Query Credits (for Query Pack purchases)
+async function addNavigatorCredits(userId: string, credits: number) {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // First get current credits
+    const { data: { user }, error: getUserError } = await supabase.auth.admin.getUserById(userId)
+
+    if (getUserError || !user) {
+        console.error("Error getting user for credits:", getUserError)
+        return
+    }
+
+    const currentCredits = user.user_metadata?.navigator_purchased_credits || 0
+    const newCredits = currentCredits + credits
+
+    console.log(`Adding ${credits} credits to user ${userId} (${currentCredits} → ${newCredits})`)
+
+    const { error } = await supabase.auth.admin.updateUserById(
+        userId,
+        { user_metadata: { ...user.user_metadata, navigator_purchased_credits: newCredits } }
+    )
+
+    if (error) {
+        console.error("Error adding navigator credits:", error)
+    } else {
+        console.log(`Successfully added ${credits} Navigator credits!`)
     }
 }
 

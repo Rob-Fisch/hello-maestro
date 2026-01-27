@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { FlatList, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import uuid from 'react-native-uuid';
 import SetListBuilder from '../setlist/SetListBuilder';
-import FinanceModule from './FinanceModule';
+
 import { WebDatePicker, WebTimePicker } from './FormComponents';
 import PerformanceSharingConfig from './PerformanceSharingConfig';
 import RosterEngine from './RosterEngine';
@@ -17,13 +17,13 @@ interface GigEditorProps {
     eventId?: string;
     onChange: <K extends keyof EventFormValues>(field: K, value: EventFormValues[K]) => void;
     isSaving: boolean;
-    initialTab?: 'logistics' | 'roster' | 'finance' | 'sharing' | 'setlist';
+    initialTab?: 'logistics' | 'roster' | 'sharing' | 'setlist';
 }
 
 export default function GigEditor({ values, eventId, onChange, isSaving, initialTab }: GigEditorProps) {
     const { setLists, addSetList, updateSetList } = useContentStore();
     const linkedSetList = eventId ? setLists.find(sl => sl.eventId === eventId) : undefined;
-    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'finance' | 'sharing' | 'setlist'>(initialTab || 'logistics');
+    const [activeTab, setActiveTab] = useState<'logistics' | 'roster' | 'sharing' | 'setlist'>(initialTab || 'logistics');
 
     // Import Setlist Logic
     const [showImportModal, setShowImportModal] = useState(false);
@@ -381,10 +381,7 @@ export default function GigEditor({ values, eventId, onChange, isSaving, initial
                     </View>
                 )}
 
-                {/* FINANCE TAB */}
-                {activeTab === 'finance' && (
-                    <FinanceModule values={values as any} onChange={onChange} />
-                )}
+
 
                 {/* SHARING TAB (Performance Promo + Performer Page) */}
                 {activeTab === 'sharing' && (
