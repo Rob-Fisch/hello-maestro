@@ -20,6 +20,7 @@
 | 1 | 2 | **Staged Google Forms** | Different feedback forms for user checkpoints (Day 1-7, Day 30+, Evergreen) | — | ⬜ | 01-25 | |
 | 2 | 2 | **In-App Feedback Prompts** | Periodic prompts for promo users with links to Google Forms | — | ⬜ | 01-25 | |
 | 3 | 3 | **Settings Link** | Add evergreen "Give Feedback" link in Settings | — | ⬜ | 01-25 | |
+| 4 | 2 | **Navigator Query Pack Marketing** | General strategy for in-app purchase visibility, placement, and messaging for Navigator Query Packs. Currently shows usage + Buy 10-Pack link after first query. | — | ⬜ | 01-27 | |
 
 ---
 

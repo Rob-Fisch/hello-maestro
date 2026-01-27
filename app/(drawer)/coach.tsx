@@ -476,15 +476,29 @@ export default function CoachV2Screen() {
                                 profile?.isPremium || activeTemplate.isFree ? (
                                     // UNLOCKED VIEW - AI POWERED
                                     <View>
-                                        {/* Query Info Badge */}
+                                        {/* Query Info Badge with Buy Option */}
                                         {queryInfo && (
-                                            <View className="flex-row justify-center mb-4">
-                                                <View className="bg-indigo-500/10 px-3 py-1.5 rounded-full flex-row items-center">
-                                                    <Ionicons name="flash" size={14} color="#6366f1" />
-                                                    <Text className="text-indigo-400 text-xs font-bold ml-1">
-                                                        {queryInfo.remaining} of {queryInfo.limit} queries remaining
-                                                    </Text>
+                                            <View className="mb-4">
+                                                <View className="flex-row justify-center items-center">
+                                                    <View className="bg-indigo-500/10 px-3 py-1.5 rounded-full flex-row items-center">
+                                                        <Ionicons name="flash" size={14} color="#6366f1" />
+                                                        <Text className="text-indigo-400 text-xs font-bold ml-1">
+                                                            {queryInfo.remaining} of {queryInfo.limit} queries remaining
+                                                        </Text>
+                                                    </View>
                                                 </View>
+                                                <TouchableOpacity
+                                                    onPress={() => {
+                                                        const url = `${QUERY_PACK_CHECKOUT}&checkout[custom][user_id]=${profile?.id}`;
+                                                        Linking.openURL(url);
+                                                    }}
+                                                    className="flex-row justify-center items-center mt-2"
+                                                >
+                                                    <Ionicons name="add-circle-outline" size={14} color="#10b981" />
+                                                    <Text className="text-emerald-400 text-xs font-bold ml-1 underline">
+                                                        Buy 10-Pack ($10)
+                                                    </Text>
+                                                </TouchableOpacity>
                                             </View>
                                         )}
 
@@ -528,20 +542,6 @@ export default function CoachV2Screen() {
                                                 </TouchableOpacity>
                                             )}
 
-                                            {/* Copy to Clipboard - Only show for Free templates (Pro templates keep prompts proprietary) */}
-                                            {activeTemplate.isFree && (
-                                                <TouchableOpacity
-                                                    onPress={handleCopy}
-                                                    activeOpacity={0.7}
-                                                    className="w-full rounded-xl flex-row items-center justify-center py-3 border"
-                                                    style={{ borderColor: theme.border }}
-                                                >
-                                                    <Ionicons name="copy-outline" size={18} color={theme.mutedText} />
-                                                    <Text className="font-bold ml-2 text-sm" style={{ color: theme.mutedText }}>
-                                                        Copy Prompt for External AI
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            )}
                                         </View>
 
                                         {/* Error Display */}
