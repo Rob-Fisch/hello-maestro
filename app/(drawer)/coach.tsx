@@ -3,7 +3,7 @@ import { useContentStore } from '@/store/contentStore';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -188,6 +188,10 @@ export default function CoachV2Screen() {
     const [queryInfo, setQueryInfo] = useState<{ used: number; limit: number; remaining: number } | null>(null);
     const [aiError, setAiError] = useState<string | null>(null);
 
+    // Template scroll ref for arrow navigation
+    const templateScrollRef = useRef<ScrollView>(null);
+    const [templateScrollPosition, setTemplateScrollPosition] = useState(0);
+
     const toggleGenre = (g: string) => {
         if (selectedGenres.includes(g)) {
             setSelectedGenres(selectedGenres.filter(i => i !== g));
@@ -336,49 +340,85 @@ export default function CoachV2Screen() {
                             </View>
                         </View>
 
-                        {/* Mission Selector */}
-                        <Text className="text-secondary font-black uppercase tracking-widest text-xs mb-4 ml-6">Select Mission</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-6 px-12 ml-0 pl-6">
-                            {SCOUT_TEMPLATES.map((t) => {
-                                const isActive = t.id === selectedTemplateId;
-                                return (
-                                    <TouchableOpacity
-                                        key={t.id}
-                                        onPress={() => setSelectedTemplateId(t.id)}
-                                        activeOpacity={0.7}
-                                        className={`p-4 rounded-2xl mr-4 w-36 border h-36 justify-between ${isActive ? '' : 'opacity-60'}`}
-                                        style={{
-                                            backgroundColor: isActive ? theme.card : theme.background,
-                                            borderColor: isActive ? theme.primary : theme.border,
-                                            borderWidth: isActive ? 2 : 1
-                                        }}
-                                    >
-                                        <View className={`w-10 h-10 rounded-full items-center justify-center ${t.color}`}>
-                                            <Ionicons name={t.icon as any} size={20} color="white" />
-                                        </View>
-                                        {!t.isFree && (
-                                            <View className="absolute top-2 right-2 bg-stone-900 px-1.5 py-0.5 rounded-md">
-                                                <Text className="text-white text-[8px] font-black uppercase">Pro</Text>
+                        {/* Mission Selector with Arrow Navigation */}
+                        <View className="relative">
+                            <Text className="text-secondary font-black uppercase tracking-widest text-xs mb-4 ml-6">Select Mission</Text>
+
+                            {/* Left Arrow */}
+                            {templateScrollPosition > 0 && (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        const newPos = Math.max(0, templateScrollPosition - 300);
+                                        templateScrollRef.current?.scrollTo({ x: newPos, animated: true });
+                                    }}
+                                    className="absolute left-0 top-12 z-10 w-10 h-10 items-center justify-center rounded-full"
+                                    style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                >
+                                    <Ionicons name="chevron-back" size={24} color="white" />
+                                </TouchableOpacity>
+                            )}
+
+                            {/* Right Arrow (always show initially, hide when at end) */}
+                            <TouchableOpacity
+                                onPress={() => {
+                                    const newPos = templateScrollPosition + 300;
+                                    templateScrollRef.current?.scrollTo({ x: newPos, animated: true });
+                                }}
+                                className="absolute right-0 top-12 z-10 w-10 h-10 items-center justify-center rounded-full"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                            >
+                                <Ionicons name="chevron-forward" size={24} color="white" />
+                            </TouchableOpacity>
+
+                            <ScrollView
+                                ref={templateScrollRef}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                className="mb-4 -mx-6 px-12 ml-0 pl-6"
+                                onScroll={(e) => setTemplateScrollPosition(e.nativeEvent.contentOffset.x)}
+                                scrollEventThrottle={16}
+                            >
+                                {SCOUT_TEMPLATES.map((t) => {
+                                    const isActive = t.id === selectedTemplateId;
+                                    return (
+                                        <TouchableOpacity
+                                            key={t.id}
+                                            onPress={() => setSelectedTemplateId(t.id)}
+                                            activeOpacity={0.7}
+                                            className={`p-4 rounded-2xl mr-4 w-36 border h-36 justify-between ${isActive ? '' : 'opacity-60'}`}
+                                            style={{
+                                                backgroundColor: isActive ? theme.card : theme.background,
+                                                borderColor: isActive ? theme.primary : theme.border,
+                                                borderWidth: isActive ? 2 : 1
+                                            }}
+                                        >
+                                            <View className={`w-10 h-10 rounded-full items-center justify-center ${t.color}`}>
+                                                <Ionicons name={t.icon as any} size={20} color="white" />
                                             </View>
-                                        )}
-                                        {t.isFree && (
-                                            <View className="absolute top-2 right-2 bg-teal-600 px-1.5 py-0.5 rounded-md">
-                                                <Text className="text-white text-[8px] font-black uppercase">Free</Text>
+                                            {!t.isFree && (
+                                                <View className="absolute top-2 right-2 bg-stone-900 px-1.5 py-0.5 rounded-md">
+                                                    <Text className="text-white text-[8px] font-black uppercase">Pro</Text>
+                                                </View>
+                                            )}
+                                            {t.isFree && (
+                                                <View className="absolute top-2 right-2 bg-teal-600 px-1.5 py-0.5 rounded-md">
+                                                    <Text className="text-white text-[8px] font-black uppercase">Free</Text>
+                                                </View>
+                                            )}
+                                            <View>
+                                                <Text className="font-black text-base leading-tight" style={{ color: theme.text }}>{t.label}</Text>
+                                                <Text className="text-[10px] leading-tight mt-1 opacity-70" numberOfLines={2} style={{ color: theme.text }}>{t.description}</Text>
                                             </View>
-                                        )}
-                                        <View>
-                                            <Text className="font-black text-base leading-tight" style={{ color: theme.text }}>{t.label}</Text>
-                                            <Text className="text-[10px] leading-tight mt-1 opacity-70" numberOfLines={2} style={{ color: theme.text }}>{t.description}</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </ScrollView>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
+                        </View>
 
                         {/* Hide Parameters if viewing a Locked Template on Free Tier (focus on Golden Sample) */}
                         {(profile?.isPremium || activeTemplate.isFree) && (
-                            <View className="px-8">
-                                <View className="mb-4">
+                            <View>
+                                <View className="mb-3">
                                     <Text className="text-secondary font-black uppercase tracking-widest text-xs mb-4">Mission Parameters</Text>
                                     <View className="mb-4">
                                         <Text className="text-xs font-bold mb-2 ml-1" style={{ color: theme.mutedText }}>Location (Zip/City)</Text>
