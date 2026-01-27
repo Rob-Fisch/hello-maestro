@@ -156,7 +156,7 @@ export default function HelpScreen() {
                             <Step number={1} title="Go to Set Lists" description="Navigate to The Stage → Building Blocks → Set List Templates." />
                             <Step number={2} title="Create Master Set List" description="Tap '+' to create a template (e.g., 'Wedding Gig', 'Jazz Standards')." />
                             <Step number={3} title="Add Songs from Library" description="Select songs from your Song Library. Arrange them in performance order." />
-                            <Step number={4} title="Fork for Gigs" description="When creating a gig, fork (copy) a template and customize it for that specific performance." />
+                            <Step number={4} title="Copy for Gigs" description="When creating a gig, copy a template and customize it for that specific performance." />
                         </AccordionItem>
 
                         <AccordionItem title="Venue Management" icon="business-outline">

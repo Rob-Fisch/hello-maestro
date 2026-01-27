@@ -152,7 +152,7 @@ export default function StudioScreen() {
                         <Text className="font-bold text-lg text-slate-200">How it works</Text>
                     </View>
                     <Text className="leading-relaxed mb-4 text-slate-400 text-sm">
-                        <Text className="font-bold text-slate-300">Public vs Private:</Text> By default, your Studio is private. You can choose to "Fork" public routines from the community or publish your own later.
+                        <Text className="font-bold text-slate-300">Public vs Private:</Text> By default, your Studio is private. You can choose to copy public routines from the community or publish your own later.
                     </Text>
                 </View>
             </View>

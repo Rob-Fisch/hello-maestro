@@ -291,7 +291,7 @@ export default function StageScreen() {
                             </View>
                             <View className="flex-1">
                                 <Text className="text-white font-bold text-base">Set List Templates</Text>
-                                <Text className="text-slate-400 text-xs">Master lists to fork for gigs</Text>
+                                <Text className="text-slate-400 text-xs">Master lists to copy for gigs</Text>
                             </View>
                             <Ionicons name="chevron-forward" size={20} color="#64748b" />
                         </TouchableOpacity>
