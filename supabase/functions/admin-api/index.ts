@@ -8,7 +8,7 @@ const ADMIN_EMAILS = [
 ]
 
 interface AdminRequest {
-    action: 'search' | 'grant' | 'revoke'
+    action: 'search' | 'grant' | 'revoke' | 'delete'
     email?: string
     userId?: string
     tier?: 'pro' | 'pro_plus'
@@ -173,6 +173,41 @@ serve(async (req) => {
             console.log(`Revoked Pro from user ${userId}`)
 
             return new Response(JSON.stringify({ success: true, message: 'Revoked Pro access' }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            })
+        }
+
+        // DELETE: Delete user account
+        if (action === 'delete') {
+            if (!userId) {
+                return new Response(JSON.stringify({ error: 'userId required' }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                })
+            }
+
+            // Safety: Prevent deleting admin accounts
+            const { data: targetUser } = await adminClient.auth.admin.getUserById(userId)
+            if (targetUser?.user && ADMIN_EMAILS.includes(targetUser.user.email || '')) {
+                return new Response(JSON.stringify({ error: 'Cannot delete admin accounts' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                })
+            }
+
+            const { error } = await adminClient.auth.admin.deleteUser(userId)
+
+            if (error) {
+                return new Response(JSON.stringify({ error: error.message }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                })
+            }
+
+            console.log(`Deleted user ${userId}`)
+
+            return new Response(JSON.stringify({ success: true, message: 'User deleted successfully' }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
             })

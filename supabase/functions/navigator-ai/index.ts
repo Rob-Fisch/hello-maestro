@@ -10,12 +10,15 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 // Query limits by tier - separate for free and pro templates
+// Free: 5/month free templates, 5 lifetime Pro taste tests
+// Pro: 10/month per template type
+// Pro+: 100/month per template type
 const QUERY_LIMITS = {
     'admin': { freeTemplates: 999, proTemplates: 999 },
-    'pro_plus': { freeTemplates: 50, proTemplates: 50 },
-    'pro_paid': { freeTemplates: 5, proTemplates: 5 },
-    'pro_promo': { freeTemplates: 5, proTemplates: 5 },
-    'free': { freeTemplates: 2, proTemplates: 0, tasteTestLimit: 5 } // 5 lifetime Pro taste tests
+    'pro_plus': { freeTemplates: 100, proTemplates: 100 },
+    'pro_paid': { freeTemplates: 10, proTemplates: 10 },
+    'pro_promo': { freeTemplates: 10, proTemplates: 10 },
+    'free': { freeTemplates: 5, proTemplates: 0, tasteTestLimit: 5 } // 5 lifetime Pro taste tests
 }
 
 // Free templates that anyone can use (with limits)

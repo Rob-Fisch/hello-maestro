@@ -167,6 +167,43 @@ export default function AdminPanel() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!userResult) return;
+
+        const confirmDelete = () => {
+            setLoading(true);
+            setError(null);
+            setSuccessMessage(null);
+
+            callAdminAPI({
+                action: 'delete',
+                userId: userResult.id
+            })
+                .then(() => {
+                    setSuccessMessage(`Deleted user ${userResult.email}`);
+                    setUserResult(null); // Clear the result since user no longer exists
+                    setSearchEmail(''); // Clear search field
+                })
+                .catch((err: any) => setError(err.message))
+                .finally(() => setLoading(false));
+        };
+
+        if (Platform.OS === 'web') {
+            if (window.confirm(`⚠️ PERMANENTLY DELETE ${userResult.email}?\n\nThis will delete the user from auth.users and cascade-delete their profile. This cannot be undone.`)) {
+                confirmDelete();
+            }
+        } else {
+            Alert.alert(
+                '⚠️ Delete User',
+                `PERMANENTLY DELETE ${userResult.email}?\n\nThis will delete the user from auth.users and cascade-delete their profile. This cannot be undone.`,
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete Forever', style: 'destructive', onPress: confirmDelete }
+                ]
+            );
+        }
+    };
+
     // Access denied view
     if (!isAdmin) {
         return (
@@ -409,6 +446,26 @@ export default function AdminPanel() {
                                         <Text style={{ color: 'white', fontWeight: '700' }}>Revoke Pro Access</Text>
                                     </TouchableOpacity>
                                 )}
+
+                                {/* Delete User - dangerous action */}
+                                <TouchableOpacity
+                                    onPress={handleDelete}
+                                    disabled={loading}
+                                    style={{
+                                        backgroundColor: '#7f1d1d',
+                                        padding: 14,
+                                        borderRadius: 8,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderWidth: 1,
+                                        borderColor: '#991b1b',
+                                        marginTop: 8
+                                    }}
+                                >
+                                    <Ionicons name="warning" size={20} color="#fca5a5" style={{ marginRight: 8 }} />
+                                    <Text style={{ color: '#fca5a5', fontWeight: '700' }}>Delete User</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
                     </View>

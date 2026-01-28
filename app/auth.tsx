@@ -111,7 +111,9 @@ export default function AuthScreen() {
                     options: { data: { display_name: undefined }, emailRedirectTo: Linking.createURL('/') }
                 });
                 if (error) throw error;
-                Alert.alert('Success', 'Check your email for the confirmation link!');
+                // Navigate to check-email page instead of just showing an Alert
+                setLoading(false);
+                router.replace(`/modal/check-email?email=${encodeURIComponent(email)}`);
             } else {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 

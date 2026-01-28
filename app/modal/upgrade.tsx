@@ -38,6 +38,74 @@ const SLIDES = [
     }
 ];
 
+// Contextual marketing based on trigger source
+const UPGRADE_TRIGGERS: Record<string, {
+    headline: string;
+    subtext: string;
+    anchor: 'studio' | 'stage' | 'navigator' | 'query-pack';
+    showQueryPack?: boolean;
+}> = {
+    // Navigator triggers
+    navigator_limit: {
+        headline: "Need more AI-powered leads?",
+        subtext: "Your Navigator queries help you find gigs, teaching spots, and festivals. Get more with a Query Pack or unlock unlimited with Pro.",
+        anchor: 'query-pack',
+        showQueryPack: true,
+    },
+    scout_pro: {
+        headline: "Unlock Pro Navigator Templates",
+        subtext: "Festival Scout, Tour Stop Planner, and Teaching Finder are Pro features designed by working musicians.",
+        anchor: 'navigator',
+    },
+    // Finance triggers
+    finance: {
+        headline: "Track your music income",
+        subtext: "The Finance Dashboard gives you real visibility into your gig earnings, expenses, and tax-ready reports.",
+        anchor: 'stage',
+    },
+    // Analytics triggers
+    analytics: {
+        headline: "See your practice patterns",
+        subtext: "Pro unlocks detailed analytics so you can track progress and stay consistent.",
+        anchor: 'studio',
+    },
+    analytics_trends: {
+        headline: "Discover your practice trends",
+        subtext: "See what's working and what needs attention with Pro analytics.",
+        anchor: 'studio',
+    },
+    // Sync triggers
+    sync: {
+        headline: "Work on laptop AND phone?",
+        subtext: "Pro syncs your data across all devices — web and native app. Your setlists, songs, and gigs go everywhere.",
+        anchor: 'stage',
+    },
+    // Storage triggers
+    storage_limit: {
+        headline: "Running out of space?",
+        subtext: "Pro includes 5GB of cloud storage for your practice materials, charts, and attachments.",
+        anchor: 'studio',
+    },
+    // Set List triggers
+    setlist_limit: {
+        headline: "Need more set list templates?",
+        subtext: "Pro unlocks unlimited master set lists so you can organize for every venue and situation.",
+        anchor: 'stage',
+    },
+    // Song Library triggers
+    song_limit: {
+        headline: "Your song library is growing!",
+        subtext: "Pro gives you unlimited songs with keys, tempos, and reference links all in one place.",
+        anchor: 'stage',
+    },
+    // Default (no specific trigger)
+    default: {
+        headline: "Upgrade to Pro",
+        subtext: "Everything you need to run your music career, in one place.",
+        anchor: 'stage',
+    },
+};
+
 export default function UpgradeModal() {
     console.log("Upgrade Modal Re-Rendered - Force Update");
     const { profile, setProfile } = useContentStore();
@@ -50,6 +118,10 @@ export default function UpgradeModal() {
     const requestedFeature = params.feature as string;
     const scrollRef = useRef<ScrollView>(null);
     const [layouts, setLayouts] = useState<Record<string, number>>({});
+
+    // Get contextual marketing copy based on trigger
+    const trigger = UPGRADE_TRIGGERS[requestedFeature] || UPGRADE_TRIGGERS['default'];
+    const showQueryPackSection = trigger.showQueryPack || requestedFeature === 'navigator_limit';
 
     const handleLayout = (featureId: string, event: LayoutChangeEvent) => {
         const y = event?.nativeEvent?.layout?.y;
@@ -92,6 +164,9 @@ export default function UpgradeModal() {
             monthlyVariant: 1247517,
             annualVariant: 1247518,
         },
+        query_pack: {
+            checkoutUrl: 'https://opusmode.lemonsqueezy.com/checkout/buy/71cdc811-f356-493b-aada-8094e1943b10',
+        },
     } : {
         // LIVE MODE
         pro: {
@@ -103,6 +178,9 @@ export default function UpgradeModal() {
             productUuid: '229c8350-1c1d-46bf-8748-027b75f1337a',
             monthlyVariant: 1247769,
             annualVariant: 1247770,
+        },
+        query_pack: {
+            checkoutUrl: 'https://opusmode.lemonsqueezy.com/checkout/buy/a49c7e53-4e13-4fff-a2a9-ac1bcd2c7ed2',
         },
     };
 
@@ -133,6 +211,15 @@ export default function UpgradeModal() {
     const handleRestore = () => {
         // For web-based subs, restore is just manage billing
         Linking.openURL('https://opusmode.lemonsqueezy.com/billing');
+    };
+
+    const handleQueryPack = () => {
+        if (!profile?.id) {
+            Alert.alert("Error", "Please log in to purchase.");
+            return;
+        }
+        const url = `${CHECKOUT_CONFIG.query_pack.checkoutUrl}&checkout[custom][user_id]=${profile.id}`;
+        Linking.openURL(url);
     };
 
     // SLIDESHOW LOGIC
@@ -199,13 +286,29 @@ export default function UpgradeModal() {
                             PRO
                         </Text>
 
+                        {/* Contextual Hero or Default Testimonial */}
                         <View className="px-4">
-                            <Text className="text-zinc-400 font-medium italic text-lg text-center leading-relaxed">
-                                "The tool I wish I had when I started gigging."
-                            </Text>
-                            <Text className="text-zinc-600 font-bold text-xs text-right mt-2 uppercase tracking-widest">
-                                — Rob Fisch, Founder and Musician, Opusmode
-                            </Text>
+                            {requestedFeature && trigger.headline !== 'Upgrade to Pro' ? (
+                                // Contextual marketing based on trigger
+                                <>
+                                    <Text className="text-white font-bold text-xl text-center leading-relaxed mb-2">
+                                        {trigger.headline}
+                                    </Text>
+                                    <Text className="text-zinc-400 font-medium text-sm text-center leading-relaxed">
+                                        {trigger.subtext}
+                                    </Text>
+                                </>
+                            ) : (
+                                // Default testimonial
+                                <>
+                                    <Text className="text-zinc-400 font-medium italic text-lg text-center leading-relaxed">
+                                        "The tool I wish I had when I started gigging."
+                                    </Text>
+                                    <Text className="text-zinc-600 font-bold text-xs text-right mt-2 uppercase tracking-widest">
+                                        — Rob Fisch, Founder and Musician, Opusmode
+                                    </Text>
+                                </>
+                            )}
                         </View>
                     </View>
                 </View>
@@ -335,6 +438,34 @@ export default function UpgradeModal() {
                             </View>
                         </TouchableOpacity>
                     </View>
+
+                    {/* Query Pack Section - Shows when relevant (e.g., navigator_limit trigger) */}
+                    {showQueryPackSection && (
+                        <View
+                            className="mt-8 mx-6 p-5 rounded-xl border border-teal-500/30 bg-teal-950/30"
+                            onLayout={(event) => handleLayout('query-pack', event)}
+                        >
+                            <View className="flex-row items-center justify-between mb-3">
+                                <Text className="text-teal-400 font-bold text-sm uppercase tracking-widest">One-Time Pack</Text>
+                                <View className="bg-teal-500/20 px-2 py-1 rounded border border-teal-500/30">
+                                    <Text className="text-teal-400 text-[10px] font-bold">10 QUERIES</Text>
+                                </View>
+                            </View>
+                            <Text className="text-zinc-300 text-sm mb-4">
+                                Not ready for a subscription? Get <Text className="text-white font-bold">10 Navigator queries</Text> that never expire.
+                            </Text>
+
+                            <TouchableOpacity onPress={handleQueryPack} activeOpacity={0.9} className="w-full">
+                                <View className="w-full py-3 rounded-xl items-center justify-center border border-teal-500/30 bg-teal-500/10">
+                                    <Text className="text-teal-400 font-bold text-sm tracking-tight">BUY 10-PACK ($10)</Text>
+                                </View>
+                            </TouchableOpacity>
+
+                            <Text className="text-zinc-500 text-[10px] text-center mt-3">
+                                Credits added instantly. Use anytime.
+                            </Text>
+                        </View>
+                    )}
 
                     {/* Legal Footer */}
                     <View className="flex-row justify-center gap-6 mt-8 mb-8 opacity-60">

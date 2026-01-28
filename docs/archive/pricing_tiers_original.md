@@ -21,24 +21,23 @@
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Create Events** | Unlimited | Unlimited | Unlimited | Plan your schedule with robust event types for rehearsals, lessons, and more. | Rehearsals, lessons, etc. | | `events` table, `type` field |
-| 2 | **Event History** | Past 30 Days | Unlimited | Unlimited | Free users can view events from the past 30 days + all future events. Pro users get unlimited history. | Free: 30-day lookback window | Clear restriction - recent enough to be useful, incentivizes Pro for long-term archive | Date filtering in `events.tsx` month navigation |
-| 3 | **Recurring Events** | Yes | Yes | Yes | Easily set sophisticated repeat patterns for weekly rehearsals or semester lessons. | Repeat patterns. | Simplified - no tier difference needed | `events.schedule` JSONB |
+| 2 | **Event History** | Past 30 Days | Unlimited | Unlimited | Free users can view events from the past 30 days + all future events. Pro users get unlimited history. | Free: 30-day lookback window | Clear restriction - recent enough to be useful, incentivizes Pro for long-term archive<br />[!Note]1-27-2026 All limits like this needs to go on a master detailed document describing all Pro/Pro+ benefits. These details will be used to display to users before and after Upgrade to Pro. | Date filtering in `events.tsx` month navigation |
+| 3 | **Recurring Events** | Yes | Yes | Yes | Easily set sophisticated repeat patterns for weekly rehearsals or semester lessons. | Repeat patterns. | Simplified - no tier difference needed<br />[!Note]1-27-2026, this used to be a feature and I think it was removed at some point. We recently put an item on the backlog to be able to 'copy' events, which is not exactly the same, but may simplify technically and avoid mistakes by the user | `events.schedule` JSONB |
 
 ### 2. Gigs & Booking
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Create Gigs** | Unlimited | Unlimited | Unlimited | Manage every detail of your performance life in one place. | Performance events. | | `events` table, `type='gig'` |
 | 2 | **Gig Roster (Fill Seats)** | Yes | Yes | Yes | Build your lineup for each gig - create seats for each role (drummer, bassist, etc.), then fill them with musicians from your contacts. Track availability, send invites, and manage confirmations. | **KILLER FEATURE** - Two-step workflow: 1) Create seats/roles for the gig, 2) Fill seats with specific people. Track who's confirmed/pending/declined | One of the most compelling features - helps freelancers and bandleaders manage their roster for each gig. "Fill Seats" emphasizes the role-first workflow | `events.slots` JSONB array, `people` table integration |
-
-| 4 | **Performance Promo (Public Event Sharing)** | Yes | Yes | Yes | Share a beautiful public event page with fans - include setlists, bio, tip jar, and mailing list signup. | Public event pages at `/promo/{eventId}`. No authentication required. | Available to all tiers. Future: QR codes. | `events.is_public_promo`, `events.public_description`, `events.show_setlist`, `events.social_link`, `profiles` table |
-| 5 | **Performer Page (Logistics Sharing)** | Yes | Yes | Yes | Share logistics with ensemble members - load-in times, soundcheck, full setlist with charts/notes, and venue address. | Authenticated pages at `/performer/{eventId}`. Requires free account (growth hook). | Available to all tiers. | `events.is_performer_page_enabled`, `events.load_in_time`, `events.soundcheck_time`, venue address fields |
-| 6 | **QR Code Generator (Fan Engagement)** | - | - | - | **(Coming Soon)** Build your fanbase effortlessly from the stage. | **POST MVP** | | Future enhancement to Performance Promo |
-| 7 | **Performance Promo Analytics** | - | Yes (Pro) | Yes (Pro) | **(Post-MVP)** Track who viewed your promo page, when, and from where. See which songs get the most attention. | **POST MVP** - View counts, geographic data, referral sources, song engagement metrics | Pro-only enhancement. Helps musicians understand their audience and optimize their promo pages | Analytics layer on top of Performance Promo views |
-| 8 | **Fan Email Capture** | - | Yes (Pro) | Yes (Pro) | **(Post-MVP)** Collect fan emails directly from your Performance Promo page. Build your mailing list automatically. | **POST MVP** - Embedded email signup form on promo pages, export to CSV, integration with email services | Pro-only enhancement. Turns Performance Promo into a lead generation tool | New `fan_emails` table, integration with promo pages |
-| 9 | **Custom Branding** | - | - | Yes (Pro+) | **(Post-MVP)** Remove "Powered by OpusMode" from your Performance Promo pages. Add your own logo and colors. | **POST MVP** - White-label option for Pro+ users | Pro+ only. Premium feature for established artists who want full brand control | Custom CSS/theming system for promo pages |
-| 10 | **Performer Page Notifications** | - | Yes (Pro) | Yes (Pro) | **(Post-MVP)** Auto-notify ensemble members via SMS/email when logistics change (load-in time, venue address, etc.). | **POST MVP** - Automated notifications when event details are updated | Pro-only enhancement. Keeps band members in sync without manual communication | Integration with Twilio/SendGrid, notification preferences |
-| 11 | **Blog/Social Media Content Generator** | - | - | - | **(Future)** AI-powered blog and social post generator. Answer a few questions about your gig and get compelling content with a hook beyond just "time, place, band." | **POST MVP** | Help musicians promote gigs with engaging stories | Future Navigator/Promotion feature |
-| 12 | **Booking Manager Tier (Multi-Act Concurrent Booking)** | - | - | - | **(Post-MVP)** New tier for booking agents/managers who need to book multiple acts with overlapping time slots. Would require separate tier above Pro+ to allow concurrent gig bookings across multiple bands/acts. | **POST MVP** - Strategic tier for agencies/managers. Removes overlap prevention. May require multi-account architecture or workspace concept. | Addresses use case where one person manages multiple acts. Current Terms of Service 4.3 enforces one account per user, which naturally prevents this. Future tier would need to solve: authentication (one email = one account), data isolation per act, and pricing model. | Technical challenge: one email = one account in auth systems. May need workspace/organization model instead of multiple accounts. |
+| 3 | **Performance Promo (Public Event Sharing)** | Yes | Yes | Yes | Share a beautiful public event page with fans - include setlists, bio, tip jar, and mailing list signup. | Public event pages at `/promo/{eventId}`. No authentication required. | Available to all tiers. Future: QR codes.<br />[!Note] 1-27-2026, for Free Users, this public page should be OpusMode branded<br />[!DISCUSSION] 1-27-2026 - Can we place limits on the number of Promo pages? I would think 30 free ones, then let's hit them with upgrading or buying "10 packs" for $10 like we did for Navigator queries | `events.is_public_promo`, `events.public_description`, `events.show_setlist`, `events.social_link`, `profiles` table |
+| 4 | **Performer Page (Logistics Sharing)** | Yes | Yes | Yes | Share logistics with ensemble members - load-in times, soundcheck, full setlist with charts/notes, and venue address. | Authenticated pages at `/performer/{eventId}`. Requires free account (growth hook). | Available to all tiers. | `events.is_performer_page_enabled`, `events.load_in_time`, `events.soundcheck_time`, venue address fields |
+| 5 | **QR Code Generator (Fan Engagement)** | - | - | - | **(Coming Soon)** Build your fanbase effortlessly from the stage. | **POST MVP** | [!Note] 1-27-2026 If this isn't on the backlog, it should be, priority 2. | Future enhancement to Performance Promo |
+| 6 | **Performance Promo Analytics** | - | Yes (Pro) | Yes (Pro) | **(Post-MVP)** Track who viewed your promo page, when, and from where. See which songs get the most attention. | **POST MVP** - View counts, geographic data, referral sources, song engagement metrics | Pro-only enhancement. Helps musicians understand their audience and optimize their promo pages<br /><br />[!Note] 1-27-2026, Let's put this in the "Parking Lot" (currently bottom of this page, but that could change) | Analytics layer on top of Performance Promo views |
+| 7 | **Fan Email Capture** | - | Yes (Pro) | Yes (Pro) | **(Post-MVP)** Collect fan emails directly from your Performance Promo page. Build your mailing list automatically. | **POST MVP** - Embedded email signup form on promo pages, export to CSV, integration with email services | Pro-only enhancement. Turns Performance Promo into a lead generation tool<br />[!Note] 1-27-2026, this goes in the Parking Lot | New `fan_emails` table, integration with promo pages |
+| 8 | **Custom Branding** | - | - | Yes (Pro+) | **(Post-MVP)** Remove "Powered by OpusMode" from your Performance Promo pages. Add your own logo and colors. | **POST MVP** - White-label option for Pro+ users | Pro+ only. Premium feature for established artists who want full brand control<br />[!Note] 1-27-2026 we need to put this on the overall Marketing Agenda (we don't have one yet but we will) | Custom CSS/theming system for promo pages |
+| 9 | **Performer Page Notifications** | - | Yes (Pro) | Yes (Pro) | **(Post-MVP)** Auto-notify ensemble members via SMS/email when logistics change (load-in time, venue address, etc.). | **POST MVP** - Automated notifications when event details are updated | Pro-only enhancement. Keeps band members in sync without manual communication<br /><br />[!Note] 1-27-2026, We already have a way for users to send targeted messages selectively to one or more band members in the Gig Event. It's probably a bad idea to automate this. We don't have a Parking Lot or Backlog "Archive" yet, but perhaps we need one. Open for discussion. | Integration with Twilio/SendGrid, notification preferences |
+| 10 | **Blog/Social Media Content Generator** | - | - | - | **(Future)** AI-powered blog and social post generator. Answer a few questions about your gig and get compelling content with a hook beyond just "time, place, band." | **POST MVP** | Help musicians promote gigs with engaging stories | Future Navigator/Promotion feature |
+| 11 | **Booking Manager Tier (Multi-Act Concurrent Booking)** | - | - | - | **(Post-MVP)** New tier for booking agents/managers who need to book multiple acts with overlapping time slots. Would require separate tier above Pro+ to allow concurrent gig bookings across multiple bands/acts. | **POST MVP** - Strategic tier for agencies/managers. Removes overlap prevention. May require multi-account architecture or workspace concept. | Addresses use case where one person manages multiple acts. Current Terms of Service 4.3 enforces one account per user, which naturally prevents this. Future tier would need to solve: authentication (one email = one account), data isolation per act, and pricing model. | Technical challenge: one email = one account in auth systems. May need workspace/organization model instead of multiple accounts. |
 
 ### 3. Song Library & Set Lists
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
@@ -71,7 +70,10 @@
 | 2 | **Active Sync (Pull)** | Manual Only | Realtime | Realtime | Seamlessly move between iPhone, iPad, and Desktop. | Pro stays in sync. | | Realtime subscriptions |
 | 3 | **Cross-Platform Sync** | No ("Two Islands") | Yes | Yes | Start working on your commute (Mobile), finish at your desk (Web). | Free: Devices are separate islands. Can push but not pull. | | Web + Mobile sync |
 
-### 5. The Studio (Practice & Routines)
+### 5. The Studio (Practice & Routines) 
+
+[!Note] 1-27-2026, I am intrigued with the idea of selling "packs" to fill the gap between Free and Pro users. Let's discuss this at the next Marketing Meeting (TBD), taking note of the items marked with an asterisk in this section
+
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Practice Artifacts (Building Blocks)** | Limit: 50 | Unlimited* | Unlimited* | Create individual practice items: excerpts, exercises, full songs, or narrative instructions (e.g., "C scale, 2 octaves, repeat twice"). | Level 1: Individual practice items | *Qualify "unlimited". Combined with 100MB storage limit for Free tier, this prevents abuse while remaining generous. | `blocks` table |
@@ -80,8 +82,13 @@
 | 4 | **Practice Tracking & Session Logging** | Yes | Yes | Yes | Check off completed items during practice. Log sessions with ratings and notes to track your progress and stay motivated. | Session logging with progress tracking | Practice room features are free - we monetize when musicians start earning (gigs, venues, finance) | `user_progress` table |
 | 5 | **History Log** | Limit: 3 Months | Unlimited | Unlimited | Review your lifetime of practice sessions with notes. Free users see last 90 days only. | Free: view last 90 days only. | Keeps you motivated and on track | `user_progress` table with date filtering |
 
+> [!Note] 1-27-2026 I don't know why this section went grey. I must have messed something up during editing.
+>
+> [!Note] 1-27-2026 This next section should go with the notes about "How Set Lists Work" and "Studio vs Stage"
+>
 > [!NOTE]
 > **How The Studio Works**: 
+>
 > 1. **Practice Artifacts** - Individual building blocks: scales, excerpts, exercises, songs, or narrative instructions (e.g., "Play C major scale, 2 octaves, twice. Increase tempo as you build strength")
 > 2. **Collections (Routines)** - Assemble multiple artifacts into a complete practice routine. Print as one PDF instead of juggling multiple books.
 > 3. **Practice Sessions** - As you practice, check off completed items. Add notes at the end of each session to track progress and stay motivated.
@@ -93,6 +100,9 @@
 | 1 | **Contact Management** | Basic (Name/Role) | Advanced | Advanced | Keep a Rolodex of every sub, sound guy, and bandmate. | Full contact info, subs, notes. | "Roster" is placeholder - need better term | `people` table |
 
 ### 7. The Navigator
+
+[!Note] 1-27-2026 the Navigator got an overhaul today. This section needs an update. Ask Rob if you are unsure.
+
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Gig Hunt (Student/Community)** | Yes (Demo) | Yes | Yes | Find community venues, libraries, coffee shops, and open mics perfect for students and emerging artists. | Free mission as demo | Shows value without giving away premium missions | AI-powered search, copy/paste prompts |
@@ -130,13 +140,13 @@
 ### 8. Venue CRM
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Venue Database** | Limit: 5 | Unlimited* | Unlimited* | Build your own black book of venues and contacts. | Address, Booking Contacts. | *Qualify "unlimited" | `people` table with role='venue_manager' |
+| 1 | **Venue Database** | Limit: 5<br />[!Note] 1-27-2026 This limit of 5 for Free tier does not see right | Unlimited* | Unlimited* | Build your own black book of venues and contacts. | Address, Booking Contacts. | *Qualify "unlimited" | `people` table with role='venue_manager' |
 | 2 | **Interaction Timeline** | No | Yes | Yes | Never drop the ball - log every call, email, meeting, and gig with venue managers. Manual timeline keeps your relationship history in one place. | Manual logging: calls, emails, meetings, gigs, rehearsals, jam sessions | Should integrate with Schedule - click venue in gig to navigate to CRM timeline | `people` table with interaction history (JSONB field) |
 
 ### 9. Finance Module
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Per-Gig Finance Tracking** | Yes | Yes | Yes | Track income, expenses, and musician splits for each gig. We keep the totals for you. | Per-gig tracking in Finance tab | Free users can enter data, we track totals. Messaging: "Start tracking now - when you need tax reports, upgrade to Pro" | `event_finance`, `expenses`, `transactions` tables |
+| 1 | **Per-Gig Finance Tracking** | Yes | Yes | Yes | Track income, expenses, and musician splits for each gig. We keep the totals for you. | Per-gig tracking in Finance tab | Free users can enter data, we track totals. Messaging: "Start tracking now - when you need tax reports, upgrade to Pro"<br />[!Note] 1-27-2026 this was dropped as a feature until the future. Should be a backlog with a priority of 3 | `event_finance`, `expenses`, `transactions` tables |
 | 2 | **Finance Dashboard & Reports** | No | Yes | Yes | See your complete financial picture with reports, tax exports, and year-end summaries. | Reports, tax exports, analytics | Pro unlocks the Finance module with reports across all gigs | Export functionality, dashboard views |
 
 ### 10. Gear & Equipment
@@ -147,8 +157,8 @@
 ### 11. Other / Custom
 | # | Feature | Free Tier | Pro Tier | Pro+ / Team | Website Description | Agent Notes | Rob's Notes | Technical Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Support** | Community | Email | Priority | | | | |
-| 2 | **Branding (Report Logo)** | No | Yes | Yes | Add your logo to every performance promotion, quote, and invoice. | | | `profiles.avatar_url` |
+| 1 | **Support** | Community [!Note] 1-27-2026, we don't have this. Do we even want it? If so how, definitely not FB. | Email | Priority | | | | |
+| 2 | **Branding (Report Logo)** | No | Yes | Yes | Add your logo to every performance promotion, quote, and invoice.<br />[!Note] 1-27-2026 Invoice? What is that about? | | | `profiles.avatar_url` |
 
 ---
 

@@ -8,13 +8,25 @@ description: OpusMode workspace-specific rules and context
 
 Free practice features (Studio, Practice Tracking) build user base. We monetize when musicians start earning money — gigs, venues, finance. Target market: Weekend Warriors + working musicians earning from performances.
 
+## Starting a Session
+
+When beginning work on this project, check these documents for context:
+
+1. **[docs/planning/BACKLOG.md](file:///Users/robfisch/Documents/OpusMode/docs/planning/BACKLOG.md)** — Prioritized near-term work
+2. **[docs/strategy/DECISIONS.md](file:///Users/robfisch/Documents/OpusMode/docs/strategy/DECISIONS.md)** — Why past choices were made
+3. **[docs/planning/IDEAS.md](file:///Users/robfisch/Documents/OpusMode/docs/planning/IDEAS.md)** — Parked concepts and future ideas
+4. **[docs/strategy/MARKETING.md](file:///Users/robfisch/Documents/OpusMode/docs/strategy/MARKETING.md)** — Growth strategy, early adopter program
+5. **[docs/strategy/PRICING_TIERS.md](file:///Users/robfisch/Documents/OpusMode/docs/strategy/PRICING_TIERS.md)** — Feature limits by tier
+
 ## Document Placement Guidance
 
 When asked to add information to a document, evaluate if it belongs in:
 
 - **Workspace rules** (`.agent/rules.md`) — Behavioral guidance, high-level principles
-- **`pricing_tiers.md`** — Feature specs, tier limits, Post-MVP ideas
-- **`backlog.md`** — Near-term actionable work with estimates
+- **`docs/strategy/DECISIONS.md`** — Significant technical or product decisions
+- **`docs/planning/BACKLOG.md`** — Near-term actionable work with priorities
+- **`docs/planning/IDEAS.md`** — Blue sky concepts, parking lot items
+- **`docs/strategy/MARKETING.md`** — Growth, pricing messaging, early adopter strategy
 
 Suggest the best location with reasoning before adding.
 
@@ -70,15 +82,16 @@ Suggest the best location with reasoning before adding.
 
 ## Feature Tiers & Monetization
 
-**IMPORTANT**: Refer to [`pricing_tiers.md`](file:///Users/robfisch/Documents/OpusMode/pricing_tiers.md) for comprehensive information about:
+**IMPORTANT**: Refer to these documents for pricing and feature information:
 
-- Free vs Pro tier feature differentiation
-- Feature scope and availability
-- Monetization strategy
-- Target market and positioning
-- MVP vs Post-MVP features
+- [`docs/strategy/PRICING_TIERS.md`](file:///Users/robfisch/Documents/OpusMode/docs/strategy/PRICING_TIERS.md) — Feature limits by tier (Free/Pro/Pro+)
+- [`docs/strategy/PRODUCT_STRATEGY.md`](file:///Users/robfisch/Documents/OpusMode/docs/strategy/PRODUCT_STRATEGY.md) — Monetization philosophy, target market
+- [`docs/strategy/MARKETING.md`](file:///Users/robfisch/Documents/OpusMode/docs/strategy/MARKETING.md) — Growth strategy, early adopter program
+- [`docs/strategy/DECISIONS.md`](file:///Users/robfisch/Documents/OpusMode/docs/strategy/DECISIONS.md) — Significant technical and product decisions
+- [`docs/planning/BACKLOG.md`](file:///Users/robfisch/Documents/OpusMode/docs/planning/BACKLOG.md) — Near-term prioritized work items
+- [`docs/planning/IDEAS.md`](file:///Users/robfisch/Documents/OpusMode/docs/planning/IDEAS.md) — Blue sky concepts and parking lot
 
-When implementing new features or modifying existing ones, always consult this document to ensure proper tier placement and feature gating.
+When implementing new features or modifying existing ones, always consult these documents to ensure proper tier placement and feature gating.
 
 ---
 

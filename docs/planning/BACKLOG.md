@@ -1,6 +1,6 @@
 # OpusMode Feature Backlog
 
-> Single source of truth for actionable work. For pricing strategy and feature matrix, see [`pricing_tiers.md`](file:///Users/robfisch/Documents/OpusMode/pricing_tiers.md).
+> Single source of truth for actionable work. For pricing strategy and feature matrix, see [`PRICING_TIERS.md`](file:///Users/robfisch/Documents/OpusMode/docs/strategy/PRICING_TIERS.md).
 
 **Priority**: 1 = High, 2 = Medium, 3 = Low  
 **Status**: ⬜ Open, 🔄 In Progress, ✅ Done
@@ -21,6 +21,8 @@
 | 2 | 2 | **In-App Feedback Prompts** | Periodic prompts for promo users with links to Google Forms | — | ⬜ | 01-25 | |
 | 3 | 3 | **Settings Link** | Add evergreen "Give Feedback" link in Settings | — | ⬜ | 01-25 | |
 | 4 | 2 | **Navigator Query Pack Marketing** | General strategy for in-app purchase visibility, placement, and messaging for Navigator Query Packs. Currently shows usage + Buy 10-Pack link after first query. | — | ⬜ | 01-27 | |
+| 5 | 1 | **Upgrade Page Marketing Content** | Beef up content on Upgrade modal with better headlines, feature benefits, and Pro/Pro+ comparison. Contextual triggers already implemented. | — | ⬜ | 01-27 | |
+| 6 | 1 | **Home Page Footer → Site Map** | "Everything You Need" graphic at bottom of home page is non-functional. Make it link to the Site Map (Help page). | — | ⬜ | 01-27 | |
 
 ---
 
@@ -101,6 +103,7 @@
 | 24 | 2 | **Update Email Address** | Allow users to change account email | — | ⬜ | MFA | 01-25 | |
 | 25 | 2 | **Delete Account** | GDPR-compliant self-serve deletion (30-day grace) | — | ⬜ | MFA | 01-25 | |
 | 26 | 3 | **Admin Data Cleanup** | Admin panel function to delete user + all data | — | ⬜ | MFA + Admin Panel | 01-25 | |
+| 27 | 2 | **CASCADE Foreign Keys** | Add `ON DELETE CASCADE` to all user-referencing tables (songs, routines, events, contacts, etc.) so user deletion auto-cleans all data | — | ⬜ | — | 01-27 | |
 
 ---
 
@@ -111,6 +114,7 @@
 | 27 | 2 | **Custom SMTP for Auth Emails** | Send auth emails from `noreply@opusmode.net` | — | ⬜ | 01-25 | |
 | 28 | 2 | **Visual Tutorial Library** | Annotated screenshots for animated tutorials | — | ⬜ | 01-25 | |
 | 29 | 2 | **Upgrade Modal (Evergreen)** | Ongoing conversion optimization. Updates as features evolve. Areas: marketing images, animations, social proof, testimonials, video walkthrough. | — | ⬜ | 01-26 | |
+| 30 | 1 | **Modal X Button Navigation Bug** | X button sometimes fails (can't go back). Investigate `router.back()` and navigation stack, especially after deep links or checkout return. | — | ⬜ | 01-27 | |
 
 ---
 

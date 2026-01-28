@@ -173,7 +173,7 @@ export default function CoachV2Screen() {
     const { profile } = useContentStore();
 
     const [selectedTemplateId, setSelectedTemplateId] = useState('public');
-    const [showRaw, setShowRaw] = useState(false);
+
     const [zip, setZip] = useState('');
     const [radius, setRadius] = useState('50'); // string for miles
 
@@ -186,6 +186,7 @@ export default function CoachV2Screen() {
     const [isRunning, setIsRunning] = useState(false);
     const [aiResponse, setAiResponse] = useState<string | null>(null);
     const [queryInfo, setQueryInfo] = useState<{ used: number; limit: number; remaining: number } | null>(null);
+    const [tasteTestInfo, setTasteTestInfo] = useState<{ used: number; limit: number; remaining: number } | null>(null);
     const [aiError, setAiError] = useState<string | null>(null);
 
     // Template scroll ref for arrow navigation
@@ -312,6 +313,14 @@ export default function CoachV2Screen() {
 
             setAiResponse(result.response);
             setQueryInfo(result.queryInfo);
+            // Track taste test info if returned
+            if (result.queryInfo?.source === 'taste_test') {
+                setTasteTestInfo({
+                    used: result.queryInfo.tasteTestUsed,
+                    limit: result.queryInfo.tasteTestLimit,
+                    remaining: result.queryInfo.tasteTestRemaining
+                });
+            }
         } catch (error: any) {
             setAiError(error.message || 'Network error. Please try again.');
         } finally {
@@ -559,8 +568,8 @@ export default function CoachV2Screen() {
                                                 </Text>
                                             </View>
 
-                                            {/* Primary: Run Research Button (Pro only) */}
-                                            {profile?.isPremium && (
+                                            {/* Primary: Run Research Button (Premium OR Free users on Free templates) */}
+                                            {(profile?.isPremium || activeTemplate.isFree) && (
                                                 <TouchableOpacity
                                                     onPress={handleRunResearch}
                                                     disabled={isRunning}
@@ -674,35 +683,7 @@ export default function CoachV2Screen() {
                                             </View>
                                         )}
 
-                                        {/* Collapsible Raw Prompt - Only show for Free templates (Pro templates keep prompts proprietary) */}
-                                        {activeTemplate.isFree && (
-                                            <>
-                                                <TouchableOpacity
-                                                    onPress={() => setShowRaw(!showRaw)}
-                                                    className="flex-row items-center justify-center mb-4 opacity-50"
-                                                >
-                                                    <Text className="font-bold mr-1" style={{ color: theme.text }}>{showRaw ? 'Hide' : 'View'} Raw Prompt</Text>
-                                                    <Ionicons name={showRaw ? "chevron-up" : "chevron-down"} size={16} color={theme.text} />
-                                                </TouchableOpacity>
 
-                                                {showRaw && (
-                                                    <View className="p-4 rounded-3xl border border-dashed mb-8" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
-                                                        <TextInput
-                                                            value={generatedPrompt}
-                                                            multiline={true}
-                                                            scrollEnabled={false}
-                                                            editable={false}
-                                                            style={{
-                                                                color: theme.mutedText,
-                                                                fontSize: 13,
-                                                                lineHeight: 20,
-                                                                fontWeight: '500',
-                                                            }}
-                                                        />
-                                                    </View>
-                                                )}
-                                            </>
-                                        )}
                                     </View>
                                 ) : (
                                     // LOCKED VIEW (GOLDEN SAMPLE PREVIEW)
@@ -723,14 +704,39 @@ export default function CoachV2Screen() {
                                         <View className="absolute inset-0 items-center justify-center rounded-3xl" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
                                             <View className="p-6 rounded-2xl shadow-xl items-center w-[90%] border" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                                                 <Ionicons name="lock-closed" size={32} color="#F59E0B" className="mb-2" />
-                                                <Text className="font-bold text-lg text-center mb-1" style={{ color: theme.text }}>Pro Feature Locked</Text>
-                                                <Text className="text-center mb-4 text-xs" style={{ color: theme.mutedText }}>Unlock to generate custom prompts for this category.</Text>
+                                                <Text className="font-bold text-lg text-center mb-1" style={{ color: theme.text }}>Pro Feature</Text>
+                                                <Text className="text-center mb-4 text-xs" style={{ color: theme.mutedText }}>Try this template with your free samples, or upgrade for unlimited access.</Text>
+
+                                                {/* Taste Test Button */}
+                                                <TouchableOpacity
+                                                    onPress={handleRunResearch}
+                                                    disabled={isRunning}
+                                                    className="w-full py-3 rounded-xl flex-row items-center justify-center mb-3"
+                                                    style={{ backgroundColor: isRunning ? '#4f46e5' : '#16a34a' }}
+                                                >
+                                                    {isRunning ? (
+                                                        <>
+                                                            <ActivityIndicator color="white" size="small" />
+                                                            <Text className="text-white font-bold ml-2">Researching...</Text>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Ionicons name="flash" size={18} color="white" />
+                                                            <Text className="text-white font-bold ml-2">
+                                                                {tasteTestInfo
+                                                                    ? `Try It (${tasteTestInfo.remaining} left)`
+                                                                    : 'Try It Free (5 Samples)'}
+                                                            </Text>
+                                                        </>
+                                                    )}
+                                                </TouchableOpacity>
+
                                                 <TouchableOpacity
                                                     onPress={() => router.push('/modal/upgrade?feature=scout_pro' as any)}
-                                                    className="bg-indigo-600 px-6 py-3 rounded-xl flex-row items-center"
+                                                    className="flex-row items-center"
                                                 >
-                                                    <Text className="text-white font-bold mr-2">Upgrade to Pro</Text>
-                                                    <Ionicons name="arrow-forward" size={16} color="white" />
+                                                    <Text className="text-indigo-400 font-bold mr-1">Upgrade to Pro</Text>
+                                                    <Ionicons name="arrow-forward" size={14} color="#818cf8" />
                                                 </TouchableOpacity>
                                             </View>
                                         </View>

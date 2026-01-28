@@ -94,41 +94,81 @@ export default function RootLayout() {
       console.log('🚀 [RootLayout] Auth Event:', event);
 
       if (event === 'PASSWORD_RECOVERY') {
-        // User clicked "Reset Password" or "Accept Invite" link
-        console.log('🚀 [RootLayout] Password Recovery / Invite detected. Redirecting to setup...');
-        // We use a slight delay or rely on the router being ready
-        setTimeout(() => router.replace('/modal/onboarding-password'), 500);
+        // Check URL to distinguish between actual password recovery vs signup confirmation
+        // Supabase fires PASSWORD_RECOVERY for all email link clicks
+        // Only route to password page if URL explicitly indicates recovery or invite
+        let isActualRecovery = false;
 
-      } else if (event === 'SIGNED_IN' && session?.user) {
-
-        // CHECK FOR INVITE / RECOVERY IN URL (Fallback if event wasn't PASSWORD_RECOVERY)
-        // Supabase often swallows the event type but leaves the hash until cleared.
-        let isInviteOrRecovery = false;
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           const hash = window.location.hash;
           const search = window.location.search;
-          if ((hash && (hash.includes('type=invite') || hash.includes('type=recovery'))) ||
-            (search && (search.includes('type=invite') || search.includes('type=recovery')))) {
+          const fullUrl = hash + search;
+
+          console.log('🚀 [RootLayout] PASSWORD_RECOVERY URL:', fullUrl);
+
+          // Only set recovery=true if URL explicitly contains recovery or invite type
+          if (fullUrl.includes('type=recovery') || fullUrl.includes('type=invite')) {
+            isActualRecovery = true;
+            console.log('🚀 [RootLayout] Explicit recovery/invite type found. Redirecting to password setup...');
+          } else {
+            // Default: treat as signup confirmation
+            console.log('🚀 [RootLayout] No recovery/invite type — treating as signup confirmation. Redirecting to welcome...');
+          }
+        }
+
+        if (isActualRecovery) {
+          setTimeout(() => router.replace('/modal/onboarding-password'), 500);
+        } else {
+          setTimeout(() => router.replace('/modal/email-confirmed'), 500);
+        }
+
+      } else if (event === 'SIGNED_IN' && session?.user) {
+
+        // CHECK FOR INVITE / RECOVERY / SIGNUP IN URL
+        // Supabase often swallows the event type but leaves the hash until cleared.
+        let isInviteOrRecovery = false;
+        let isSignupConfirmation = false;
+
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const hash = window.location.hash;
+          const search = window.location.search;
+          const fullUrl = hash + search;
+
+          // Check for invite or recovery
+          if (fullUrl.includes('type=invite') || fullUrl.includes('type=recovery')) {
             isInviteOrRecovery = true;
+          }
+          // Check for signup confirmation
+          else if (fullUrl.includes('type=signup') || fullUrl.includes('type=email')) {
+            isSignupConfirmation = true;
+          }
+          // Fallback: if there's an access_token but no type, treat as signup confirmation
+          else if (fullUrl.includes('access_token')) {
+            isSignupConfirmation = true;
           }
         }
 
         if (isProcessingInvite.current) isInviteOrRecovery = true;
 
         if (isInviteOrRecovery) {
-          console.log('🚀 [RootLayout] Invite/Recovery detected via URL sniff. Redirecting...');
+          console.log('🚀 [RootLayout] Invite/Recovery detected. Redirecting to password setup...');
           setTimeout(() => router.replace('/modal/onboarding-password'), 500);
+        } else if (isSignupConfirmation) {
+          console.log('🚀 [RootLayout] Signup confirmation detected. Redirecting to welcome...');
+          setTimeout(() => router.replace('/modal/email-confirmed'), 500);
         }
 
         // Auto-populate profile in store if missing
         const { profile, setProfile } = useContentStore.getState();
         if (!profile || profile.id !== session.user.id) {
-          console.log('🚀 [RootLayout] Detected External Login (Invite?). Syncing Profile...');
+          console.log('🚀 [RootLayout] New session detected. Syncing Profile...');
           const profileData = session.user.user_metadata || {};
+          // Use display_name if set, otherwise use email prefix (before @), or fallback
+          const emailPrefix = session.user.email?.split('@')[0] || 'New User';
           setProfile({
             id: session.user.id,
             email: session.user.email || '',
-            displayName: profileData.display_name || 'Accepted Invite',
+            displayName: profileData.display_name || emailPrefix,
             isPremium: !!profileData.is_premium
           });
         }
@@ -147,10 +187,12 @@ export default function RootLayout() {
   const isProcessingInvite = useRef<boolean>(false);
 
   // SYNCHRONOUS CHECK (Before Effects): Capture the intent immediately
+  // Only lock for ACTUAL invites/recovery — NOT signup confirmations
   if (Platform.OS === 'web' && typeof window !== 'undefined' && !isProcessingInvite.current) {
     const href = window.location.href;
-    if (href.includes('access_token') || href.includes('type=invite') || href.includes('type=recovery')) {
-      console.log('🚀 [RootLayout] Deep Link detected on render. Locking Router.');
+    // Only set this for explicit invite/recovery links, NOT signup confirmations
+    if (href.includes('type=invite') || href.includes('type=recovery')) {
+      console.log('🚀 [RootLayout] Invite/Recovery Deep Link detected on render. Locking Router.');
       isProcessingInvite.current = true;
     }
   }
@@ -166,6 +208,8 @@ export default function RootLayout() {
     const inPrivacyPage = segments[0] === 'privacy'; // Allow public access to /privacy
     const inTermsPage = segments[0] === 'terms'; // Allow public access to /terms
     const inOnboarding = segments[0] === 'modal' && segments[1] === 'onboarding-password';
+    const inCheckEmail = segments[0] === 'modal' && segments[1] === 'check-email';
+    const inEmailConfirmed = segments[0] === 'modal' && segments[1] === 'email-confirmed';
 
     // If we are processing an invite (caught in ref), DO NOT redirect to /auth yet.
     if (isProcessingInvite.current) {
@@ -173,7 +217,7 @@ export default function RootLayout() {
       return;
     }
 
-    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup && !inPrivacyPage && !inTermsPage && !inOnboarding && segments[0] !== undefined) {
+    if (!profile && !inAuthGroup && !inGigGroup && !inFanGroup && !inRoutineGroup && !inLiveGroup && !inPrivacyPage && !inTermsPage && !inOnboarding && !inCheckEmail && !inEmailConfirmed && segments[0] !== undefined) {
       console.log(`[log][...RootLayout] Redirecting to auth: /${segments.join('/')}`);
       router.replace('/auth');
     } else if (profile && inAuthGroup) {
@@ -279,6 +323,14 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="modal/onboarding-password"
+            options={{ presentation: 'fullScreenModal', headerShown: false }}
+          />
+          <Stack.Screen
+            name="modal/check-email"
+            options={{ presentation: 'fullScreenModal', headerShown: false }}
+          />
+          <Stack.Screen
+            name="modal/email-confirmed"
             options={{ presentation: 'fullScreenModal', headerShown: false }}
           />
           <Stack.Screen

@@ -51,19 +51,19 @@ export default function OnboardingPasswordScreen() {
 
                 <View className="items-center mb-10">
                     <View className="w-20 h-20 rounded-full bg-teal-500/20 items-center justify-center mb-6">
-                        <Ionicons name="checkmark-circle-outline" size={40} color="#14b8a6" />
+                        <Ionicons name="key-outline" size={40} color="#14b8a6" />
                     </View>
                     <Text className="text-3xl font-black text-white text-center mb-2">
-                        You're Almost In! 🎵
+                        Set Your Password 🔐
                     </Text>
                     <Text className="text-slate-400 text-center leading-relaxed">
-                        One last step — confirm your password below and you're ready to rock.
+                        Create a secure password to protect your account.
                     </Text>
                 </View>
 
                 <View className="space-y-4">
                     <View>
-                        <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">New Password</Text>
+                        <Text className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Password</Text>
                         <TextInput
                             className="bg-white/5 border border-white/10 p-4 rounded-2xl text-white font-bold text-lg"
                             secureTextEntry
@@ -96,13 +96,6 @@ export default function OnboardingPasswordScreen() {
                         <Text className="text-white font-black text-lg tracking-tight">
                             {loading ? 'Setting Password...' : 'Save & Enter Studio'}
                         </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        onPress={() => router.replace('/(drawer)')}
-                        className="p-4 items-center"
-                    >
-                        <Text className="text-slate-500 font-bold text-sm">Skip for now</Text>
                     </TouchableOpacity>
                 </View>
 
