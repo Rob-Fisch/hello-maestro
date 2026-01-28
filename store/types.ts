@@ -191,6 +191,7 @@ export interface UserProfile {
     avatarUrl?: string;
     lastSyncedAt?: string;    // Pro Features & Fan Engagement
     isPremium?: boolean;
+    proExpiresAt?: string;    // Campaign: ISO date when Pro expires (2125 = lifetime)
     tipUrl?: string;          // Venmo/CashApp/PayPal (Global)
     mailingListUrl?: string;  // Mailchimp/Google Form (Global)
     // socialUrl removed in favor of Event-specific link

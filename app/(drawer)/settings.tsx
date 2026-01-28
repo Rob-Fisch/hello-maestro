@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 export default function SettingsScreen() {
-    const { categories, addCategory, updateCategory, deleteCategory, settings, updateSettings, profile, setProfile, trackModuleUsage, setTheme, lastSyncedAt } = useContentStore();
+    const { categories, addCategory, updateCategory, deleteCategory, settings, updateSettings, profile, setProfile, trackModuleUsage, setTheme, lastSyncedAt, dismissedGettingStarted, resetGettingStarted, dismissGettingStarted } = useContentStore();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
 
@@ -439,6 +439,23 @@ export default function SettingsScreen() {
                             className={`w-14 h-8 rounded-full items-center justify-center ${settings.includeTOC ? 'bg-teal-500' : 'bg-white/10'}`}
                         >
                             <View className={`w-6 h-6 bg-white rounded-full shadow-sm ${settings.includeTOC ? 'ml-6' : 'mr-6'}`} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Onboarding Section */}
+                <View className="mb-8">
+                    <Text className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">Onboarding</Text>
+                    <View className="p-5 rounded-3xl border shadow-sm flex-row items-center justify-between" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                        <View className="flex-1 mr-4">
+                            <Text className="font-bold text-lg text-white">Show Welcome Banner</Text>
+                            <Text className="text-xs mt-1 text-slate-400">Display the "Where to Start" banner on the home page</Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => dismissedGettingStarted ? resetGettingStarted() : dismissGettingStarted()}
+                            className={`w-14 h-8 rounded-full flex-row items-center px-1 ${!dismissedGettingStarted ? 'bg-teal-500 justify-end' : 'bg-white/10 justify-start'}`}
+                        >
+                            <View className="w-6 h-6 bg-white rounded-full shadow-sm" />
                         </TouchableOpacity>
                     </View>
                 </View>

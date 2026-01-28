@@ -18,7 +18,7 @@ import { useNavigation, useRouter } from 'expo-router';
  * - The Studio (practice/routines)
  */
 export default function HomeScreen() {
-    const { routines, events, profile, syncStatus, fullSync } = useContentStore();
+    const { routines, events, profile, syncStatus, fullSync, dismissedGettingStarted, dismissGettingStarted, dismissedTrialBanner, dismissTrialBanner } = useContentStore();
 
     const router = useRouter();
     const navigation = useNavigation();
@@ -44,6 +44,11 @@ export default function HomeScreen() {
     // Studio stats
     const hasRoutines = (routines || []).length > 0;
     const routineCount = (routines || []).length;
+
+    // Calculate trial days remaining (if applicable)
+    const proExpiresAt = profile?.proExpiresAt;
+    const isTrialUser = profile?.isPremium && proExpiresAt && new Date(proExpiresAt) > today && new Date(proExpiresAt).getFullYear() < 2100;
+    const trialDaysRemaining = isTrialUser ? Math.ceil((new Date(proExpiresAt!).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
     return (
         <ScrollView
@@ -92,6 +97,90 @@ export default function HomeScreen() {
                 <Text className="text-3xl md:text-4xl font-black tracking-tighter leading-tight text-white mb-8">
                     {profile?.displayName ? `Hello, ${profile.displayName}!` : 'OpusMode'}
                 </Text>
+
+                {/* WHERE TO START - Bold onboarding banner */}
+                {!dismissedGettingStarted && (
+                    <View className="mb-8">
+                        <LinearGradient
+                            colors={['#7c3aed', '#2563eb']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{ borderRadius: 20, padding: 20, position: 'relative' }}
+                        >
+                            {/* Dismiss button with label */}
+                            <TouchableOpacity
+                                onPress={dismissGettingStarted}
+                                className="absolute top-3 right-3 flex-row items-center bg-white/20 rounded-full pl-3 pr-2 py-1.5 z-10"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            >
+                                <Text className="text-white/80 text-[10px] font-medium mr-1.5">Dismiss</Text>
+                                <Ionicons name="close" size={14} color="white" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => router.push('/modal/getting-started')}
+                                activeOpacity={0.9}
+                            >
+                                <View className="flex-row items-center mb-3">
+                                    <View className="w-12 h-12 bg-white/20 rounded-2xl items-center justify-center mr-4">
+                                        <Ionicons name="rocket" size={24} color="white" />
+                                    </View>
+                                    <View className="flex-1 pr-8">
+                                        <Text className="text-xl font-black text-white">Where to Start</Text>
+                                        <Text className="text-white/70 text-sm">New here? Let's show you around!</Text>
+                                    </View>
+                                </View>
+
+                                <View className="flex-row items-center justify-end">
+                                    <Text className="text-white font-bold text-sm mr-2">Take the tour</Text>
+                                    <Ionicons name="arrow-forward" size={16} color="white" />
+                                </View>
+                            </TouchableOpacity>
+                        </LinearGradient>
+                    </View>
+                )}
+
+                {/* TRIAL COUNTDOWN BANNER - For trial users */}
+                {isTrialUser && !dismissedTrialBanner && (
+                    <View className="mb-8">
+                        <LinearGradient
+                            colors={['#f59e0b', '#d97706']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{ borderRadius: 20, padding: 20, position: 'relative' }}
+                        >
+                            {/* Dismiss button */}
+                            <TouchableOpacity
+                                onPress={dismissTrialBanner}
+                                className="absolute top-3 right-3 flex-row items-center bg-white/20 rounded-full pl-3 pr-2 py-1.5 z-10"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            >
+                                <Text className="text-white/80 text-[10px] font-medium mr-1.5">Dismiss</Text>
+                                <Ionicons name="close" size={14} color="white" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => router.push('/modal/upgrade')}
+                                activeOpacity={0.9}
+                            >
+                                <View className="flex-row items-center mb-3">
+                                    <View className="w-12 h-12 bg-white/20 rounded-2xl items-center justify-center mr-4">
+                                        <Ionicons name="time" size={24} color="white" />
+                                    </View>
+                                    <View className="flex-1 pr-8">
+                                        <Text className="text-xl font-black text-white">Pro Trial: {trialDaysRemaining} days left</Text>
+                                        <Text className="text-white/70 text-sm">Upgrade to keep all your Pro features!</Text>
+                                    </View>
+                                </View>
+
+                                <View className="flex-row items-center justify-end">
+                                    <Text className="text-white font-bold text-sm mr-2">Upgrade Now</Text>
+                                    <Ionicons name="arrow-forward" size={16} color="white" />
+                                </View>
+                            </TouchableOpacity>
+                        </LinearGradient>
+                    </View>
+                )}
 
                 {/* TWO HUBS - Option 2: With "How it works" button */}
                 <View className="flex-row gap-4 mb-8">

@@ -23,6 +23,7 @@
 | 4 | 2 | **Navigator Query Pack Marketing** | General strategy for in-app purchase visibility, placement, and messaging for Navigator Query Packs. Currently shows usage + Buy 10-Pack link after first query. | — | ⬜ | 01-27 | |
 | 5 | 1 | **Upgrade Page Marketing Content** | Beef up content on Upgrade modal with better headlines, feature benefits, and Pro/Pro+ comparison. Contextual triggers already implemented. | — | ⬜ | 01-27 | |
 | 6 | 1 | **Home Page Footer → Site Map** | "Everything You Need" graphic at bottom of home page is non-functional. Make it link to the Site Map (Help page). | — | ⬜ | 01-27 | |
+| 7 | 2 | **Signed-Out Landing Page** | Show marketing/landing page at `/` when not logged in, instead of redirecting to auth. Reduces friction during development and improves UX for new visitors. | — | ⬜ | 01-28 | |
 
 ---
 
@@ -130,6 +131,7 @@
 
 ## ✅ Completed
 
+- [x] **"Where to Start" Onboarding** — Dismissible banner on home page linking to new Getting Started guide, hamburger menu reorganization with Stage grouping. (2026-01-28)
 - [x] **Interaction Timeline (Venue CRM)** — Log calls, emails, meetings with contacts. Full implementation in People detail view.
 - [x] **Navigator In-App AI Integration** — Gemini 2.0 Flash + geocoding + markdown rendering (Build 77)
 - [x] **Promotional User Tracking (`proSource`)** — Webhook sets `proSource: 'paid'` on purchases (2026-01-24)

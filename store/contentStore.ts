@@ -110,6 +110,16 @@ interface ContentState {
     studentMode: boolean;
     toggleStudentMode: (enabled: boolean) => void;
 
+    // Onboarding dismissals
+    dismissedGettingStarted: boolean;
+    dismissGettingStarted: () => void;
+    resetGettingStarted: () => void;
+
+    // Trial banner dismissal
+    dismissedTrialBanner: boolean;
+    dismissTrialBanner: () => void;
+    resetTrialBanner: () => void;
+
     // ROBUST SYNC: Pending Deletions
     pendingDeletions: { table: TableName, id: string }[];
 }
@@ -957,6 +967,16 @@ export const useContentStore = create<ContentState>()(
             // Student Mode
             studentMode: false,
             toggleStudentMode: (enabled) => set({ studentMode: enabled }),
+
+            // Onboarding dismissals
+            dismissedGettingStarted: false,
+            dismissGettingStarted: () => set({ dismissedGettingStarted: true }),
+            resetGettingStarted: () => set({ dismissedGettingStarted: false }),
+
+            // Trial banner dismissal
+            dismissedTrialBanner: false,
+            dismissTrialBanner: () => set({ dismissedTrialBanner: true }),
+            resetTrialBanner: () => set({ dismissedTrialBanner: false }),
 
         }),
         {

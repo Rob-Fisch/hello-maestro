@@ -17,6 +17,26 @@ When making a significant technical decision, add an entry below with:
 
 ## Decisions
 
+### 2026-01-28 — "Where to Start" Onboarding
+
+**Decision:** Add a dismissible "Where to Start" banner on the home page with a new Getting Started guide page, plus reorganize the hamburger menu to group performance-related items.
+
+**Context:** New users landing on the home page need gentle guidance to discover the app's features. The hamburger menu contains everything they need, but it's not immediately obvious.
+
+**Implementation:**
+- Dismissible "Where to Start" banner on home page (bold styling, persists until dismissed)
+- New `/modal/getting-started` page with:
+  1. Hamburger menu graphic explaining "Everything you need is in there"
+  2. Reference to Site Map (detailed menu view)
+  3. Reference to Help section (detailed instructions)
+- Hamburger menu reorganization: Group "The Stage" with indented Set Lists and Song Library
+- "Getting Started" link in hamburger footer above Sign Out (recovery path for dismissed users)
+- Dismissal state persisted in user profile
+
+**Outcome:** ⏳ In Progress 2026-01-28
+
+---
+
 ### 2026-01-27 — Admin Panel User Deletion
 
 **Decision:** Add Delete User functionality to the Admin Panel with safety guards.

@@ -14,17 +14,21 @@ interface NavItem {
     label: string;
     path: Href;
     hidden?: boolean;
+    indent?: boolean; // Visual indent for sub-items
 }
 
 const NAV_ITEMS: NavItem[] = [
+    // Main navigation order
     { name: 'index', icon: 'home-outline', label: 'Home', path: '/' },
-    { name: 'stage', icon: 'mic-outline', label: 'The Stage', path: '/stage' },
     { name: 'studio', icon: 'easel-outline', label: 'The Studio', path: '/studio' },
     { name: 'events', icon: 'calendar-outline', label: 'Schedule', path: '/events' },
-    { name: 'coach', icon: 'compass-outline', label: 'The Navigator', path: '/coach' },
     { name: 'people', icon: 'people-outline', label: 'Contacts', path: '/people' },
-    { name: 'setlists', icon: 'list-outline', label: 'Set Lists', path: '/setlists' },
-    { name: 'songs', icon: 'mic-outline', label: 'Song Library', path: '/songs' },
+    // The Stage group (with indented sub-items)
+    { name: 'stage', icon: 'mic-outline', label: 'The Stage', path: '/stage' },
+    { name: 'setlists', icon: 'list-outline', label: 'Set Lists', path: '/setlists', indent: true },
+    { name: 'songs', icon: 'musical-note-outline', label: 'Song Library', path: '/songs', indent: true },
+    // Bottom items
+    { name: 'coach', icon: 'compass-outline', label: 'The Navigator', path: '/coach' },
     { name: 'finance', icon: 'wallet-outline', label: 'Finance', path: '/finance' },
     { name: 'settings', icon: 'settings-outline', label: 'Settings', path: '/settings' },
 
@@ -98,6 +102,15 @@ function CustomDrawerContent(props: any) {
 
                 {/* Footer Section (Now Scrollable) */}
                 <View style={{ borderTopWidth: 1, borderTopColor: theme.border, marginTop: 20, paddingTop: 20, paddingHorizontal: 20 }}>
+                    {/* Getting Started */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/modal/getting-started')}
+                        className="flex-row items-center p-2 opacity-70 mb-2"
+                    >
+                        <Ionicons name="rocket-outline" size={22} color={theme.text} style={{ marginRight: 12 }} />
+                        <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>Getting Started</Text>
+                    </TouchableOpacity>
+
                     {/* Site Map */}
                     <TouchableOpacity
                         onPress={() => router.push('/modal/sitemap')}
@@ -174,6 +187,13 @@ export default function DrawerLayout() {
                             isHidden = true;
                         }
 
+                        // Build drawerItemStyle based on visibility and indent
+                        const itemStyle = (item.name === 'menu' || isHidden)
+                            ? { display: 'none' as const }
+                            : item.indent
+                                ? { marginLeft: 20, opacity: 0.85 }
+                                : undefined;
+
                         return (
                             <Drawer.Screen
                                 key={item.name}
@@ -182,9 +202,9 @@ export default function DrawerLayout() {
                                     drawerLabel: item.label,
                                     title: item.label,
                                     drawerIcon: ({ color, size }) => (
-                                        <Ionicons name={item.icon as any} size={size + 4} color={color} />
+                                        <Ionicons name={item.icon as any} size={item.indent ? size : size + 4} color={color} />
                                     ),
-                                    drawerItemStyle: (item.name === 'menu' || isHidden) ? { display: 'none' } : undefined
+                                    drawerItemStyle: itemStyle
                                 }}
                             />
                         );

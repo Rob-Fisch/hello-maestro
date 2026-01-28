@@ -384,6 +384,7 @@ export async function pullProfileFromCloud() {
         displayName: user.user_metadata?.display_name || 'Maestro',
         avatarUrl: user.user_metadata?.avatar_url,
         isPremium: !!user.user_metadata?.is_premium,
+        proExpiresAt: user.user_metadata?.pro_expires_at,
     };
 }
 

@@ -26,10 +26,10 @@ export default function AuthScreen() {
     const { setProfile, fullSync } = useContentStore();
 
     const router = useRouter();
-    const { redirectTo, mode } = useLocalSearchParams<{ redirectTo: string; mode: string }>();
+    const { redirectTo, mode, campaign, tier } = useLocalSearchParams<{ redirectTo: string; mode: string; campaign?: string; tier?: 'lifetime' | 'trial' }>();
 
-    // Initialize isSignUp based on mode query param (from "Get Started Free")
-    const [isSignUp, setIsSignUp] = useState(mode === 'signup');
+    // Initialize isSignUp based on mode query param or campaign flow
+    const [isSignUp, setIsSignUp] = useState(mode === 'signup' || !!campaign);
 
     // --- ANIMATION REFS ---
     const fadeAnim = useRef(new Animated.Value(1)).current; // Opacity for transitions
@@ -105,10 +105,36 @@ export default function AuthScreen() {
         try {
             // Attempt real Supabase Auth
             if (isSignUp) {
+                // Prepare user metadata based on campaign tier
+                let userData: Record<string, any> = { display_name: undefined };
+
+                if (campaign && tier) {
+                    // Claim the spot via RPC (atomic operation)
+                    const { data: claimResult, error: claimError } = await supabase.rpc('claim_campaign_spot', { campaign_code: campaign });
+
+                    if (claimError) {
+                        console.error('Campaign claim error:', claimError);
+                        // Continue with signup but without campaign benefits
+                    } else if (claimResult === 'lifetime') {
+                        // Lifetime Pro - expires in 2125
+                        userData.is_premium = true;
+                        userData.pro_expires_at = '2125-01-01T00:00:00Z';
+                        userData.signup_campaign = campaign;
+                    } else if (claimResult === 'trial') {
+                        // 30-day trial
+                        const expiresAt = new Date();
+                        expiresAt.setDate(expiresAt.getDate() + 30);
+                        userData.is_premium = true;
+                        userData.pro_expires_at = expiresAt.toISOString();
+                        userData.signup_campaign = campaign;
+                    }
+                    // If claimResult is 'waitlist' or 'invalid', user gets free tier
+                }
+
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
-                    options: { data: { display_name: undefined }, emailRedirectTo: Linking.createURL('/') }
+                    options: { data: userData, emailRedirectTo: Linking.createURL('/') }
                 });
                 if (error) throw error;
                 // Navigate to check-email page instead of just showing an Alert
@@ -195,8 +221,18 @@ export default function AuthScreen() {
                     </View>
 
                     <Text className="text-5xl font-black text-white tracking-tighter mb-2 text-center">OpusMode</Text>
+
+                    {/* Campaign signup context */}
+                    {campaign && tier && (
+                        <View className="bg-indigo-900/30 border border-indigo-500/30 rounded-2xl p-4 mb-6">
+                            <Text className="text-indigo-300 text-center font-bold">
+                                {tier === 'lifetime' ? '🎉 Claiming Lifetime Pro Access' : '⚡ Starting 30-Day Pro Trial'}
+                            </Text>
+                        </View>
+                    )}
+
                     <Text className="text-slate-400 text-lg font-medium leading-relaxed text-center mb-10">
-                        Your career, fully composed and orchestrated. OpusMode is the ultimate toolkit for the working musician.
+                        {campaign ? 'Create your account to continue.' : 'Your career, fully composed and orchestrated. OpusMode is the ultimate toolkit for the working musician.'}
                     </Text>
 
                     <View className="space-y-4">
