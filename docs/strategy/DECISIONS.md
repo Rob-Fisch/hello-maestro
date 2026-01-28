@@ -17,6 +17,24 @@ When making a significant technical decision, add an entry below with:
 
 ## Decisions
 
+### 2026-01-27 — Admin Panel User Deletion
+
+**Decision:** Add Delete User functionality to the Admin Panel with safety guards.
+
+**Context:** Need ability to delete test users and manage accounts from within the app. Supabase dashboard deletion was failing due to foreign key constraints on user data.
+
+**Implementation:**
+- Added `delete` action to `admin-api` Edge Function
+- Added Delete User button to Admin Panel UI with confirmation dialog
+- Protects admin accounts from deletion
+- Created `/delete-user` workflow documenting manual SQL deletion process
+
+**Pending:** User deletion will fail with FK errors until backlog item #27 (CASCADE Foreign Keys) is implemented. Until then, use the manual SQL workflow.
+
+**Outcome:** ⚠️ Deployed 2026-01-27 (Build 84). Button works but deletion blocked by FK constraints until CASCADE migration is complete.
+
+---
+
 ### 2026-01-27 — Onboarding Email Flow Improvement
 
 **Decision:** Redesign the signup email verification flow to eliminate confusing password re-entry after email confirmation.
@@ -42,7 +60,7 @@ When making a significant technical decision, add an entry below with:
 - `[MODIFY] _layout.tsx` — Route signup confirmations to email-confirmed, keep password page for invites/recovery only
 - `[MODIFY] onboarding-password.tsx` — Remove "Skip" option, clarify it's for invites only
 
-**Outcome:** Implemented 2026-01-27. Ready for testing.
+**Outcome:** ✅ Deployed 2026-01-27 (Build 84). Tested and working — users go directly to home after email verification without seeing the password page.
 
 ---
 ### 2026-01-27 — Documentation Restructuring
