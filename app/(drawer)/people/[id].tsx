@@ -168,7 +168,7 @@ export default function PersonDetailScreen() {
     const router = useRouter();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
-    const { people, interactionLogs, logInteraction, updateInteractionLog, deleteInteractionLog } = useContentStore();
+    const { people, interactionLogs, logInteraction, updateInteractionLog, deleteInteractionLog, deletePerson } = useContentStore();
 
     const person = people.find(p => p.id === id);
 
@@ -361,6 +361,22 @@ export default function PersonDetailScreen() {
         }
     };
 
+    const handleDeleteContact = () => {
+        const fullName = `${person.firstName} ${person.lastName}`;
+        const confirmDelete = () => {
+            deletePerson(person.id);
+            router.navigate('/people');
+        };
+        if (Platform.OS === 'web') {
+            if (confirm(`Are you sure you want to delete ${fullName}?`)) confirmDelete();
+        } else {
+            Alert.alert("Delete Contact", `Are you sure you want to delete ${fullName}?`, [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", style: "destructive", onPress: confirmDelete }
+            ]);
+        }
+    };
+
     const badge = getBadge(person.type);
 
     const interactionTypes: { label: string, value: InteractionType, icon: string }[] = [
@@ -456,12 +472,20 @@ export default function PersonDetailScreen() {
                         </View>
                     )}
 
-                    <TouchableOpacity
-                        onPress={() => router.push(`/modal/person-editor?id=${person.id}`)}
-                        className="mt-6 bg-gray-100 py-3 rounded-xl items-center border border-gray-200"
-                    >
-                        <Text className="font-bold text-gray-700">Edit Profile</Text>
-                    </TouchableOpacity>
+                    <View className="flex-row gap-3 mt-6">
+                        <TouchableOpacity
+                            onPress={() => router.push(`/modal/person-editor?id=${person.id}`)}
+                            className="flex-1 bg-gray-100 py-3 rounded-xl items-center border border-gray-200"
+                        >
+                            <Text className="font-bold text-gray-700">Edit Profile</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={handleDeleteContact}
+                            className="px-6 py-3 rounded-xl items-center border border-red-200 bg-red-50"
+                        >
+                            <Ionicons name="trash-outline" size={18} color="#dc2626" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Relationship Engine */}

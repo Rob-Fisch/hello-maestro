@@ -272,7 +272,7 @@ export default function HomeScreen() {
 
                 {/* QUICK ACCESS HINT - Links to Site Map */}
                 <TouchableOpacity
-                    onPress={() => router.push('/more/help')}
+                    onPress={() => router.push('/modal/help')}
                     activeOpacity={0.7}
                     className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 mb-8"
                 >

@@ -10,7 +10,7 @@ import { Alert, FlatList, Platform, ScrollView, Text, TextInput, TouchableOpacit
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PeopleScreen() {
-    const { people = [], deletePerson, trackModuleUsage } = useContentStore();
+    const { people = [], trackModuleUsage } = useContentStore();
     const theme = useTheme();
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
@@ -69,18 +69,6 @@ export default function PeopleScreen() {
         }
     }, [people, activeFilter, searchQuery]);
 
-    const handleDelete = (id: string, firstName: string, lastName: string) => {
-        const fullName = `${firstName} ${lastName}`;
-        const confirmDelete = () => deletePerson(id);
-        if (Platform.OS === 'web') {
-            if (confirm(`Are you sure you want to delete ${fullName}?`)) confirmDelete();
-        } else {
-            Alert.alert("Delete Contact", `Are you sure?`, [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: confirmDelete }
-            ]);
-        }
-    };
 
     const getBadge = (type: PersonType) => {
         switch (type) {
@@ -118,12 +106,29 @@ export default function PeopleScreen() {
         }
     };
 
+    // Helper to format relative time
+    const formatRelativeTime = (dateStr?: string) => {
+        if (!dateStr) return null;
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return '1 day ago';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
+        return `${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) > 1 ? 's' : ''} ago`;
+    };
+
     const renderRosterItem = ({ item }: { item: Person }) => {
         const badge = getBadge(item.type);
+        const updatedText = formatRelativeTime(item.updatedAt || item.createdAt);
         return (
             <View className="mb-4 border rounded-[24px] overflow-hidden shadow-sm mx-1" style={{ backgroundColor: 'rgba(30, 41, 59, 0.7)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                 <TouchableOpacity className="p-6" onPress={() => router.push(`/people/${item.id}`)}>
-                    <View className="flex-row justify-between items-start mb-4">
+                    <View className="flex-row justify-between items-start mb-2">
                         <View className="flex-1 mr-4">
                             <View className={`self-start px-3 py-1 rounded-full mb-3 flex-row items-center ${badge.color}`}>
                                 <Ionicons name={badge.icon as any} size={12} color={badge.text} />
@@ -146,14 +151,19 @@ export default function PeopleScreen() {
                                 <Text className="text-sm font-bold text-blue-400 mt-1">{item.instruments?.join(', ') || item.instrument}</Text>
                             )}
                         </View>
-                        <TouchableOpacity onPress={() => handleDelete(item.id, item.firstName, item.lastName)} className="p-2 bg-white/5 rounded-full">
-                            <Ionicons name="trash-outline" size={18} color="#ef4444" />
-                        </TouchableOpacity>
+                        <Ionicons name="chevron-forward" size={20} color="#64748b" />
                     </View>
+                    {/* Freshness Indicator */}
+                    {updatedText && (
+                        <View className="flex-row justify-end mt-2">
+                            <Text className="text-[10px] text-slate-500">Updated {updatedText}</Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
             </View>
         );
     };
+
 
     return (
         <View className="flex-1" style={{ backgroundColor: theme.background }}>

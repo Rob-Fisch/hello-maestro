@@ -161,6 +161,7 @@ export interface Person {
 
     platform?: 'web' | 'native'; // Two Islands: Web vs Native App
     createdAt: string;
+    updatedAt?: string; // Tracked automatically by database trigger
 }
 
 

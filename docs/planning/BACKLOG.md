@@ -7,6 +7,19 @@
 
 ---
 
+## 🚨 Critical: Multi-Device Sync Safety
+
+| # | Pri | Issue | Description | Status | Created |
+|---|-----|-------|-------------|--------|---------|
+| 33 | 1 | **Sync Overwrites Stale Data** | Current `fullSync` pushes ALL local data via upsert, regardless of whether it's newer than cloud. If you edit on iPhone, then open iPad with stale cache, iPad sync will overwrite iPhone's changes. Need version/timestamp comparison before push. | ⬜ | 01-28 |
+
+**Mitigation options:**
+1. Add `version` column, reject pushes where local version < cloud version
+2. Compare `updatedAt` timestamps before push, skip if cloud is newer
+3. Conflict detection UI for user resolution
+
+---
+
 ## ⏭️ Next Session
 
 - [x] **Plain-Language Pricing Copy** — ✅ Completed 2026-01-25. Rewrote landing page copy using everyday language. New hero: "OpusMode: The Missing Toolkit For Musicians". Replaced Navigator references with AI benefit language, simplified pricing features, used "leads" instead of "gigs".
@@ -126,6 +139,7 @@
 | 29 | 2 | **Native iOS/Android Apps** | App Store submission (activates "Two Islands" sync) | — | ⬜ | 01-25 | |
 | 30 | 2 | **Usage Analytics (SQL Detective Work)** | Query Supabase for user behavior insights | — | ⬜ | 01-25 | |
 | 31 | 2 | **Metabase BI Dashboard** | Connect Metabase to Supabase for visual dashboards | — | ⬜ | 01-25 | |
+| 32 | 3 | **Database Schema Documentation** | Create a reference doc explaining what every table is for (e.g., `people` vs `contacts`, `events` vs `event_finance`). | — | ⬜ | 01-28 | |
 
 ---
 
