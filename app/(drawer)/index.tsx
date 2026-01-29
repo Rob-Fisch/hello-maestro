@@ -270,9 +270,16 @@ export default function HomeScreen() {
                 {/* FEATURE DISCOVERY CARDS */}
                 <FeatureDiscoveryCards />
 
-                {/* QUICK ACCESS HINT */}
-                <View className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 mb-8">
-                    <Text className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Everything you need</Text>
+                {/* QUICK ACCESS HINT - Links to Site Map */}
+                <TouchableOpacity
+                    onPress={() => router.push('/more/help')}
+                    activeOpacity={0.7}
+                    className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 mb-8"
+                >
+                    <View className="flex-row items-center justify-between mb-3">
+                        <Text className="text-slate-400 text-xs font-bold uppercase tracking-widest">Everything you need</Text>
+                        <Ionicons name="chevron-forward" size={14} color="#64748b" />
+                    </View>
                     <View className="flex-row justify-around">
                         <View className="items-center">
                             <Ionicons name="list" size={20} color="#94a3b8" />
@@ -295,7 +302,7 @@ export default function HomeScreen() {
                             <Text className="text-slate-500 text-[10px] mt-1">Navigator</Text>
                         </View>
                     </View>
-                </View>
+                </TouchableOpacity>
 
                 {/* Footer */}
                 <View className="mt-8 mb-16 items-center opacity-50">
