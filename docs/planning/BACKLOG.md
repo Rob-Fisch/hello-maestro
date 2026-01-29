@@ -22,7 +22,7 @@
 | 3 | 3 | **Settings Link** | Add evergreen "Give Feedback" link in Settings | — | ⬜ | 01-25 | |
 | 4 | 2 | **Navigator Query Pack Marketing** | General strategy for in-app purchase visibility, placement, and messaging for Navigator Query Packs. Currently shows usage + Buy 10-Pack link after first query. | — | ⬜ | 01-27 | |
 | 5 | 1 | **Upgrade Page Marketing Content** | Beef up content on Upgrade modal with better headlines, feature benefits, and Pro/Pro+ comparison. Contextual triggers already implemented. | — | ⬜ | 01-27 | |
-| 6 | 1 | **Home Page Footer → Site Map** | "Everything You Need" graphic at bottom of home page is non-functional. Make it link to the Site Map (Help page). | — | ⬜ | 01-27 | |
+| 6 | 1 | **Home Page Footer → Site Map** | "Everything You Need" graphic at bottom of home page is non-functional. Make it link to the Site Map (Help page). | — | ✅ | 01-27 | 01-28 |
 | 7 | 2 | **Signed-Out Landing Page** | Show marketing/landing page at `/` when not logged in, instead of redirecting to auth. Reduces friction during development and improves UX for new visitors. | — | ⬜ | 01-28 | |
 
 ---
